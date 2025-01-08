@@ -3,10 +3,7 @@ import React, { useEffect } from "react";
 import { useProductStore } from "../stores/useProductStore";
 import ProductsSidebar from "../../components/ProductsSideBar";
 import ItemCard from "../../components/ItemCard";
-<<<<<<< HEAD
 import Loading from "@/components/Loading";
-=======
->>>>>>> bc6417a (feature 02 product side bar)
 
 export default function ProductsPage() {
   const {
@@ -43,6 +40,7 @@ export default function ProductsPage() {
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
 <<<<<<< HEAD
+<<<<<<< HEAD
             {filteredProducts.map((product) => {
               // Normalize image: use first URL from imageUrls if present, otherwise use image
               const displayImage =
@@ -61,6 +59,17 @@ export default function ProductsPage() {
                   link={`/listings/${product.id}`}
                   likes={product.likes || 0} // Default to 0 if not provided
                   views={product.views || 0} // Default to 0 if not provided
+=======
+            {filteredProducts.map((product) => (
+              <div
+                key={product.id}
+                className="bg-white shadow-md rounded-lg p-4 hover:shadow-lg transition-shadow"
+              >
+                <img
+                  src={product.image}
+                  alt={product.name}
+                  className="w-full h-40 object-cover rounded-md"
+>>>>>>> b0bb96a (feature 02 product side bar)
                 />
               );
             })}
