@@ -41,6 +41,7 @@ const ProductsSidebar = () => {
     category.toLowerCase().includes(categoryQuery.toLowerCase())
   );
 
+  
   return (
     <aside className="w-full lg:w-1/4 p-6 bg-background dark:bg-background-dark shadow-md h-auto lg:h-screen overflow-y-auto">
       {/* Search Bar */}
