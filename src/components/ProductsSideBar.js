@@ -59,11 +59,15 @@ const ProductsSidebar = () => {
 
 <<<<<<< HEAD
 <<<<<<< HEAD
+<<<<<<< HEAD
   
 =======
 >>>>>>> f25398b (feature 02 product side bar)
 =======
 >>>>>>> f28aebc (feature 02 product side bar)
+=======
+  
+>>>>>>> bc6417a (feature 02 product side bar)
   return (
     <aside className="w-full lg:w-1/4 p-6 bg-background dark:bg-background-dark shadow-md h-auto lg:h-screen overflow-y-auto">
       {/* Search Bar */}
