@@ -1,12 +1,12 @@
 import React from "react";
 import ItemCard from "./ItemCard";
+import products from "@/dummyData/products"; // Import products from dummy data
 
 const TrendingProductsSection = () => {
-  const trendingProducts = [
-    { id: 1, name: "Laptop", price: "$500", img: "/laptop.jpg" },
-    { id: 2, name: "Smartphone", price: "$300", img: "/smartphone.jpg" },
-    { id: 3, name: "Headphones", price: "$50", img: "/headphones.jpg" },
-  ];
+  // Sort products by likes in descending order and take the top 6
+  const trendingProducts = [...products]
+    .sort((a, b) => b.likes - a.likes)
+    .slice(0, 6);
 
   return (
     <section className="py-16 bg-background text-foreground dark:bg-background-dark dark:text-foreground-dark">
@@ -19,10 +19,13 @@ const TrendingProductsSection = () => {
             <ItemCard
               key={product.id}
               id={product.id}
-              image={product.img}
+              image={product.image}
               title={product.name}
-              description={product.price}
+              description={`${product.subtype}`} 
+              price={`${product.price}`} 
               link={`/products/${product.id}`}
+              likes={product.likes}
+              views={product.views}
             />
           ))}
         </div>

@@ -1,23 +1,31 @@
 import React from "react";
 import Link from "next/link";
 
-const ItemCard = ({ id, image, title, description, link }) => {
+const ItemCard = ({ id, image, title, description, price, link, likes, views }) => {
   return (
-    <div className="bg-background text-foreground shadow-lg rounded-lg overflow-hidden hover:shadow-xl transition-shadow duration-300 dark:bg-secondary-dark dark:text-foreground-dark">
+    <div className="bg-white shadow-md rounded-lg p-4 hover:shadow-lg transition-shadow">
       <img
         src={image}
         alt={title}
-        className="w-full h-40 object-cover"
+        className="w-full h-40 object-cover rounded-md"
       />
-      <div className="p-4">
-        <h3 className="font-bold text-xl mb-2">{title}</h3>
-        <p className="text-gray-700 dark:text-gray-300 text-sm mb-4">{description}</p>
+      <h2 className="text-lg font-semibold mt-2">{title}</h2>
+      <p className="text-gray-600 mt-1">Price: ${price}</p>
+
+      {/* Likes and Views Section */}
+      <div className="flex justify-between items-center mt-2 text-sm text-gray-500">
+        <span>👍 {likes} Likes</span>
+        <span>👁️ {views} Views</span>
+      </div>
+
+      <div className="mt-4 flex justify-between items-center">
         <Link
           href={link}
-          className="text-accent hover:text-accent-dark font-medium hover:underline dark:text-accent-dark"
+          className="px-4 py-2 bg-primary text-white rounded-md hover:bg-primary-dark"
         >
           View Details
         </Link>
+        <p className="text-sm text-gray-500">{description}</p>
       </div>
     </div>
   );

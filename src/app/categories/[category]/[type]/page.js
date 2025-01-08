@@ -1,27 +1,42 @@
-"use client"; // Enables client-side hooks like `usePathname`
-
+"use client";
 import React from "react";
 import { usePathname } from "next/navigation";
+import products from '../../../../dummyData/products';
+import ItemCard from '../../../../components/ItemCard'; 
 
 const TypePage = () => {
-  const pathname = usePathname(); // Get the current path
-  const parts = pathname.split("/"); // Split the path to extract parameters
-  const category = parts[parts.length - 2]; // Get the category from the URL
-  const type = parts[parts.length - 1]; // Get the type from the URL
+  const pathname = usePathname();
+  const parts = pathname.split("/");
+  const category = parts[parts.length - 2];
+  const type = parts[parts.length - 1].replace(/-/g, " ");
+
+  const filteredProducts = products.filter(
+    (product) =>
+      product.category.toLowerCase() === category &&
+      product.subtype?.toLowerCase() === type.toLowerCase()
+  );
 
   return (
     <div className="container mx-auto px-4 py-16">
       <h1 className="text-3xl font-bold mb-6 text-center">
-        {type?.replace(/-/g, " ").charAt(0).toUpperCase() + type?.slice(1).replace(/-/g, " ")} in{" "}
-        {category?.charAt(0).toUpperCase() + category?.slice(1)}
+        {type.charAt(0).toUpperCase() + type.slice(1)} in{" "}
+        {category.charAt(0).toUpperCase() + category.slice(1)}
       </h1>
-      {/* Placeholder for items */}
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        {[1, 2, 3, 4].map((item) => (
-          <div key={item} className="bg-white shadow-md rounded-lg p-6 text-center">
-            <p className="font-semibold">Item {item}</p>
-          </div>
-        ))}
+        {filteredProducts.length > 0 ? (
+          filteredProducts.map((product) => (
+            <ItemCard
+              key={product.id}
+              id={product.id}
+              image={product.image}
+              title={product.name}
+              description={`Price: $${product.price}`}
+              link={`/products/${product.id}`} // Adjust the link as per your routing
+            />
+          ))
+        ) : (
+          <p className="text-center col-span-full">No products found</p>
+        )}
       </div>
     </div>
   );
