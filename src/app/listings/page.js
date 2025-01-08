@@ -6,10 +6,11 @@ import ProductsSidebar from "../../components/ProductsSideBar";
 
 export default function ProductsPage() {
   const {
-    products,
+    filteredProducts,
     fetchProducts,
     applyFilters,
     loading,
+    filters, // To monitor changes in filters
   } = useProductStore();
 
   // Fetch products from Firebase when the component mounts
@@ -20,26 +21,26 @@ export default function ProductsPage() {
   // Apply filters when they change
   useEffect(() => {
     applyFilters();
-  }, [applyFilters]);
+  }, [applyFilters, filters]); // Depend on filters to reapply filters when they change
 
   return (
-    <div className="flex">
+    <div className="flex flex-col lg:flex-row">
       {/* Sidebar */}
       <ProductsSidebar />
 
       {/* Product Grid */}
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-4">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-lg font-semibold text-gray-500">Loading products...</p>
           </div>
-        ) : products.length === 0 ? (
+        ) : filteredProducts.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-lg font-semibold text-gray-500">No products found.</p>
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {products.map((product) => (
+            {filteredProducts.map((product) => (
               <div
                 key={product.id}
                 className="bg-white shadow-md rounded-lg p-4 hover:shadow-lg transition-shadow"
