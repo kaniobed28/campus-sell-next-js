@@ -22,17 +22,19 @@ const categories = [
 
 const CategoriesSection = () => {
   return (
-    <section className="py-16">
+    <section className="py-16 bg-background text-foreground dark:bg-background-dark dark:text-foreground-dark">
       <div className="container mx-auto px-4">
-        <h2 className="text-2xl font-bold mb-8 text-center">Explore Categories</h2>
+        <h2 className="text-3xl font-bold mb-8 text-center">
+          Explore Categories
+        </h2>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
           {categories.map((category, index) => (
             <Link
               href={`/categories/${category.name.toLowerCase()}`}
               key={index}
-              className="bg-white shadow-md rounded-lg p-6 text-center hover:shadow-lg"
+              className="bg-accent text-background rounded-lg p-6 text-center shadow-lg hover:bg-primary hover:text-white dark:bg-accent-dark dark:text-background-dark dark:hover:bg-secondary-dark dark:hover:text-white transition-all duration-300"
             >
-              <p className="font-semibold">{category.name}</p>
+              <p className="font-semibold text-lg">{category.name}</p>
             </Link>
           ))}
         </div>
