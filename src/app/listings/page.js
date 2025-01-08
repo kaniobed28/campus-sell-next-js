@@ -5,12 +5,7 @@ import { useProductStore } from "../stores/useProductStore";
 import ProductsSidebar from "../../components/ProductsSideBar";
 
 export default function ProductsPage() {
-  const {
-    products,
-    fetchProducts,
-    applyFilters,
-    loading,
-  } = useProductStore();
+  const { products, fetchProducts, applyFilters, loading } = useProductStore();
 
   // Fetch products from Firebase when the component mounts
   useEffect(() => {
@@ -23,12 +18,12 @@ export default function ProductsPage() {
   }, [applyFilters]);
 
   return (
-    <div className="flex">
+    <div className="flex flex-col lg:flex-row">
       {/* Sidebar */}
       <ProductsSidebar />
 
       {/* Product Grid */}
-      <main className="flex-1 p-6">
+      <main className="flex-1 p-4">
         {loading ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-lg font-semibold text-gray-500">Loading products...</p>
