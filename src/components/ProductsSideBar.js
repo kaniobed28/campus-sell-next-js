@@ -25,32 +25,23 @@ const ProductsSidebar = () => {
     setFilters({ category: "All", priceRange: [0, 1000], search: "" });
     setSearchQuery("");
     setCategoryQuery("");
-<<<<<<< HEAD
     applyFilters(); // Ensure filters are reset and applied
-=======
->>>>>>> f25398b (feature 02 product side bar)
   };
 
   const handlePriceChange = (value) => {
     setFilters({ priceRange: value });
-<<<<<<< HEAD
     applyFilters(); // Apply updated price filters
   };
 
   const handleApplyFilters = () => {
     applyFilters(); // Apply filters explicitly
-=======
->>>>>>> f25398b (feature 02 product side bar)
   };
 
   const filteredCategories = categories.filter((category) =>
     category.toLowerCase().includes(categoryQuery.toLowerCase())
   );
 
-<<<<<<< HEAD
   
-=======
->>>>>>> f25398b (feature 02 product side bar)
   return (
     <aside className="w-full lg:w-1/4 p-6 bg-background dark:bg-background-dark shadow-md h-auto lg:h-screen overflow-y-auto">
       {/* Search Bar */}
@@ -65,10 +56,7 @@ const ProductsSidebar = () => {
             onChange={(e) => {
               setSearchQuery(e.target.value);
               setFilters({ search: e.target.value });
-<<<<<<< HEAD
               applyFilters(); // Apply updated search filters
-=======
->>>>>>> f25398b (feature 02 product side bar)
             }}
           />
           <button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-accent text-white rounded-full p-2 shadow-md">
@@ -135,10 +123,7 @@ const ProductsSidebar = () => {
                     onClick={() => {
                       setFilters({ category });
                       setIsDropdownOpen(false);
-<<<<<<< HEAD
                       applyFilters(); // Apply updated category filters
-=======
->>>>>>> f25398b (feature 02 product side bar)
                     }}
                   >
                     {category}
