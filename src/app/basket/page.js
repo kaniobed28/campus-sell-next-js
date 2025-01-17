@@ -1,18 +1,30 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, useEffect } from "react";
+import { useRouter } from "next/navigation"; // For navigation
 import ItemCard from "@/components/ItemCard";
 import basketData from "@/dummyData/basketData";
+import { useAuth } from "../stores/useAuth";
 
 const BasketPage = () => {
   const [basketItems, setBasketItems] = useState(basketData);
+  const { user, loading } = useAuth(); // Get user and loading state
+  const router = useRouter();
+
+  // If still loading the auth state, show a loading state
+  if (loading) return <p>Loading...</p>;
+
+  // If the user is not authenticated, redirect to login page
+  if (!user) {
+    router.push("/auth"); // Replace with your actual login route
+    return null; // Optionally return null while redirecting
+  }
 
   const handleRemove = (id) => {
     setBasketItems(basketItems.filter((item) => item.id !== id));
   };
 
   const handleCheckout = () => {
-    // Logic for checkout, e.g., navigating to a checkout page or triggering payment
     alert("Proceeding to checkout...");
   };
 
@@ -32,7 +44,7 @@ const BasketPage = () => {
                   likes={item.likes}
                   views={item.views}
                   description={`Price: $${item.price}`}
-                  link={`/products/${item.id}`} // Replace this with the correct dynamic link
+                  link={`/products/${item.id}`}
                 />
                 <button
                   onClick={() => handleRemove(item.id)}
