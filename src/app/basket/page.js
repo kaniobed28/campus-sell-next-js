@@ -28,6 +28,9 @@ const BasketPage = () => {
                   id={item.id}
                   image={item.image}
                   title={item.title}
+                  price={item.price}
+                  likes={item.likes}
+                  views={item.views}
                   description={`Price: $${item.price}`}
                   link={`/products/${item.id}`} // Replace this with the correct dynamic link
                 />
