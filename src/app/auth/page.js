@@ -1,5 +1,6 @@
 "use client";
 import React, { useState } from "react";
+import { useRouter } from "next/navigation"; // Import the router
 import { signUp, signIn, googleSignIn } from "@/lib/auth";
 import AuthForm from "./components/AuthForm";
 import GoogleSignInButton from "./components/GoogleSignInButton";
@@ -8,6 +9,7 @@ import AuthToggle from "./components/AuthToggle";
 const AuthPage = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState("");
+  const router = useRouter(); // Initialize the router
 
   const handleAuth = async (email, password) => {
     try {
@@ -20,6 +22,7 @@ const AuthPage = () => {
         console.log("Signed in:", user);
         alert("Signed in successfully!");
       }
+      router.back(); // Navigate back to the previous page
     } catch (err) {
       setError(err.message);
     }
@@ -30,6 +33,7 @@ const AuthPage = () => {
       const user = await googleSignIn();
       console.log("Google signed in:", user);
       alert("Signed in with Google!");
+      router.back(); // Navigate back to the previous page
     } catch (err) {
       setError(err.message);
     }
