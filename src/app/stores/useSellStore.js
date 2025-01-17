@@ -1,7 +1,8 @@
 import { create } from "zustand";
-import { storage, db } from "@/lib/firebase";
+import { storage, db,auth } from "@/lib/firebase";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { collection, addDoc } from "firebase/firestore";
+
 
 const useSellStore = create((set) => ({
   formData: {
@@ -85,16 +86,50 @@ const useSellStore = create((set) => ({
     });
   },
 
-  addProductToFirestore: async (productData) => {
-    try {
-      await addDoc(collection(db, "products"), {
-        ...productData,
-        createdAt: new Date(),
-      });
-    } catch (error) {
-      console.error("Error adding product to Firestore:", error);
-      throw error;
-    }
-  },
+  
+addProductToFirestore: async () => {
+  const { formData } = useSellStore.getState();
+  const { title, description, price, category, subcategory, image } = formData;
+
+  // Get the current authenticated user using Firebase Auth
+  const currentUser = auth.currentUser;
+
+  // Check if the user is authenticated
+  if (!currentUser) {
+    console.error("User is not authenticated.");
+    return;
+  }
+
+  // Validate if all required fields are provided
+  if (!title || !description || !price || !category || !subcategory || !image) {
+    console.error("Please fill all required fields including an image.");
+    return;
+  }
+
+  try {
+    // Upload the image first
+    const imageUrl = await useSellStore.getState().uploadImage(image);
+
+    // Save product to Firestore
+    await addDoc(collection(db, "products"), {
+      title,
+      description,
+      price,
+      category,
+      subcategory,
+      image: imageUrl, // Store the image URL
+      userId: currentUser.uid, // Use currentUser's UID from Firebase Auth
+      createdAt: new Date(), // Store the creation date
+    });
+
+    console.log("Product added successfully!");
+
+    // Reset the form after submission
+    useSellStore.getState().resetForm();
+  } catch (error) {
+    console.error("Error adding product to Firestore:", error);
+  }
+},
+
 }));
 export default useSellStore;
