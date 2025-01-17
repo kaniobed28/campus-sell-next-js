@@ -1,5 +1,5 @@
 "use client";
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import useSellStore from "../stores/useSellStore";
 import InputField from "./components/InputField";
@@ -7,6 +7,13 @@ import TextAreaField from "./components/TextAreaField";
 import SelectField from "./components/SelectField";
 import FileUpload from "./components/FileUpload";
 import ProgressBar from "./components/ProgressBar";
+import Select from "react-select";
+import { getAuth, onAuthStateChanged } from "firebase/auth";
+import { auth } from "@/lib/firebase";
+import Loading from "@/components/Loading";
+import { db } from "@/lib/firebase";
+import { query, collection, where, getDocs } from "firebase/firestore"; 
+
 
 const SellPage = () => {
   const {
@@ -15,6 +22,7 @@ const SellPage = () => {
     uploadProgress,
     isSubmitting,
     categories,
+    universities,
     setFormData,
     setSubcategories,
     setImage,
@@ -24,7 +32,32 @@ const SellPage = () => {
     addProductToFirestore,
   } = useSellStore();
 
+  const [isSeller, setIsSeller] = useState(false);
   const router = useRouter();
+
+
+useEffect(() => {
+  const unsubscribe = onAuthStateChanged(auth, async (user) => {
+    if (user) {
+      // Check if the user is a seller by querying the 'sellers' collection
+      const sellersRef = collection(db, "sellers"); // Access the sellers collection
+      const q = query(sellersRef, where("userId", "==", user.uid)); // Query for the userId
+      const querySnapshot = await getDocs(q); // Get the documents
+
+      if (!querySnapshot.empty) {
+        // If documents exist, user is a seller
+        setIsSeller(true);
+      } else {
+        router.push("/sell/beaseller"); // Redirect to Become Seller page if not a seller
+      }
+    } else {
+      router.push("/login"); // Redirect to login page if not authenticated
+    }
+  });
+
+  return () => unsubscribe();
+}, [router]);
+
 
   const handleInputChange = (e) => {
     const { name, value } = e.target;
@@ -38,6 +71,11 @@ const SellPage = () => {
   const handleImageChange = (e) => {
     const file = e.target.files[0];
     setImage(file);
+  };
+
+  const handleUniversityChange = (selectedOptions) => {
+    const selectedUniversities = selectedOptions.map(option => option.value);
+    setFormData("universities", selectedUniversities); // Update universities in formData
   };
 
   const handleSubmit = async (e) => {
@@ -62,6 +100,16 @@ const SellPage = () => {
       setIsSubmitting(false);
     }
   };
+
+  // Map universities to react-select options format
+  const universityOptions = universities.map((university) => ({
+    value: university,
+    label: university,
+  }));
+
+  if (!isSeller) {
+    return <Loading></Loading>; // Show a loading message while checking if the user is a seller
+  }
 
   return (
     <div className="container mx-auto px-6 py-8">
@@ -115,6 +163,20 @@ const SellPage = () => {
             required
           />
         )}
+        <div className="mb-4">
+          <label className="block text-lg font-medium mb-2">
+            Select Universities Where Product is Available
+          </label>
+          <Select
+            isMulti
+            name="universities"
+            options={universityOptions}
+            value={universityOptions.filter(option => formData.universities.includes(option.value))}
+            onChange={handleUniversityChange}
+            className="react-select-container"
+            classNamePrefix="react-select"
+          />
+        </div>
         <FileUpload
           label="Upload Image"
           id="image"

@@ -2,6 +2,7 @@ import { create } from "zustand";
 import { storage, db } from "@/lib/firebase";
 import { ref, uploadBytesResumable, getDownloadURL } from "firebase/storage";
 import { collection, addDoc } from "firebase/firestore";
+import universities from "../data/universities"; // importing universities
 
 const useSellStore = create((set) => ({
   formData: {
@@ -10,9 +11,11 @@ const useSellStore = create((set) => ({
     price: "",
     category: "",
     subcategory: "",
+    universities: [],  // stores selected universities
     image: null,
   },
   subcategories: [],
+  universities: universities, // list of universities
   uploadProgress: 0,
   isSubmitting: false,
   categories: {
@@ -53,6 +56,7 @@ const useSellStore = create((set) => ({
         price: "",
         category: "",
         subcategory: "",
+        universities: [], // Reset universities
         image: null,
       },
       uploadProgress: 0,
@@ -97,4 +101,5 @@ const useSellStore = create((set) => ({
     }
   },
 }));
+
 export default useSellStore;
