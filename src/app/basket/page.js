@@ -5,14 +5,14 @@ import { useRouter } from "next/navigation"; // For navigation
 import ItemCard from "@/components/ItemCard";
 import basketData from "@/dummyData/basketData";
 import { useAuth } from "../stores/useAuth";
-
+import Loading from "@/components/Loading";
 const BasketPage = () => {
   const [basketItems, setBasketItems] = useState(basketData);
   const { user, loading } = useAuth(); // Get user and loading state
   const router = useRouter();
 
   // If still loading the auth state, show a loading state
-  if (loading) return <p>Loading...</p>;
+  if (loading) return <Loading />;
 
   // If the user is not authenticated, redirect to login page
   if (!user) {
