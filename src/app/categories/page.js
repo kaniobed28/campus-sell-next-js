@@ -3,10 +3,14 @@ import React from "react";
 import Link from "next/link";
 import products from '../../dummyData/products';
 
-
 const CategoriesPage = () => {
-  // Group products by category and list unique subtypes
-  const groupedCategories = products.reduce((acc, product) => {
+  // Filter out any products that are missing category or subtype
+  const validProducts = products.filter(
+    (product) => product.category && product.subtype
+  );
+
+  // Group valid products by category and list unique subtypes
+  const groupedCategories = validProducts.reduce((acc, product) => {
     if (!acc[product.category]) {
       acc[product.category] = new Set();
     }

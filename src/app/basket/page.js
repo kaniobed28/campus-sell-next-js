@@ -60,7 +60,7 @@ const BasketPage = () => {
                   likes={item.likes}
                   views={item.views}
                   description={`Price: $${item.price}`}
-                  link={`/products/${item.id}`}
+                  link={`/listings/${item.id}`}
                 />
                 <div className="mt-2 flex items-center justify-between">
                   <label className="mr-2">Quantity:</label>
