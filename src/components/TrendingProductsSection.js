@@ -23,7 +23,7 @@ const TrendingProductsSection = () => {
               title={product.name}
               description={`${product.subtype}`} 
               price={`${product.price}`} 
-              link={`/products/${product.id}`}
+              link={`/listings/${product.id}`}
               likes={product.likes}
               views={product.views}
             />

@@ -31,7 +31,7 @@ const TypePage = () => {
               image={product.image}
               title={product.name}
               description={`Price: $${product.price}`}
-              link={`/products/${product.id}`} // Adjust the link as per your routing
+              link={`/listings/${product.id}`} // Adjust the link as per your routing
             />
           ))
         ) : (
