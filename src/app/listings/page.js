@@ -47,7 +47,7 @@ export default function ProductsPage() {
                 title={product.name}
                 description={product.category}
                 price={product.price}
-                link={`/products/${product.id}`}
+                link={`/listings/${product.id}`}
                 likes={product.likes}
                 views={product.views}
               />
