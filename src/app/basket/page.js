@@ -44,7 +44,7 @@ const BasketPage = () => {
                   likes={item.likes}
                   views={item.views}
                   description={`Price: $${item.price}`}
-                  link={`/products/${item.id}`}
+                  link={`/listings/${item.id}`}
                 />
                 <button
                   onClick={() => handleRemove(item.id)}
