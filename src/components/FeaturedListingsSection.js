@@ -20,7 +20,7 @@ const FeaturedListingsSection = () => {
               key={item.id}
               id={item.id}
               image={item.image}
-              title={item.name}
+              title={item.title}
               description={item.category}
               price={item.price}
               link={`/listings/${item.id}`}
