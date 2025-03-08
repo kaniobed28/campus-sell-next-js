@@ -4,6 +4,8 @@ import React, { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../stores/useAuth";
 import Loading from "@/components/Loading";
+import { db } from "@/lib/firebase";
+import { collection, query, where, getDocs, addDoc, deleteDoc } from "firebase/firestore";
 
 const CheckoutPage = () => {
   const { user, loading } = useAuth();
@@ -24,7 +26,7 @@ const CheckoutPage = () => {
   }
 
   const validatePhone = (phone) => {
-    const phoneRegex = /^\d{10,15}$/; // Only digits, length between 10-15
+    const phoneRegex = /^\d{10,15}$/;
     return phoneRegex.test(phone);
   };
 
@@ -45,14 +47,50 @@ const CheckoutPage = () => {
     setIsSubmitting(true);
 
     try {
-      await new Promise((resolve) => setTimeout(resolve, 2000));
+      // Fetch cart items
+      const cartQuery = query(collection(db, "cart"), where("userId", "==", user.uid));
+      const cartSnapshot = await getDocs(cartQuery);
+      const cartItems = cartSnapshot.docs.map((doc) => ({
+        productId: doc.data().productId,
+        quantity: doc.data().quantity || 1,
+      }));
+
+      if (cartItems.length === 0) {
+        setError("Your cart is empty. Please add items before checking out.");
+        setIsSubmitting(false);
+        return;
+      }
+
+      // Create order document
+      const orderData = {
+        userId: user.uid,
+        deliveryDetails: {
+          name,
+          phone,
+          address,
+          notes,
+        },
+        items: cartItems,
+        deliveryCompanyId: "fleet", // Hardcoded for now
+        status: "pending",
+        createdAt: new Date().toISOString(),
+      };
+
+      await addDoc(collection(db, "orders"), orderData);
+
+      // Clear cart
+      const deletePromises = cartSnapshot.docs.map((doc) => deleteDoc(doc.ref));
+      await Promise.all(deletePromises);
+
       setSuccess(true);
-      alert("Checkout process completed successfully!");
+      alert("Order placed successfully! You will be redirected to your orders.");
       setName("");
       setPhone("");
       setAddress("");
       setNotes("");
+      router.push("/orders"); // Redirect to an orders page (create if needed)
     } catch (err) {
+      console.error("Error during checkout:", err);
       setError("Something went wrong. Please try again.");
     } finally {
       setIsSubmitting(false);
