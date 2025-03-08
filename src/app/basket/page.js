@@ -1,4 +1,3 @@
-// src/pages/basket.js
 "use client";
 
 import React, { useState, useEffect } from "react";
@@ -24,18 +23,12 @@ const BasketPage = () => {
         setIsLoadingItems(true);
         setError(null);
 
-        // Step 1: Fetch cart items for the user
-        const cartQuery = query(
-          collection(db, "cart"),
-          where("userId", "==", user.uid)
-        );
+        const cartQuery = query(collection(db, "cart"), where("userId", "==", user.uid));
         const cartSnapshot = await getDocs(cartQuery);
         const cartItems = cartSnapshot.docs.map((doc) => ({
-          id: doc.id, // Firestore doc ID for cart item
+          id: doc.id,
           ...doc.data(),
         }));
-
-        console.log("Cart Items:", cartItems); // Debug: Check cart data
 
         if (cartItems.length === 0) {
           setBasketItems([]);
@@ -43,53 +36,37 @@ const BasketPage = () => {
           return;
         }
 
-        // Step 2: Extract productIds (which are document IDs in products)
         const productIds = cartItems.map((item) => item.productId);
-        console.log("Product IDs from Cart:", productIds); // Debug: Verify productIds
-
-        // Step 3: Fetch products using document IDs
         const productPromises = productIds.map(async (productId) => {
           const productDocRef = doc(db, "products", productId);
           const productDocSnap = await getDoc(productDocRef);
-          return productDocSnap.exists()
-            ? { id: productId, ...productDocSnap.data() }
-            : null;
+          return productDocSnap.exists() ? { id: productId, ...productDocSnap.data() } : null;
         });
         const productDocs = await Promise.all(productPromises);
-        const productsMap = productDocs
-          .filter((doc) => doc !== null)
-          .reduce((map, doc) => {
-            map[doc.id] = doc;
-            return map;
-          }, {});
+        const productsMap = productDocs.filter((doc) => doc).reduce((map, doc) => {
+          map[doc.id] = doc;
+          return map;
+        }, {});
 
-        console.log("Products Map:", productsMap); // Debug: Check fetched products
-
-        // Step 4: Combine cart items with product details
-        const enrichedItems = cartItems.map((cartItem) => {
-          const product = productsMap[cartItem.productId];
-          if (!product) {
-            console.warn(`Product not found for productId: ${cartItem.productId}`);
-            return null; // Skip if product not found
-          }
-          // Convert price to number if it's a string
-          const price = typeof product.price === "string"
-            ? parseFloat(product.price) || 0
-            : (typeof product.price === "number" ? product.price : 0);
-
-          return {
-            id: cartItem.id, // Cart item ID for removal
-            productId: cartItem.productId,
-            quantity: cartItem.quantity || 1, // Default to 1 if quantity missing
-            image: product.image || "/default-image.jpg",
-            title: product.title || "Unknown Product",
-            price: price,
-            likes: product.likes || 0,
-            views: product.views || 0,
-            description: `Price: $${price.toFixed(2)} | Quantity: ${cartItem.quantity || 1}`,
-            link: `/listings/${cartItem.productId}`,
-          };
-        }).filter(Boolean); // Remove null entries
+        const enrichedItems = cartItems
+          .map((cartItem) => {
+            const product = productsMap[cartItem.productId];
+            if (!product) return null;
+            const price = typeof product.price === "string" ? parseFloat(product.price) || 0 : product.price || 0;
+            return {
+              id: cartItem.id,
+              productId: cartItem.productId,
+              quantity: cartItem.quantity || 1,
+              image: product.image || "/default-image.jpg",
+              title: product.title || "Unknown Product",
+              price,
+              likes: product.likes || 0,
+              views: product.views || 0,
+              description: `Price: $${price.toFixed(2)} | Quantity: ${cartItem.quantity || 1}`,
+              link: `/listings/${cartItem.productId}`,
+            };
+          })
+          .filter(Boolean);
 
         setBasketItems(enrichedItems);
       } catch (err) {
@@ -100,12 +77,9 @@ const BasketPage = () => {
       }
     };
 
-    if (!authLoading && user) {
-      fetchBasketItems();
-    }
+    if (!authLoading && user) fetchBasketItems();
   }, [user, authLoading]);
 
-  // Handle loading and authentication states
   if (authLoading || isLoadingItems) return <Loading />;
   if (!user) {
     router.push("/auth");
@@ -114,27 +88,26 @@ const BasketPage = () => {
 
   const handleRemove = async (id) => {
     try {
-      // Remove from Firestore
       await deleteDoc(doc(db, "cart", id));
-      // Update local state
       setBasketItems(basketItems.filter((item) => item.id !== id));
     } catch (err) {
-      console.error("Error removing item from Firestore:", err);
-      setError("Failed to remove item from basket. Please try again.");
+      console.error("Error removing item:", err);
+      setError("Failed to remove item. Please try again.");
     }
   };
 
   const handleCheckout = () => {
-    alert("Proceeding to checkout...");
-    // Implement checkout logic here
+    if (basketItems.length === 0) {
+      setError("Your basket is empty. Add items before checking out.");
+      return;
+    }
+    router.push("/basket/checkout"); // Redirect to checkout page
   };
 
   return (
     <div className="container mx-auto px-4 py-16">
       <h1 className="text-3xl font-bold mb-6 text-center">Your Basket</h1>
-      {error && (
-        <p className="text-center text-red-600 mb-4">{error}</p>
-      )}
+      {error && <p className="text-center text-red-600 mb-4">{error}</p>}
       {basketItems.length > 0 ? (
         <>
           <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -164,7 +137,7 @@ const BasketPage = () => {
               onClick={handleCheckout}
               className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 font-bold text-lg"
             >
-              Checkout
+              Proceed to Checkout
             </button>
           </div>
         </>
