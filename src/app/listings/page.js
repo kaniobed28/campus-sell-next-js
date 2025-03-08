@@ -3,6 +3,7 @@ import React, { useEffect } from "react";
 import { useProductStore } from "../stores/useProductStore";
 import ProductsSidebar from "../../components/ProductsSideBar";
 import ItemCard from "../../components/ItemCard";
+import Loading from "@/components/Loading";
 
 export default function ProductsPage() {
   const {
@@ -31,9 +32,7 @@ export default function ProductsPage() {
       {/* Product Grid */}
       <main className="flex-1 p-4">
         {loading ? (
-          <div className="flex items-center justify-center h-full">
-            <p className="text-lg font-semibold text-gray-500">Loading products...</p>
-          </div>
+          <Loading />
         ) : filteredProducts.length === 0 ? (
           <div className="flex items-center justify-center h-full">
             <p className="text-lg font-semibold text-gray-500">No products found.</p>
@@ -48,7 +47,7 @@ export default function ProductsPage() {
                 title={product.name}
                 description={product.category}
                 price={product.price}
-                link={`/products/${product.id}`}
+                link={`/listings/${product.id}`}
                 likes={product.likes}
                 views={product.views}
               />

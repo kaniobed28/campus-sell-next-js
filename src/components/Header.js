@@ -2,6 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
+import { useRouter } from "next/navigation"; // For navigation to search results
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faBars, faSun, faMoon } from "@fortawesome/free-solid-svg-icons";
 import { auth } from "@/lib/firebase";
@@ -11,6 +12,10 @@ const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
   const [darkMode, setDarkMode] = useState(false);
+  const [searchQuery, setSearchQuery] = useState(""); // Added for search
+  const [isSearching, setIsSearching] = useState(false); // Added for search
+  const [products, setProducts] = useState([]); // Added for search
+  const router = useRouter(); // Added for navigation
 
   // Check the stored theme preference on load
   useEffect(() => {
@@ -29,6 +34,17 @@ const Header = () => {
       setUser(currentUser);
     });
     return () => unsubscribe(); // Cleanup listener
+  }, []);
+
+  // Mock product data (replace with Firebase fetch later)
+  useEffect(() => {
+    // Simulate fetching products from Firebase
+    const mockProducts = [
+      { id: "5kztIYBg2MLeVlwIXine", title: "54y4t", price: 45, category: "Home" },
+      { id: "CLvDfuyypdTaIbHU3SZA", title: "Laptop", price: 800, category: "Electronics" },
+      // Add more mock data as needed
+    ];
+    setProducts(mockProducts);
   }, []);
 
   // Toggle dark mode and persist preference
@@ -54,6 +70,30 @@ const Header = () => {
     }
   };
 
+  // Search handling logic
+  const handleSearch = (e) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) {
+      return; // Prevent empty searches
+    }
+
+    setIsSearching(true);
+    // Filter products based on search query (case-insensitive)
+    const filteredProducts = products.filter((product) =>
+      product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      product.category.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
+    // Navigate to a search results page (e.g., /search?q={searchQuery})
+    router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
+    console.log("Search Results:", filteredProducts);
+    setIsSearching(false);
+  };
+
+  const handleInputChange = (e) => {
+    setSearchQuery(e.target.value);
+  };
+
   return (
     <header className="bg-background text-foreground sticky top-0 z-50 shadow-md dark:bg-background-dark dark:text-foreground-dark">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
@@ -66,16 +106,28 @@ const Header = () => {
         </Link>
 
         {/* Search Bar */}
-        <div className="hidden md:flex flex-1 mx-6">
+        <form
+          onSubmit={handleSearch}
+          className="hidden md:flex flex-1 mx-6"
+        >
           <input
             type="text"
+            value={searchQuery}
+            onChange={handleInputChange}
             placeholder="Search for products, categories..."
             className="w-full px-4 py-2 rounded-l-lg border border-primary focus:outline-none focus:ring-2 focus:ring-secondary shadow-sm dark:border-primary-dark dark:bg-background-dark dark:text-foreground-dark"
+            aria-label="Search for products or categories"
+            disabled={isSearching}
           />
-          <button className="px-6 bg-accent text-foreground rounded-r-lg hover:bg-accent-dark transition-all shadow-md">
-            Search
+          <button
+            type="submit"
+            className="px-6 bg-accent text-foreground rounded-r-lg hover:bg-accent-dark transition-all shadow-md disabled:opacity-50 disabled:cursor-not-allowed"
+            disabled={isSearching}
+            aria-label="Submit search"
+          >
+            {isSearching ? "Searching..." : "Search"}
           </button>
-        </div>
+        </form>
 
         {/* Navigation Links */}
         <nav className="hidden md:flex items-center space-x-8">

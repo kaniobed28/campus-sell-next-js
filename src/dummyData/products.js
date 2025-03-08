@@ -1,4 +1,5 @@
-import generateDummyProducts from './generateProducts';
-const products = generateDummyProducts(50);
+import generateProducts from './generateProducts';
+
+const products = await generateProducts();
 
 export default products;

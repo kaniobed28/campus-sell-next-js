@@ -20,10 +20,10 @@ const TrendingProductsSection = () => {
               key={product.id}
               id={product.id}
               image={product.image}
-              title={product.name}
+              title={product.title}
               description={`${product.subtype}`} 
               price={`${product.price}`} 
-              link={`/products/${product.id}`}
+              link={`/listings/${product.id}`}
               likes={product.likes}
               views={product.views}
             />
