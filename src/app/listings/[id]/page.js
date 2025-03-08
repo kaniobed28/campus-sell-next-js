@@ -1,148 +1,118 @@
+// src/pages/listings/[id].js
 "use client";
-import React from "react";
-import { useParams } from "next/navigation";
-import Link from "next/link";
+import React, { useEffect, useState } from "react";
+import { useParams, useRouter } from "next/navigation";
+import { useCartStore } from "@/app/stores/useCartStore";
+import useProfileStore from "@/app/stores/useProfileStore";
 import products from "@/dummyData/products";
-import { StarIcon, HeartIcon, ShoppingBagIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
+import Loading from "@/components/Loading";
+import NotFound from "@/components/NotFound";
+import ProductImage from "@/components/ProductImage";
+import ProductDetails from "@/components/ProductDetails";
+import QuantityModal from "@/components/QuantityModal";
+import RelatedProducts from "@/components/RelatedProducts";
+import Notification from "@/components/Notification";
 
 const ListingPage = () => {
-    const { id } = useParams();
+  const { id } = useParams();
+  const router = useRouter();
+  const { addToCart, isLoading, error: cartError } = useCartStore();
+  const { authUser, fetchUser, loading: profileLoading } = useProfileStore();
 
-    if (!id) {
-        return (
-            <div className="text-center py-24">
-                <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600 mx-auto"></div>
-            </div>
-        );
+  const [showQuantityModal, setShowQuantityModal] = useState(false);
+  const [quantity, setQuantity] = useState(1);
+  const [successMessage, setSuccessMessage] = useState("");
+
+  useEffect(() => {
+    fetchUser();
+  }, [fetchUser]);
+
+  if (!id) return <Loading />;
+  const product = products.find((item) => item.id.toString() === id);
+  if (!product) return <NotFound />;
+
+  const relatedProducts = products.filter(
+    (item) => item.category === product.category && item.id.toString() !== id
+  );
+
+  const handleAddToCart = () => {
+    if (!authUser) {
+      router.push("/auth");
+      return;
     }
+    setShowQuantityModal(true);
+    setSuccessMessage("");
+  };
 
-    const product = products.find((item) => item.id.toString() === id);
-
-    if (!product) {
-        return (
-            <div className="text-center py-24 text-red-600">
-                <h2 className="text-2xl font-bold mb-4">Product Not Found</h2>
-                <Link href="/" className="text-blue-600 hover:underline">
-                    Return to Home
-                </Link>
-            </div>
-        );
+  const handleGoToBasket = () => {
+    if (!authUser) {
+      router.push("/auth");
+      return;
     }
+    router.push("/basket");
+  };
 
-    const relatedProducts = products.filter(
-        (item) => item.category === product.category && item.id.toString() !== id
-    );
+  const confirmAddToCart = async () => {
+    if (quantity < 1) {
+      alert("Please enter a quantity of 1 or more.");
+      return;
+    }
+    try {
+      await addToCart(product, quantity);
+      setSuccessMessage(`Successfully added ${quantity} of ${product.name} to your cart!`);
+      setShowQuantityModal(false);
+      setQuantity(1);
+      setTimeout(() => setSuccessMessage(""), 3000);
+    } catch (error) {
+      console.error("Failed to add to cart:", error);
+    }
+  };
 
-    return (
-        <div className="container mx-auto px-4 py-12 max-w-7xl">
-            {/* Main Product Section */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
-                {/* Product Image */}
-                <div className="relative group overflow-hidden rounded-xl">
-                    <img
-                        src={product.image}
-                        alt={product.name}
-                        className="w-full h-full object-cover rounded-xl transform transition-transform duration-300 group-hover:scale-105"
-                    />
-                    <button className="absolute top-4 right-4 p-2 bg-white/90 rounded-full shadow-md hover:bg-white transition">
-                        <HeartIcon className="w-6 h-6 text-red-500" />
-                    </button>
-                </div>
+  const closeModal = () => {
+    setShowQuantityModal(false);
+    setQuantity(1);
+  };
 
-                {/* Product Details */}
-                <div className="flex flex-col justify-center">
-                    <div className="mb-6">
-                        <nav className="flex mb-4" aria-label="Breadcrumb">
-                            <ol className="flex items-center space-x-2 text-sm text-gray-500">
-                                <li><Link href="/" className="hover:text-blue-600">Home</Link></li>
-                                <li>/</li>
-                                <li><Link href={`/category/${product.category}`} className="hover:text-blue-600">{product.category}</Link></li>
-                                <li>/</li>
-                                <li className="font-medium text-gray-900">{product.name}</li>
-                            </ol>
-                        </nav>
+  if (profileLoading) return <Loading message="Loading user data..." />;
 
-                        <h1 className="text-4xl font-bold text-gray-900 mb-3">{product.name}</h1>
-                        <div className="flex items-center space-x-2 mb-4">
-                            <div className="flex items-center">
-                                {[...Array(5)].map((_, i) => (
-                                    <StarIcon key={i} className={`w-5 h-5 ${i < 4 ? 'text-yellow-400' : 'text-gray-300'}`} />
-                                ))}
-                            </div>
-                            <span className="text-gray-500">(142 reviews)</span>
-                        </div>
-                        
-                        <p className="text-3xl font-bold text-blue-600 mb-6">
-                            ${product.price}
-                            <span className="text-sm text-gray-500 ml-2">incl. VAT</span>
-                        </p>
-
-                        <p className="text-gray-700 text-lg leading-relaxed mb-6">{product.description}</p>
-
-                        <div className="grid grid-cols-2 gap-4 mb-8">
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                                <span className="block text-sm text-gray-500 mb-1">Category</span>
-                                <span className="font-medium">{product.category}</span>
-                            </div>
-                            <div className="bg-gray-50 p-4 rounded-lg">
-                                <span className="block text-sm text-gray-500 mb-1">Subtype</span>
-                                <span className="font-medium">{product.subcategory}</span>
-                            </div>
-                        </div>
-                    </div>
-
-                    {/* Action Buttons */}
-                    <div className="flex flex-col space-y-4">
-                        <button className="bg-blue-600 text-white px-8 py-4 rounded-xl font-bold flex items-center justify-center space-x-3 hover:bg-blue-700 transition-transform transform hover:scale-[1.02]">
-                            <ShoppingBagIcon className="w-6 h-6" />
-                            <span>Add to Cart</span>
-                        </button>
-                        <button className="bg-emerald-600 text-white px-8 py-4 rounded-xl font-bold flex items-center justify-center space-x-3 hover:bg-emerald-700 transition-transform transform hover:scale-[1.02]">
-                            <ArrowRightIcon className="w-6 h-6" />
-                            <span>Buy Now</span>
-                        </button>
-                    </div>
-                </div>
-            </div>
-
-            {/* Related Products */}
-            {relatedProducts.length > 0 && (
-                <div className="mt-16">
-                    <div className="flex justify-between items-center mb-8">
-                        <h2 className="text-2xl font-bold text-gray-900">Related Products</h2>
-                        <Link href={`/category/${product.category}`} className="text-blue-600 hover:underline flex items-center">
-                            View All <ArrowRightIcon className="w-4 h-4 ml-2" />
-                        </Link>
-                    </div>
-                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-                        {relatedProducts.map((related) => (
-                            <div key={related.id} className="bg-white p-4 rounded-xl shadow-lg border border-gray-100 hover:shadow-xl transition-shadow">
-                                <div className="relative group overflow-hidden rounded-lg mb-4">
-                                    <img
-                                        src={related.image}
-                                        alt={related.name}
-                                        className="w-full h-48 object-cover rounded-lg transform transition-transform duration-300 group-hover:scale-105"
-                                    />
-                                    <button className="absolute top-4 right-4 p-2 bg-white/90 rounded-full shadow-md hover:bg-white transition">
-                                        <HeartIcon className="w-6 h-6 text-red-500" />
-                                    </button>
-                                </div>
-                                <h3 className="font-semibold text-gray-900 text-lg mb-1">{related.name}</h3>
-                                <p className="text-blue-600 font-bold text-xl mb-3">${related.price}</p>
-                                <Link
-                                    href={`/listings/${related.id}`}
-                                    className="inline-flex items-center text-blue-600 font-medium hover:text-blue-800 transition-colors"
-                                >
-                                    View Details
-                                    <ArrowRightIcon className="w-4 h-4 ml-2" />
-                                </Link>
-                            </div>
-                        ))}
-                    </div>
-                </div>
-            )}
-        </div>
-    );
+  return (
+    <div className="container mx-auto px-4 py-12 max-w-7xl">
+      <Notification type="error" message={cartError} />
+      <Notification type="success" message={successMessage} />
+      <Notification
+        type="warning"
+        message={!authUser && "Please log in to add items to your cart or view your basket."}
+      />
+      <QuantityModal
+        isOpen={showQuantityModal}
+        productName={product.title}
+        quantity={quantity}
+        setQuantity={setQuantity}
+        onConfirm={confirmAddToCart}
+        onClose={closeModal}
+        isLoading={isLoading}
+      />
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
+        <ProductImage image={product.image} name={product.name} />
+        <ProductDetails
+          product={product}
+          onAddToCart={handleAddToCart}
+          isLoading={isLoading}
+          isAuthenticated={!!authUser}
+        />
+      </div>
+      <div className="mt-8 text-center">
+        <button
+          onClick={handleGoToBasket}
+          className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          disabled={isLoading}
+        >
+          Go to Basket
+        </button>
+      </div>
+      <RelatedProducts products={relatedProducts} category={product.category} />
+    </div>
+  );
 };
 
 export default ListingPage;
