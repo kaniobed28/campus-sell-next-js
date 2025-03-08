@@ -1,12 +1,32 @@
-"use client"; // Needed for Firebase in Next.js App Router
+"use client"; // This marks the file as a Client Component
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, Suspense } from "react";
 import { db } from "@/lib/firebase";
 import ItemCard from "@/components/ItemCard";
 import { collection, getDocs } from "firebase/firestore";
 import { useSearchParams } from "next/navigation";
 
-export default function SearchPage() {
+// Fetch products asynchronously
+const fetchProducts = async (query) => {
+  const productsQuery = collection(db, "products");
+  const snapshot = await getDocs(productsQuery);
+  const productsList = snapshot.docs.map((doc) => ({
+    id: doc.id,
+    ...doc.data(),
+  }));
+
+  // Filter results based on search query
+  return query
+    ? productsList.filter(
+        (product) =>
+          (product.title?.toLowerCase() || "").includes(query.toLowerCase()) ||
+          (product.category?.toLowerCase() || "").includes(query.toLowerCase())
+      )
+    : productsList;
+};
+
+// The main SearchPage component
+function SearchPage() {
   const searchParams = useSearchParams();
   const query = searchParams.get("q") || ""; // Get query string from URL
 
@@ -15,43 +35,26 @@ export default function SearchPage() {
   const [error, setError] = useState(null);
 
   useEffect(() => {
-    const fetchProducts = async () => {
+    const loadProducts = async () => {
       setIsLoading(true);
       setError(null);
-
       try {
-        const productsQuery = collection(db, "products");
-        const snapshot = await getDocs(productsQuery);
-        const productsList = snapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        // Filter results based on search query
-        const filtered = query
-          ? productsList.filter(
-              (product) =>
-                (product.title?.toLowerCase() || "").includes(query.toLowerCase()) ||
-                (product.category?.toLowerCase() || "").includes(query.toLowerCase())
-            )
-          : productsList;
-
-        setResults(filtered);
+        const filteredResults = await fetchProducts(query);
+        setResults(filteredResults);
       } catch (err) {
         console.error("Error fetching products:", err);
         setError("Failed to load search results.");
       }
-
       setIsLoading(false);
     };
 
-    fetchProducts();
+    loadProducts();
   }, [query]);
 
   return (
     <div className="container mx-auto px-4 py-16">
       <h1 className="text-3xl font-bold mb-6">
-        Search Results for &quot;{query || "All Products"}&quot;
+        Search Results for "{query || "All Products"}"
       </h1>
 
       {isLoading ? (
@@ -66,17 +69,34 @@ export default function SearchPage() {
               id={item.id}
               image={item.image || "/default-image.jpg"}
               title={item.title || "Unknown Product"}
-              price={typeof item.price === "string" ? parseFloat(item.price) || 0 : item.price || 0}
+              price={
+                typeof item.price === "string"
+                  ? parseFloat(item.price) || 0
+                  : item.price || 0
+              }
               likes={item.likes || 0}
               views={item.views || 0}
-              description={`Price: $${(typeof item.price === "string" ? parseFloat(item.price) || 0 : item.price || 0).toFixed(2)}`}
+              description={`Price: $${(
+                typeof item.price === "string"
+                  ? parseFloat(item.price) || 0
+                  : item.price || 0
+              ).toFixed(2)}`}
               link={`/listings/${item.id}`}
             />
           ))}
         </div>
       ) : (
-        <p className="text-center text-gray-600">No results found for &quot;{query}&quot;.</p>
+        <p className="text-center text-gray-600">No results found for "{query}".</p>
       )}
     </div>
+  );
+}
+
+// Export with Suspense boundary
+export default function Page() {
+  return (
+    <Suspense fallback={<p>Loading...</p>}>
+      <SearchPage />
+    </Suspense>
   );
 }
