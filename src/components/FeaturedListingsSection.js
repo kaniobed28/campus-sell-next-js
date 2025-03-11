@@ -1,9 +1,9 @@
 import React from "react";
 import ItemCard from "./ItemCard";
-import products from "@/dummyData/products"; 
+import products from "@/dummyData/products";
 
 const FeaturedListingsSection = () => {
-  // Sort products by likes in descending order and take the top 6
+  // Sort products by views in descending order and take the top 6
   const topLikedProducts = [...products]
     .sort((a, b) => b.views - a.views)
     .slice(0, 6);
@@ -15,19 +15,27 @@ const FeaturedListingsSection = () => {
           Featured Listings
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {topLikedProducts.map((item) => (
-            <ItemCard
-              key={item.id}
-              id={item.id}
-              image={item.image}
-              title={item.title}
-              description={item.category}
-              price={item.price}
-              link={`/listings/${item.id}`}
-              likes={item.likes}
-              views={item.views}
-            />
-          ))}
+          {topLikedProducts.map((item) => {
+            // Normalize image: use first URL from imageUrls if present, otherwise use image
+            const displayImage =
+              Array.isArray(item.imageUrls) && item.imageUrls.length > 0
+                ? item.imageUrls[0]
+                : item.image || "/default-image.jpg";
+
+            return (
+              <ItemCard
+                key={item.id}
+                id={item.id}
+                image={displayImage} // Pass normalized image
+                title={item.title}
+                description={item.category}
+                price={item.price}
+                link={`/listings/${item.id}`}
+                likes={item.likes || 0} // Default to 0 if not provided
+                views={item.views || 0} // Default to 0 if not provided
+              />
+            );
+          })}
         </div>
       </div>
     </section>
