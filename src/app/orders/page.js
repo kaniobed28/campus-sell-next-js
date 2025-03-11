@@ -8,14 +8,12 @@ import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, doc, getDoc, orderBy } from "firebase/firestore";
 
 const OrdersPage = () => {
-  // State management for orders, loading, and errors
   const [orders, setOrders] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState(null);
-  const { user, loading: authLoading } = useAuth(); // Authentication state from custom hook
+  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
 
-  // Fetch orders when user is authenticated
   useEffect(() => {
     const fetchOrders = async () => {
       if (!user) return;
@@ -36,23 +34,23 @@ const OrdersPage = () => {
           ...doc.data(),
         }));
 
-        // Handle case where no orders exist
         if (ordersData.length === 0) {
           setOrders([]);
           setIsLoading(false);
           return;
         }
 
-        // Collect unique product IDs from all orders
+        // Collect unique product IDs and delivery company IDs
         const productIdsSet = new Set();
+        const deliveryCompanyIdsSet = new Set();
         ordersData.forEach((order) => {
-          order.items.forEach((item) => {
-            productIdsSet.add(item.productId);
-          });
+          order.items.forEach((item) => productIdsSet.add(item.productId));
+          if (order.deliveryCompanyId) deliveryCompanyIdsSet.add(order.deliveryCompanyId);
         });
         const productIds = Array.from(productIdsSet);
+        const deliveryCompanyIds = Array.from(deliveryCompanyIdsSet);
 
-        // Fetch product details for all unique product IDs
+        // Fetch product details
         const productPromises = productIds.map(async (productId) => {
           const productDocRef = doc(db, "products", productId);
           const productDocSnap = await getDoc(productDocRef);
@@ -66,7 +64,21 @@ const OrdersPage = () => {
             return map;
           }, {});
 
-        // Enrich orders with product details and calculate totals
+        // Fetch delivery company details
+        const companyPromises = deliveryCompanyIds.map(async (companyId) => {
+          const companyDocRef = doc(db, "deliveryCompanies", companyId);
+          const companyDocSnap = await getDoc(companyDocRef);
+          return companyDocSnap.exists() ? { id: companyId, ...companyDocSnap.data() } : null;
+        });
+        const companyDocs = await Promise.all(companyPromises);
+        const companiesMap = companyDocs
+          .filter((doc) => doc)
+          .reduce((map, doc) => {
+            map[doc.id] = doc;
+            return map;
+          }, {});
+
+        // Enrich orders with product and company details
         const enrichedOrders = ordersData.map((order) => {
           let total = 0;
           const enrichedItems = order.items.map((item) => {
@@ -93,10 +105,15 @@ const OrdersPage = () => {
             };
           });
 
+          const deliveryCompany = companiesMap[order.deliveryCompanyId] || {
+            name: "Unknown Company",
+          };
+
           return {
             ...order,
             items: enrichedItems,
             total,
+            deliveryCompanyName: deliveryCompany.name,
           };
         });
 
@@ -114,14 +131,12 @@ const OrdersPage = () => {
     }
   }, [user, authLoading]);
 
-  // Handle loading and authentication states
   if (authLoading || isLoading) return <Loading />;
   if (!user) {
     router.push("/auth");
     return null;
   }
 
-  // Render the orders page
   return (
     <div className="container mx-auto px-4 py-16">
       <h1 className="text-3xl font-bold mb-6 text-center">Your Orders</h1>
@@ -150,7 +165,7 @@ const OrdersPage = () => {
                 <strong>Order Date:</strong> {new Date(order.createdAt).toLocaleString()}
               </p>
               <p>
-                <strong>Delivery Company:</strong> Fleet {/* Hardcoded for now; fetch dynamically in the future */}
+                <strong>Delivery Company:</strong> {order.deliveryCompanyName}
               </p>
               <p>
                 <strong>Delivery Details:</strong>

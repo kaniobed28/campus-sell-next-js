@@ -39,19 +39,27 @@ export default function ProductsPage() {
           </div>
         ) : (
           <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => (
-              <ItemCard
-                key={product.id}
-                id={product.id}
-                image={product.image}
-                title={product.name}
-                description={product.category}
-                price={product.price}
-                link={`/listings/${product.id}`}
-                likes={product.likes}
-                views={product.views}
-              />
-            ))}
+            {filteredProducts.map((product) => {
+              // Normalize image: use first URL from imageUrls if present, otherwise use image
+              const displayImage =
+                Array.isArray(product.imageUrls) && product.imageUrls.length > 0
+                  ? product.imageUrls[0]
+                  : product.image || "/default-image.jpg";
+
+              return (
+                <ItemCard
+                  key={product.id}
+                  id={product.id}
+                  image={displayImage} // Pass normalized image
+                  title={product.name}
+                  description={product.category}
+                  price={product.price}
+                  link={`/listings/${product.id}`}
+                  likes={product.likes || 0} // Default to 0 if not provided
+                  views={product.views || 0} // Default to 0 if not provided
+                />
+              );
+            })}
           </div>
         )}
       </main>

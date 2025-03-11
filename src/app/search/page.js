@@ -63,27 +63,32 @@ function SearchPage() {
         <p className="text-center text-red-600">{error}</p>
       ) : results.length > 0 ? (
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {results.map((item) => (
-            <ItemCard
-              key={item.id}
-              id={item.id}
-              image={item.image || "/default-image.jpg"}
-              title={item.title || "Unknown Product"}
-              price={
-                typeof item.price === "string"
-                  ? parseFloat(item.price) || 0
-                  : item.price || 0
-              }
-              likes={item.likes || 0}
-              views={item.views || 0}
-              description={`Price: $${(
-                typeof item.price === "string"
-                  ? parseFloat(item.price) || 0
-                  : item.price || 0
-              ).toFixed(2)}`}
-              link={`/listings/${item.id}`}
-            />
-          ))}
+          {results.map((item) => {
+            // Normalize image: use first URL from imageUrls if present, otherwise use image
+            const displayImage =
+              Array.isArray(item.imageUrls) && item.imageUrls.length > 0
+                ? item.imageUrls[0]
+                : item.image || "/default-image.jpg";
+
+            const price =
+              typeof item.price === "string"
+                ? parseFloat(item.price) || 0
+                : item.price || 0;
+
+            return (
+              <ItemCard
+                key={item.id}
+                id={item.id}
+                image={displayImage} // Pass normalized image
+                title={item.title || "Unknown Product"}
+                price={price}
+                likes={item.likes || 0}
+                views={item.views || 0}
+                description={`Price: $${price.toFixed(2)}`}
+                link={`/listings/${item.id}`}
+              />
+            );
+          })}
         </div>
       ) : (
         <p className="text-center text-gray-600">No results found for "{query}".</p>

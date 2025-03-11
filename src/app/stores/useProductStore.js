@@ -30,7 +30,7 @@ export const useProductStore = create((set) => ({
   applyFilters: () => {
     set((state) => {
       const { products, filters } = state;
-      let filteredProducts = products;
+      let filteredProducts = [...products]; // Create a copy to avoid mutating state
 
       // Apply category filter
       if (filters.category && filters.category !== "All") {
