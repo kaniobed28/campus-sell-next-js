@@ -14,10 +14,9 @@ import RelatedProducts from "@/components/RelatedProducts";
 import Notification from "@/components/Notification";
 import ImageLightbox from "@/components/ImageLightbox";
 import SellerInfo from "@/components/SellerInfo"; // Import the new component
-<<<<<<< HEAD
 
-=======
->>>>>>> e9dda70 (add SellerInfo component and useProductAndSeller hook for product and seller data fetching)
+// Import Lightbox or Modal Component
+import ImageLightbox from "@/components/ImageLightbox";
 
 const ListingPage = () => {
   const { id } = useParams();
@@ -42,10 +41,10 @@ const ListingPage = () => {
   if (!id) return <Loading />;
   if (!product) return <NotFound />;
 
-<<<<<<< HEAD
   // Normalize image data for ProductImage: use imageUrls if present, otherwise use image
-=======
->>>>>>> e9dda70 (add SellerInfo component and useProductAndSeller hook for product and seller data fetching)
+  const imageProp = product.imageUrls || product.image;
+
+  // Normalize image data for ProductImage: use imageUrls if present, otherwise use image
   const imageProp = product.imageUrls || product.image;
 
   const handleAddToCart = () => {
