@@ -52,12 +52,19 @@ const BasketPage = () => {
           .map((cartItem) => {
             const product = productsMap[cartItem.productId];
             if (!product) return null;
+
+            // Normalize image: use first URL from imageUrls if present, otherwise use image
+            const displayImage =
+              Array.isArray(product.imageUrls) && product.imageUrls.length > 0
+                ? product.imageUrls[0]
+                : product.image || "/default-image.jpg";
+
             const price = typeof product.price === "string" ? parseFloat(product.price) || 0 : product.price || 0;
             return {
               id: cartItem.id,
               productId: cartItem.productId,
               quantity: cartItem.quantity || 1,
-              image: product.image || "/default-image.jpg",
+              image: displayImage, // Pass normalized image
               title: product.title || "Unknown Product",
               price,
               likes: product.likes || 0,

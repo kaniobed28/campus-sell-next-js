@@ -1,10 +1,9 @@
-// src/pages/listings/[id].js
 "use client";
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useCartStore } from "@/app/stores/useCartStore";
 import useProfileStore from "@/app/stores/useProfileStore";
-import products from "@/dummyData/products";
+import products from "@/dummyData/products"; // Assuming this is your dummy data
 import Loading from "@/components/Loading";
 import NotFound from "@/components/NotFound";
 import ProductImage from "@/components/ProductImage";
@@ -12,6 +11,9 @@ import ProductDetails from "@/components/ProductDetails";
 import QuantityModal from "@/components/QuantityModal";
 import RelatedProducts from "@/components/RelatedProducts";
 import Notification from "@/components/Notification";
+
+// Import Lightbox or Modal Component
+import ImageLightbox from "@/components/ImageLightbox";
 
 const ListingPage = () => {
   const { id } = useParams();
@@ -22,6 +24,9 @@ const ListingPage = () => {
   const [showQuantityModal, setShowQuantityModal] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [successMessage, setSuccessMessage] = useState("");
+
+  // State for Lightbox
+  const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   useEffect(() => {
     fetchUser();
@@ -34,6 +39,9 @@ const ListingPage = () => {
   const relatedProducts = products.filter(
     (item) => item.category === product.category && item.id.toString() !== id
   );
+
+  // Normalize image data for ProductImage: use imageUrls if present, otherwise use image
+  const imageProp = product.imageUrls || product.image;
 
   const handleAddToCart = () => {
     if (!authUser) {
@@ -92,8 +100,19 @@ const ListingPage = () => {
         onClose={closeModal}
         isLoading={isLoading}
       />
+
+      {/* Lightbox */}
+      <ImageLightbox
+        isOpen={isLightboxOpen}
+        onClose={() => setIsLightboxOpen(false)}
+        images={Array.isArray(imageProp) ? imageProp : [imageProp]}
+      />
+
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
-        <ProductImage image={product.image} name={product.name} />
+        {/* Clickable Product Image */}
+        <div onClick={() => setIsLightboxOpen(true)} style={{ cursor: "pointer" }}>
+          <ProductImage image={imageProp} name={product.name} />
+        </div>
         <ProductDetails
           product={product}
           onAddToCart={handleAddToCart}

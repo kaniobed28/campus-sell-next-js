@@ -35,9 +35,10 @@ const SellPage = () => {
     }
   };
 
-  const handleImageChange = (e) => {
-    const file = e.target.files[0];
-    setImage(file);
+  const handleImageChange = (files) => {
+    // Replace the existing image array with the new selection
+    setImage(files);
+    console.log("Selected files:", files); // Debug: Check the array of files
   };
 
   const handleSubmit = async (e) => {
@@ -45,12 +46,20 @@ const SellPage = () => {
     setIsSubmitting(true);
 
     try {
-      const imageUrl = await uploadImage(formData.image);
+      console.log("Files to upload:", formData.image); // Debug: Verify files before upload
+      const imageUrls = await uploadImage(formData.image);
+      console.log("Uploaded URLs:", imageUrls); // Debug: Verify all URLs
 
-      await addProductToFirestore({
-        ...formData,
-        imageUrl,
-      });
+      const productData = {
+        title: formData.title,
+        description: formData.description,
+        price: formData.price,
+        category: formData.category,
+        subcategory: formData.subcategory,
+        imageUrls,
+      };
+
+      await addProductToFirestore(productData);
 
       alert("Product listed successfully!");
       resetForm();
@@ -116,7 +125,7 @@ const SellPage = () => {
           />
         )}
         <FileUpload
-          label="Upload Image"
+          label="Upload Images"
           id="image"
           onChange={handleImageChange}
           required

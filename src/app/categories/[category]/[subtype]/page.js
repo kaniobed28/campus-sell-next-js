@@ -1,11 +1,10 @@
-'use client';
+"use client";
 import React, { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import Link from "next/link";
-import Image from "next/image";
-import generateProducts from "@/dummyData/generateProducts";
+import ItemCard from "@/components/ItemCard";
 import Loading from "@/components/Loading";
-import ItemCard from "@/components/ItemCard"; // Import the ItemCard component
+import generateProducts from "@/dummyData/generateProducts";
 
 const CategorySubtypePage = () => {
   const params = useParams();
@@ -77,19 +76,27 @@ const CategorySubtypePage = () => {
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-6">
-        {filteredProducts.map((product) => (
-          <ItemCard
-            key={product.id}
-            id={product.id}
-            image={product.image}
-            title={product.title}
-            description={product.description}
-            price={Number(product.price).toFixed(2)}
-            link={`/listings/${product.id}`}
-            likes={product.likes || 0} // Default to 0 if likes are not provided
-            views={product.views || 0} // Default to 0 if views are not provided
-          />
-        ))}
+        {filteredProducts.map((product) => {
+          // Normalize image: use first URL from imageUrls if present, otherwise use image
+          const displayImage =
+            Array.isArray(product.imageUrls) && product.imageUrls.length > 0
+              ? product.imageUrls[0]
+              : product.image || "/default-image.jpg";
+
+          return (
+            <ItemCard
+              key={product.id}
+              id={product.id}
+              image={displayImage} // Pass normalized image
+              title={product.title}
+              description={product.description}
+              price={Number(product.price).toFixed(2)}
+              link={`/listings/${product.id}`}
+              likes={product.likes || 0}
+              views={product.views || 0}
+            />
+          );
+        })}
       </div>
     </div>
   );
