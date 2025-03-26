@@ -1,9 +1,10 @@
 "use client";
+
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { useCartStore } from "@/app/stores/useCartStore";
 import useProfileStore from "@/app/stores/useProfileStore";
-import products from "@/dummyData/products"; // Assuming this is your dummy data
+import useProductAndSeller from "@/hooks/useProductAndSeller"; // Import the new hook
 import Loading from "@/components/Loading";
 import NotFound from "@/components/NotFound";
 import ProductImage from "@/components/ProductImage";
@@ -11,9 +12,8 @@ import ProductDetails from "@/components/ProductDetails";
 import QuantityModal from "@/components/QuantityModal";
 import RelatedProducts from "@/components/RelatedProducts";
 import Notification from "@/components/Notification";
-
-// Import Lightbox or Modal Component
 import ImageLightbox from "@/components/ImageLightbox";
+import SellerInfo from "@/components/SellerInfo"; // Import the new component
 
 const ListingPage = () => {
   const { id } = useParams();
@@ -24,23 +24,20 @@ const ListingPage = () => {
   const [showQuantityModal, setShowQuantityModal] = useState(false);
   const [quantity, setQuantity] = useState(1);
   const [successMessage, setSuccessMessage] = useState("");
-
-  // State for Lightbox
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
+  // Use the custom hook to fetch product, seller, and related products
+  const { product, seller, sellerLoading, relatedProducts } = useProductAndSeller(id);
+
+  // Fetch user profile
   useEffect(() => {
     fetchUser();
   }, [fetchUser]);
 
+  // Early returns after hooks
   if (!id) return <Loading />;
-  const product = products.find((item) => item.id.toString() === id);
   if (!product) return <NotFound />;
 
-  const relatedProducts = products.filter(
-    (item) => item.category === product.category && item.id.toString() !== id
-  );
-
-  // Normalize image data for ProductImage: use imageUrls if present, otherwise use image
   const imageProp = product.imageUrls || product.image;
 
   const handleAddToCart = () => {
@@ -81,7 +78,7 @@ const ListingPage = () => {
     setQuantity(1);
   };
 
-  if (profileLoading) return <Loading message="Loading user data..." />;
+  if (profileLoading || sellerLoading) return <Loading message="Loading data..." />;
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-7xl">
@@ -100,8 +97,6 @@ const ListingPage = () => {
         onClose={closeModal}
         isLoading={isLoading}
       />
-
-      {/* Lightbox */}
       <ImageLightbox
         isOpen={isLightboxOpen}
         onClose={() => setIsLightboxOpen(false)}
@@ -109,16 +104,18 @@ const ListingPage = () => {
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
-        {/* Clickable Product Image */}
         <div onClick={() => setIsLightboxOpen(true)} style={{ cursor: "pointer" }}>
           <ProductImage image={imageProp} name={product.name} />
         </div>
-        <ProductDetails
-          product={product}
-          onAddToCart={handleAddToCart}
-          isLoading={isLoading}
-          isAuthenticated={!!authUser}
-        />
+        <div>
+          <ProductDetails
+            product={product}
+            onAddToCart={handleAddToCart}
+            isLoading={isLoading}
+            isAuthenticated={!!authUser}
+          />
+          <SellerInfo seller={seller} />
+        </div>
       </div>
       <div className="mt-8 text-center">
         <button
