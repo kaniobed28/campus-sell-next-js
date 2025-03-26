@@ -15,9 +15,6 @@ import Notification from "@/components/Notification";
 import ImageLightbox from "@/components/ImageLightbox";
 import SellerInfo from "@/components/SellerInfo"; // Import the new component
 
-// Import Lightbox or Modal Component
-import ImageLightbox from "@/components/ImageLightbox";
-import SellerInfo from "@/components/SellerInfo"; // Import the new component
 
 const ListingPage = () => {
   const { id } = useParams();
@@ -42,8 +39,6 @@ const ListingPage = () => {
   if (!id) return <Loading />;
   if (!product) return <NotFound />;
 
-  // Normalize image data for ProductImage: use imageUrls if present, otherwise use image
-  const imageProp = product.imageUrls || product.image;
 
   // Normalize image data for ProductImage: use imageUrls if present, otherwise use image
   const imageProp = product.imageUrls || product.image;

@@ -17,7 +17,7 @@ const ProductsSidebar = () => {
     "Popular",
     "Books",
     "Sports",
-    "Accessories.",
+    "Accessories",
   ]); // Example categories
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // For dropdown toggle
 
@@ -25,90 +25,23 @@ const ProductsSidebar = () => {
     setFilters({ category: "All", priceRange: [0, 1000], search: "" });
     setSearchQuery("");
     setCategoryQuery("");
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
     applyFilters(); // Ensure filters are reset and applied
-=======
->>>>>>> f25398b (feature 02 product side bar)
-=======
-    applyFilters(); // Ensure filters are reset and applied
->>>>>>> f28aebc (feature 02 product side bar)
-=======
-    applyFilters(); // Ensure filters are reset and applied
->>>>>>> b0bb96a (feature 02 product side bar)
-=======
-    applyFilters(); // Ensure filters are reset and applied
->>>>>>> 351c94a (update next.js to version 15.2.4 and clean up code in listings and sidebar components)
-=======
-    applyFilters(); // Ensure filters are reset and applied
->>>>>>> 351c94a (update next.js to version 15.2.4 and clean up code in listings and sidebar components)
   };
 
   const handlePriceChange = (value) => {
     setFilters({ priceRange: value });
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> f28aebc (feature 02 product side bar)
-=======
->>>>>>> b0bb96a (feature 02 product side bar)
-=======
->>>>>>> 351c94a (update next.js to version 15.2.4 and clean up code in listings and sidebar components)
-=======
->>>>>>> 351c94a (update next.js to version 15.2.4 and clean up code in listings and sidebar components)
     applyFilters(); // Apply updated price filters
   };
 
   const handleApplyFilters = () => {
     applyFilters(); // Apply filters explicitly
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-=======
->>>>>>> f25398b (feature 02 product side bar)
-=======
->>>>>>> f28aebc (feature 02 product side bar)
-=======
->>>>>>> b0bb96a (feature 02 product side bar)
-=======
->>>>>>> 351c94a (update next.js to version 15.2.4 and clean up code in listings and sidebar components)
-=======
->>>>>>> 351c94a (update next.js to version 15.2.4 and clean up code in listings and sidebar components)
   };
 
   const filteredCategories = categories.filter((category) =>
     category.toLowerCase().includes(categoryQuery.toLowerCase())
   );
 
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
   
-=======
->>>>>>> f25398b (feature 02 product side bar)
-=======
->>>>>>> f28aebc (feature 02 product side bar)
-=======
-  
->>>>>>> bc6417a (feature 02 product side bar)
-=======
->>>>>>> b0bb96a (feature 02 product side bar)
-=======
-  
->>>>>>> 351c94a (update next.js to version 15.2.4 and clean up code in listings and sidebar components)
-=======
-  
->>>>>>> 351c94a (update next.js to version 15.2.4 and clean up code in listings and sidebar components)
   return (
     <aside className="w-full lg:w-1/4 p-6 bg-background dark:bg-background-dark shadow-md h-auto lg:h-screen overflow-y-auto">
       {/* Search Bar */}
@@ -123,26 +56,7 @@ const ProductsSidebar = () => {
             onChange={(e) => {
               setSearchQuery(e.target.value);
               setFilters({ search: e.target.value });
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
               applyFilters(); // Apply updated search filters
-=======
->>>>>>> f25398b (feature 02 product side bar)
-=======
-              applyFilters(); // Apply updated search filters
->>>>>>> f28aebc (feature 02 product side bar)
-=======
-              applyFilters(); // Apply updated search filters
->>>>>>> b0bb96a (feature 02 product side bar)
-=======
-              applyFilters(); // Apply updated search filters
->>>>>>> 351c94a (update next.js to version 15.2.4 and clean up code in listings and sidebar components)
-=======
-              applyFilters(); // Apply updated search filters
->>>>>>> 351c94a (update next.js to version 15.2.4 and clean up code in listings and sidebar components)
             }}
           />
           <button className="absolute right-2 top-1/2 transform -translate-y-1/2 bg-accent text-white rounded-full p-2 shadow-md">
@@ -209,26 +123,7 @@ const ProductsSidebar = () => {
                     onClick={() => {
                       setFilters({ category });
                       setIsDropdownOpen(false);
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
-<<<<<<< HEAD
                       applyFilters(); // Apply updated category filters
-=======
->>>>>>> f25398b (feature 02 product side bar)
-=======
-                      applyFilters(); // Apply updated category filters
->>>>>>> f28aebc (feature 02 product side bar)
-=======
-                      applyFilters(); // Apply updated category filters
->>>>>>> b0bb96a (feature 02 product side bar)
-=======
-                      applyFilters(); // Apply updated category filters
->>>>>>> 351c94a (update next.js to version 15.2.4 and clean up code in listings and sidebar components)
-=======
-                      applyFilters(); // Apply updated category filters
->>>>>>> 351c94a (update next.js to version 15.2.4 and clean up code in listings and sidebar components)
                     }}
                   >
                     {category}
