@@ -17,6 +17,7 @@ import SellerInfo from "@/components/SellerInfo"; // Import the new component
 
 // Import Lightbox or Modal Component
 import ImageLightbox from "@/components/ImageLightbox";
+import SellerInfo from "@/components/SellerInfo"; // Import the new component
 
 const ListingPage = () => {
   const { id } = useParams();
