@@ -17,7 +17,7 @@ const ProductsSidebar = () => {
     "Popular",
     "Books",
     "Sports",
-    "Accessories",
+    "Accessories.",
   ]); // Example categories
   const [isDropdownOpen, setIsDropdownOpen] = useState(false); // For dropdown toggle
 
