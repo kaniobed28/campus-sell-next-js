@@ -10,10 +10,10 @@ const FileUpload = ({ label, id, onChange, required = false }) => {
     // Append new files to the existing list
     setFileNames((prev) => [...prev, ...names]);
 
-    // Pass the new files to the parent component via onChange
-    onChange(e);
-    
-    // Clear the input value to allow re-selecting the same file
+    // Pass ALL selected files to the parent component
+    onChange(files);
+
+    // Clear the input value to allow re-selecting the same files
     e.target.value = "";
   };
 
@@ -27,15 +27,16 @@ const FileUpload = ({ label, id, onChange, required = false }) => {
           type="file"
           id={id}
           accept="image/*"
+          multiple // Ensure multiple files can be selected
           onChange={handleFileChange}
-          required={fileNames.length === 0 && required} // Required only if no files are uploaded yet
+          required={fileNames.length === 0 && required}
           className="hidden"
         />
         <label
           htmlFor={id}
           className="flex items-center justify-center w-full max-w-xs px-4 py-2 text-sm font-medium text-white bg-blue-500 rounded-lg cursor-pointer hover:bg-blue-600 transition focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
-          Add File
+          Add Files
         </label>
       </div>
       <div className="mt-2">
@@ -48,7 +49,7 @@ const FileUpload = ({ label, id, onChange, required = false }) => {
             ))}
           </ul>
         ) : (
-          <p className="text-sm text-gray-500">No file selected</p>
+          <p className="text-sm text-gray-500">No files selected</p>
         )}
       </div>
     </div>

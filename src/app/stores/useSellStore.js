@@ -10,7 +10,7 @@ const useSellStore = create((set) => ({
     price: "",
     category: "",
     subcategory: "",
-    image: null,
+    image: [], // Array for multiple files
   },
   subcategories: [],
   uploadProgress: 0,
@@ -23,7 +23,6 @@ const useSellStore = create((set) => ({
     Others: [],
   },
 
-  // State handlers
   setFormData: (name, value) =>
     set((state) => ({
       formData: { ...state.formData, [name]: value },
@@ -33,18 +32,12 @@ const useSellStore = create((set) => ({
       subcategories: state.categories[category] || [],
       formData: { ...state.formData, subcategory: "" },
     })),
-  setImage: (image) =>
+  setImage: (images) =>
     set((state) => ({
-      formData: { ...state.formData, image },
+      formData: { ...state.formData, image: images }, // Replace array
     })),
-  setUploadProgress: (progress) =>
-    set({
-      uploadProgress: progress,
-    }),
-  setIsSubmitting: (isSubmitting) =>
-    set({
-      isSubmitting,
-    }),
+  setUploadProgress: (progress) => set({ uploadProgress: progress }),
+  setIsSubmitting: (isSubmitting) => set({ isSubmitting }),
   resetForm: () =>
     set({
       formData: {
@@ -53,36 +46,40 @@ const useSellStore = create((set) => ({
         price: "",
         category: "",
         subcategory: "",
-        image: null,
+        image: [],
       },
       uploadProgress: 0,
       isSubmitting: false,
     }),
 
-  // Firebase operations
-  uploadImage: async (image) => {
-    return new Promise((resolve, reject) => {
-      const imageRef = ref(storage, `products/${image.name}`);
+  uploadImage: async (images) => {
+    if (!images || images.length === 0) return [];
+
+    const uploadPromises = images.map((image, index) => {
+      const imageRef = ref(storage, `products/${Date.now()}_${index}_${image.name}`); // Unique name
       const uploadTask = uploadBytesResumable(imageRef, image);
 
-      uploadTask.on(
-        "state_changed",
-        (snapshot) => {
-          const progress = Math.round(
-            (snapshot.bytesTransferred / snapshot.totalBytes) * 100
-          );
-          set({ uploadProgress: progress });
-        },
-        (error) => {
-          console.error("Error uploading image:", error);
-          reject(error);
-        },
-        async () => {
-          const imageUrl = await getDownloadURL(uploadTask.snapshot.ref);
-          resolve(imageUrl);
-        }
-      );
+      return new Promise((resolve, reject) => {
+        uploadTask.on(
+          "state_changed",
+          (snapshot) => {
+            const progress = Math.round(
+              (snapshot.bytesTransferred / snapshot.totalBytes) * 100
+            );
+            set({ uploadProgress: progress }); // Note: This updates for each file
+          },
+          (error) => reject(error),
+          async () => {
+            const imageUrl = await getDownloadURL(uploadTask.snapshot.ref);
+            resolve(imageUrl);
+          }
+        );
+      });
     });
+
+    const imageUrls = await Promise.all(uploadPromises);
+    set({ uploadProgress: 0 });
+    return imageUrls;
   },
 
   addProductToFirestore: async (productData) => {
@@ -97,4 +94,5 @@ const useSellStore = create((set) => ({
     }
   },
 }));
+
 export default useSellStore;

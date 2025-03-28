@@ -1,23 +1,17 @@
 import { create } from "zustand";
-import { getFirestore, collection, getDocs } from "firebase/firestore";
-import { db } from "@/lib/firebase"; // Import Firebase Firestore instance
+import products from "@/dummyData/products";
 
 export const useProductStore = create((set) => ({
   // Initial state
   products: [],
-  filteredProducts: [], // Store filtered products
-  filters: { category: "All", priceRange: [0, 1000] },
+  filteredProducts: [],
+  filters: { category: "All", priceRange: [0, 1000], search: "" },
   loading: false,
 
-  // Fetch products from Firestore
+  // Fetch products (now imports from products.js)
   fetchProducts: async () => {
     set({ loading: true });
     try {
-      const querySnapshot = await getDocs(collection(db, "products"));
-      const products = querySnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data(),
-      }));
       set({ products, filteredProducts: products, loading: false });
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -27,18 +21,22 @@ export const useProductStore = create((set) => ({
 
   // Update filters
   setFilters: (filters) =>
-    set((state) => ({ filters: { ...state.filters, ...filters } })),
+    set((state) => {
+      const updatedFilters = { ...state.filters, ...filters };
+      return { filters: updatedFilters };
+    }),
 
   // Apply filters to the product list
   applyFilters: () => {
     set((state) => {
       const { products, filters } = state;
-      let filteredProducts = products;
+      let filteredProducts = [...products]; // Create a copy to avoid mutating state
 
       // Apply category filter
       if (filters.category && filters.category !== "All") {
         filteredProducts = filteredProducts.filter(
-          (product) => product.category === filters.category
+          (product) =>
+            product.category.toLowerCase() === filters.category.toLowerCase()
         );
       }
 
@@ -47,6 +45,14 @@ export const useProductStore = create((set) => ({
       filteredProducts = filteredProducts.filter(
         (product) => product.price >= minPrice && product.price <= maxPrice
       );
+
+      // Apply search filter
+      if (filters.search) {
+        const searchLower = filters.search.toLowerCase();
+        filteredProducts = filteredProducts.filter((product) =>
+          product.name.toLowerCase().includes(searchLower)
+        );
+      }
 
       return { filteredProducts };
     });

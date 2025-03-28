@@ -1,12 +1,12 @@
 import React from "react";
 import ItemCard from "./ItemCard";
+import products from "@/dummyData/products";
 
 const FeaturedListingsSection = () => {
-  const featuredItems = [
-    { id: 1, title: "Item 1", description: "Description of item 1", image: "https://via.placeholder.com/300x200?text=Item+1" },
-    { id: 2, title: "Item 2", description: "Description of item 2", image: "https://via.placeholder.com/300x200?text=Item+2" },
-    { id: 3, title: "Item 3", description: "Description of item 3", image: "https://via.placeholder.com/300x200?text=Item+3" },
-  ];
+  // Sort products by views in descending order and take the top 6
+  const topLikedProducts = [...products]
+    .sort((a, b) => b.views - a.views)
+    .slice(0, 6);
 
   return (
     <section className="py-16 bg-background text-foreground dark:bg-background-dark dark:text-foreground-dark">
@@ -15,16 +15,27 @@ const FeaturedListingsSection = () => {
           Featured Listings
         </h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-8">
-          {featuredItems.map((item) => (
-            <ItemCard
-              key={item.id}
-              id={item.id}
-              image={item.image}
-              title={item.title}
-              description={item.description}
-              link={`/listings/item-${item.id}`}
-            />
-          ))}
+          {topLikedProducts.map((item) => {
+            // Normalize image: use first URL from imageUrls if present, otherwise use image
+            const displayImage =
+              Array.isArray(item.imageUrls) && item.imageUrls.length > 0
+                ? item.imageUrls[0]
+                : item.image || "/default-image.jpg";
+
+            return (
+              <ItemCard
+                key={item.id}
+                id={item.id}
+                image={displayImage} // Pass normalized image
+                title={item.title}
+                description={item.category}
+                price={item.price}
+                link={`/listings/${item.id}`}
+                likes={item.likes || 0} // Default to 0 if not provided
+                views={item.views || 0} // Default to 0 if not provided
+              />
+            );
+          })}
         </div>
       </div>
     </section>
