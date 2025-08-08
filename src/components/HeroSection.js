@@ -2,80 +2,96 @@
 "use client";
 
 import React, { useState, useEffect } from "react";
-import { useRouter } from "next/navigation"; // For navigation to search results
+import { useRouter } from "next/navigation";
+import { Button } from "./ui/Button";
+import SearchBar from "./SearchBar";
 
 const HeroSection = () => {
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [products, setProducts] = useState([]); // Mock product list
+  const [products, setProducts] = useState([]);
   const router = useRouter();
 
   // Mock product data (replace with Firebase fetch later)
   useEffect(() => {
-    // Simulate fetching products from Firebase
     const mockProducts = [
       { id: "5kztIYBg2MLeVlwIXine", title: "54y4t", price: 45, category: "Home" },
       { id: "CLvDfuyypdTaIbHU3SZA", title: "Laptop", price: 800, category: "Electronics" },
-      // Add more mock data as needed
     ];
     setProducts(mockProducts);
   }, []);
 
-  const handleSearch = (e) => {
-    e.preventDefault();
-    if (!searchQuery.trim()) {
-      return; // Prevent empty searches
-    }
-
-    setIsSearching(true);
-    // Filter products based on search query (case-insensitive)
-    const filteredProducts = products.filter((product) =>
-      product.title.toLowerCase().includes(searchQuery.toLowerCase()) ||
-      product.category.toLowerCase().includes(searchQuery.toLowerCase())
-    );
-
-    // Navigate to a search results page (e.g., /search?q={searchQuery})
-    router.push(`/search?q=${encodeURIComponent(searchQuery)}`);
-    // For now, log the results (replace with actual navigation logic)
-    console.log("Search Results:", filteredProducts);
-    setIsSearching(false);
-  };
-
-  const handleInputChange = (e) => {
-    setSearchQuery(e.target.value);
-  };
-
   return (
-    <section className="bg-background text-foreground py-16 dark:bg-primary-dark dark:text-foreground-dark">
+    <section className="bg-gradient-to-br from-background to-muted py-20 theme-transition">
       <div className="container mx-auto px-4 text-center">
-        <h1 className="text-4xl font-bold mb-4">
-          Welcome to Campus Sell
-        </h1>
-        <p className="text-lg mb-6">
-          Buy, sell, and trade within your campus community.
-        </p>
-        <form onSubmit={handleSearch} className="relative max-w-md mx-auto shadow-lg rounded-md">
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={handleInputChange}
-            placeholder="Search for products, categories..."
-            className="w-full px-4 py-3 rounded-l-md focus:outline-none bg-background text-foreground border border-gray-300 dark:bg-background-dark dark:text-foreground-dark dark:border-gray-700 focus:ring-2 focus:ring-accent focus:border-transparent transition"
-            aria-label="Search for products or categories"
-            disabled={isSearching}
-          />
-          <button
-            type="submit"
-            className="absolute right-0 px-4 py-3 bg-accent text-white rounded-r-md hover:bg-secondary dark:bg-accent-dark dark:hover:bg-secondary-dark disabled:opacity-50 disabled:cursor-not-allowed transition"
-            disabled={isSearching}
-            aria-label="Submit search"
-          >
-            {isSearching ? "Searching..." : "Search"}
-          </button>
-        </form>
-        {isSearching && (
-          <p className="mt-2 text-sm text-gray-500 dark:text-gray-400">Searching...</p>
-        )}
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-5xl md:text-6xl font-bold mb-6 text-foreground">
+            Welcome to{" "}
+            <span className="text-primary bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
+              Campus Sell
+            </span>
+          </h1>
+          <p className="text-xl md:text-2xl mb-8 text-muted-foreground max-w-2xl mx-auto">
+            Buy, sell, and trade within your campus community. 
+            Discover great deals from fellow students.
+          </p>
+          
+          {/* Hero Search Bar */}
+          <div className="max-w-lg mx-auto mb-8">
+            <SearchBar
+              searchQuery={searchQuery}
+              setSearchQuery={setSearchQuery}
+              isSearching={isSearching}
+              setIsSearching={setIsSearching}
+              products={products}
+            />
+          </div>
+
+          {/* Call-to-action buttons */}
+          <div className="flex flex-col sm:flex-row gap-4 justify-center items-center">
+            <Button 
+              asChild 
+              variant="primary" 
+              size="lg"
+              className="min-w-[160px]"
+            >
+              <a href="/listings">Browse Items</a>
+            </Button>
+            <Button 
+              asChild 
+              variant="outline" 
+              size="lg"
+              className="min-w-[160px]"
+            >
+              <a href="/sell">Start Selling</a>
+            </Button>
+          </div>
+
+          {/* Feature highlights */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-16 text-left">
+            <div className="card-base p-6 rounded-lg text-center">
+              <div className="text-4xl mb-4">🛍️</div>
+              <h3 className="text-lg font-semibold mb-2 text-card-foreground">Easy Shopping</h3>
+              <p className="text-muted-foreground text-sm">
+                Browse thousands of items from your campus community
+              </p>
+            </div>
+            <div className="card-base p-6 rounded-lg text-center">
+              <div className="text-4xl mb-4">💰</div>
+              <h3 className="text-lg font-semibold mb-2 text-card-foreground">Great Deals</h3>
+              <p className="text-muted-foreground text-sm">
+                Find amazing prices on textbooks, electronics, and more
+              </p>
+            </div>
+            <div className="card-base p-6 rounded-lg text-center">
+              <div className="text-4xl mb-4">🤝</div>
+              <h3 className="text-lg font-semibold mb-2 text-card-foreground">Safe Trading</h3>
+              <p className="text-muted-foreground text-sm">
+                Trade safely within your trusted campus community
+              </p>
+            </div>
+          </div>
+        </div>
       </div>
     </section>
   );

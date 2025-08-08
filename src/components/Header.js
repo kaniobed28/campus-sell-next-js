@@ -14,21 +14,9 @@ import DarkModeToggle from "./DarkModeToggle";
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [user, setUser] = useState(null);
-  const [darkMode, setDarkMode] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [products, setProducts] = useState([]);
-
-  // Check the stored theme preference on load
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("darkMode") === "true";
-    setDarkMode(savedTheme);
-    if (savedTheme) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
 
   // Listen to auth state changes
   useEffect(() => {
@@ -47,20 +35,6 @@ const Header = () => {
     setProducts(mockProducts);
   }, []);
 
-  // Toggle dark mode and persist preference
-  const toggleDarkMode = () => {
-    setDarkMode((prev) => {
-      const newMode = !prev;
-      localStorage.setItem("darkMode", newMode);
-      if (newMode) {
-        document.documentElement.classList.add("dark");
-      } else {
-        document.documentElement.classList.remove("dark");
-      }
-      return newMode;
-    });
-  };
-
   const handleSignOut = async () => {
     try {
       await signOut(auth);
@@ -71,40 +45,42 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-background text-foreground sticky top-0 z-50 shadow-md dark:bg-background-dark dark:text-foreground-dark">
+    <header className="bg-card border-b border-border sticky top-0 z-50 shadow-sm theme-transition">
       <div className="container mx-auto px-6 py-4 flex items-center justify-between">
         {/* Logo */}
         <Link
           href="/"
-          className="text-3xl font-bold tracking-wide hover:text-secondary transition dark:hover:text-secondary-dark"
+          className="text-2xl font-bold tracking-wide text-primary hover:text-accent theme-transition focus-ring rounded-md px-2 py-1"
         >
           Campus Sell
         </Link>
 
         {/* Search Bar */}
-        <SearchBar
-          searchQuery={searchQuery}
-          setSearchQuery={setSearchQuery}
-          isSearching={isSearching}
-          setIsSearching={setIsSearching}
-          products={products}
-        />
+        <div className="flex-1 max-w-md mx-8">
+          <SearchBar
+            searchQuery={searchQuery}
+            setSearchQuery={setSearchQuery}
+            isSearching={isSearching}
+            setIsSearching={setIsSearching}
+            products={products}
+          />
+        </div>
 
         {/* Navigation Links (Desktop) */}
-        <nav className="hidden md:flex items-center space-x-8">
+        <nav className="hidden md:flex items-center space-x-6">
           <NavLinks user={user} handleSignOut={handleSignOut} onLinkClick={() => {}} />
         </nav>
 
         {/* Dark Mode Toggle */}
-        <DarkModeToggle darkMode={darkMode} toggleDarkMode={toggleDarkMode} />
+        <DarkModeToggle />
 
         {/* Hamburger Menu */}
         <button
-          className="md:hidden text-3xl focus:outline-none"
+          className="md:hidden p-2 rounded-md text-foreground hover:bg-accent hover:text-accent-foreground focus-ring theme-transition"
           onClick={() => setIsMenuOpen(!isMenuOpen)}
           aria-label="Toggle Menu"
         >
-          <FontAwesomeIcon icon={faBars} />
+          <FontAwesomeIcon icon={faBars} className="w-5 h-5" />
         </button>
       </div>
 

@@ -1,19 +1,23 @@
 import React from "react";
+import { Button } from "../../../components/ui/Button";
 
 const AuthToggle = ({ isSignUp, onToggle }) => {
   return (
-    <p className="mt-4 text-center text-sm">
-      {isSignUp
-        ? "Already have an account? "
-        : "Don't have an account yet? "}
-      <button
+    <div className="text-center">
+      <p className="text-sm text-muted-foreground mb-2">
+        {isSignUp
+          ? "Already have an account?"
+          : "Don't have an account yet?"}
+      </p>
+      <Button
         type="button"
-        className="text-blue-600 hover:underline"
+        variant="link"
         onClick={onToggle}
+        className="text-primary hover:text-accent"
       >
-        {isSignUp ? "Sign In" : "Sign Up"}
-      </button>
-    </p>
+        {isSignUp ? "Sign In" : "Create Account"}
+      </Button>
+    </div>
   );
 };
 
