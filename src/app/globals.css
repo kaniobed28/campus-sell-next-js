@@ -96,12 +96,13 @@
 
 /* Component-specific theme styles */
 
-/* Base component styles */
+/* Optimized theme transition */
 .theme-transition {
-  transition: background-color 0.2s ease-in-out, 
-              color 0.2s ease-in-out, 
-              border-color 0.2s ease-in-out,
-              box-shadow 0.2s ease-in-out;
+  transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1), 
+              color 150ms cubic-bezier(0.4, 0, 0.2, 1), 
+              border-color 150ms cubic-bezier(0.4, 0, 0.2, 1),
+              box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1);
+  will-change: background-color, color, border-color, box-shadow;
 }
 
 /* Button variants - using standard CSS instead of @apply */
@@ -242,6 +243,26 @@
   top: 6px;
 }
 
+/* Brand-specific styles */
+.campus-sell-gradient {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+}
+
+.campus-sell-text-gradient {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--accent) 100%);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  background-clip: text;
+}
+
+.campus-sell-shadow {
+  box-shadow: 0 4px 6px -1px rgba(15, 23, 42, 0.1), 0 2px 4px -1px rgba(15, 23, 42, 0.06);
+}
+
+.dark .campus-sell-shadow {
+  box-shadow: 0 4px 6px -1px rgba(56, 189, 248, 0.1), 0 2px 4px -1px rgba(56, 189, 248, 0.06);
+}
+
 /* Utility classes */
 .line-clamp-1 {
   overflow: hidden;
@@ -264,6 +285,105 @@
   -webkit-line-clamp: 3;
 }
 
+/* Brand consistency helpers */
+.brand-heading {
+  font-weight: 700;
+  letter-spacing: -0.025em;
+  color: var(--foreground);
+}
+
+.brand-subheading {
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.brand-body {
+  line-height: 1.6;
+  color: var(--foreground);
+}
+
+.brand-link {
+  color: var(--primary);
+  text-decoration: none;
+  transition: color 150ms ease-in-out;
+}
+
+.brand-link:hover {
+  color: var(--accent);
+}
+
+/* Enhanced interactive states */
+.interactive-scale {
+  transition: transform 150ms ease-in-out;
+}
+
+.interactive-scale:hover {
+  transform: scale(1.02);
+}
+
+.interactive-scale:active {
+  transform: scale(0.98);
+}
+
+/* Improved focus states for better accessibility */
+.enhanced-focus:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 4px;
+}
+
+/* Consistent spacing system */
+.space-section {
+  padding: 4rem 0;
+}
+
+.space-container {
+  padding: 0 1.5rem;
+}
+
+@media (min-width: 768px) {
+  .space-container {
+    padding: 0 2rem;
+  }
+}
+
+/* Consistent border radius system */
+.rounded-brand {
+  border-radius: 0.75rem;
+}
+
+.rounded-brand-lg {
+  border-radius: 1rem;
+}
+
+/* Print styles for better accessibility */
+@media print {
+  * {
+    background: white !important;
+    color: black !important;
+    box-shadow: none !important;
+  }
+  
+  .no-print {
+    display: none !important;
+  }
+}
+
+/* Reduced motion preferences */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+  
+  .theme-transition {
+    transition: none !important;
+  }
+}
+
 /* Base styles */
 * {
   border-color: var(--border);
@@ -276,13 +396,23 @@ body {
   transition: background-color 0.2s ease-in-out, color 0.2s ease-in-out;
 }
 
-/* Smooth transitions for theme switching */
+/* Optimized transitions for theme switching */
 *,
 *::before,
 *::after {
-  transition-property: background-color, border-color, color, fill, stroke;
+  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
-  transition-duration: 200ms;
+  transition-duration: 150ms;
+}
+
+/* Reduce transitions on elements that change frequently */
+input, textarea, select {
+  transition-duration: 100ms;
+}
+
+/* Disable transitions during theme switching to prevent flicker */
+.theme-switching * {
+  transition: none !important;
 }
 
 /* Ensure proper font loading */
