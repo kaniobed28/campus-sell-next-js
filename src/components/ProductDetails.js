@@ -31,14 +31,14 @@ const ProductDetails = ({ product, onAddToCart, isLoading, isAuthenticated }) =>
             </Link>
           </li>
           <li>/</li>
-          <li className="font-medium text-foreground">{product.name}</li>
+          <li className="font-medium text-foreground">{product.title || product.name || 'Untitled Product'}</li>
         </ol>
       </nav>
 
       {/* Product Title */}
       <div>
         <h1 className="text-3xl md:text-4xl font-bold text-foreground mb-4">
-          {product.name}
+          {product.title || product.name || 'Untitled Product'}
         </h1>
         
         {/* Rating */}
@@ -57,9 +57,9 @@ const ProductDetails = ({ product, onAddToCart, isLoading, isAuthenticated }) =>
         {/* Price */}
         <div className="mb-6">
           <p className="text-3xl font-bold text-primary mb-1">
-            ${product.price}
+            ${typeof product.price === 'number' ? product.price.toFixed(2) : parseFloat(product.price || 0).toFixed(2)}
           </p>
-          <span className="text-sm text-muted-foreground">incl. VAT</span>
+          <span className="text-sm text-muted-foreground">Price negotiable</span>
         </div>
       </div>
 
@@ -74,11 +74,21 @@ const ProductDetails = ({ product, onAddToCart, isLoading, isAuthenticated }) =>
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-6">
         <div className="card-base p-4 rounded-lg">
           <span className="block text-sm text-muted-foreground mb-1">Category</span>
-          <span className="font-medium text-card-foreground">{product.category}</span>
+          <span className="font-medium text-card-foreground">{product.category || 'Uncategorized'}</span>
         </div>
         <div className="card-base p-4 rounded-lg">
-          <span className="block text-sm text-muted-foreground mb-1">Subtype</span>
-          <span className="font-medium text-card-foreground">{product.subcategory || 'N/A'}</span>
+          <span className="block text-sm text-muted-foreground mb-1">Condition</span>
+          <span className="font-medium text-card-foreground">{product.condition || 'Good'}</span>
+        </div>
+        <div className="card-base p-4 rounded-lg">
+          <span className="block text-sm text-muted-foreground mb-1">Location</span>
+          <span className="font-medium text-card-foreground">{product.location || 'Campus'}</span>
+        </div>
+        <div className="card-base p-4 rounded-lg">
+          <span className="block text-sm text-muted-foreground mb-1">Listed</span>
+          <span className="font-medium text-card-foreground">
+            {product.createdAt ? new Date(product.createdAt.seconds * 1000).toLocaleDateString() : 'Recently'}
+          </span>
         </div>
       </div>
 

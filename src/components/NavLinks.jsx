@@ -95,6 +95,9 @@ const NavLinks = ({ user, handleSignOut, onLinkClick, isMobile = false }) => {
       <Link href="/listings" className={linkClass} onClick={onLinkClick}>
         Listings
       </Link>
+      <Link href="/setup" className={linkClass} onClick={onLinkClick}>
+        Setup
+      </Link>
       <Link href="/contact" className={linkClass} onClick={onLinkClick}>
         Contact Us
       </Link>

@@ -28,7 +28,7 @@ const ListingPage = () => {
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
 
   // Use the custom hook to fetch product, seller, and related products
-  const { product, seller, sellerLoading, relatedProducts } = useProductAndSeller(id);
+  const { product, seller, sellerLoading, productLoading, relatedProducts } = useProductAndSeller(id);
 
   // Fetch user profile
   useEffect(() => {
@@ -37,6 +37,7 @@ const ListingPage = () => {
 
   // Early returns after hooks
   if (!id) return <Loading />;
+  if (productLoading) return <Loading message="Loading product details..." />;
   if (!product) return <NotFound />;
 
 
@@ -67,7 +68,7 @@ const ListingPage = () => {
     }
     try {
       await addToCart(product, quantity);
-      setSuccessMessage(`Successfully added ${quantity} of ${product.name} to your cart!`);
+      setSuccessMessage(`Successfully added ${quantity} of ${product.title || product.name} to your cart!`);
       setShowQuantityModal(false);
       setQuantity(1);
       setTimeout(() => setSuccessMessage(""), 3000);
@@ -93,7 +94,7 @@ const ListingPage = () => {
       />
       <QuantityModal
         isOpen={showQuantityModal}
-        productName={product.title}
+        productName={product.title || product.name || 'Product'}
         quantity={quantity}
         setQuantity={setQuantity}
         onConfirm={confirmAddToCart}
