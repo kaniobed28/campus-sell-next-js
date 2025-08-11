@@ -1,0 +1,82 @@
+// Development Firestore Security Rules for Admin Collections
+// These are more permissive rules for development/testing
+// Replace with the production rules once the system is working
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Admin collection rules - DEVELOPMENT VERSION (more permissive)
+    match /admins/{adminEmail} {
+      // Allow read for authenticated users to check their own admin status
+      allow read: if request.auth != null && request.auth.token.email == adminEmail;
+      
+      // Allow creation for the principal admin email during initialization
+      allow create: if request.auth != null && (
+        // Principal admin can create themselves
+        adminEmail == 'kaniobed28@gmail.com' ||
+        // Any authenticated user can create admin records (for development)
+        request.auth.token.email == adminEmail
+      );
+      
+      // Allow updates for development
+      allow update: if request.auth != null && (
+        request.auth.token.email == 'kaniobed28@gmail.com' ||
+        request.auth.token.email == adminEmail
+      );
+      
+      // Allow delete for principal admin only
+      allow delete: if request.auth != null && 
+        request.auth.token.email == 'kaniobed28@gmail.com' && 
+        adminEmail != 'kaniobed28@gmail.com';
+    }
+    
+    // Audit logs collection rules - DEVELOPMENT VERSION
+    match /audit_logs/{logId} {
+      // Allow read for any authenticated user (for development)
+      allow read: if request.auth != null;
+      
+      // Allow create for any authenticated user (for development)
+      allow create: if request.auth != null;
+      
+      // Audit logs are immutable
+      allow update, delete: if false;
+    }
+    
+    // Platform settings collection rules - DEVELOPMENT VERSION
+    match /platform_settings/{settingId} {
+      // Allow read/write for any authenticated user (for development)
+      allow read, write: if request.auth != null;
+    }
+    
+    // Enhanced user collection rules for admin access - DEVELOPMENT VERSION
+    match /users/{userId} {
+      // Users can read/write their own data
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Any authenticated user can read/write user data (for development)
+      allow read, write: if request.auth != null;
+    }
+    
+    // Enhanced products collection rules for admin access - DEVELOPMENT VERSION
+    match /products/{productId} {
+      // Anyone can read products
+      allow read: if true;
+      
+      // Any authenticated user can write products (for development)
+      allow write: if request.auth != null;
+    }
+    
+    // Enhanced categories collection rules for admin access - DEVELOPMENT VERSION
+    match /categories/{categoryId} {
+      // Anyone can read categories
+      allow read: if true;
+      
+      // Any authenticated user can write categories (for development)
+      allow write: if request.auth != null;
+    }
+  }
+}
+
+// Note: These are development rules and should be replaced with the production rules
+// from firestore-admin-rules.rules once the admin system is working properly.
