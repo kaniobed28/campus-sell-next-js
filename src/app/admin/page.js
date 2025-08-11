@@ -143,14 +143,20 @@ const AdminDashboardContent = () => {
               <h4 className="font-medium">Categories</h4>
               <p className="text-sm opacity-90">Manage categories</p>
             </a>
-            <div className="bg-gray-300 text-gray-600 p-4 rounded-lg text-center cursor-not-allowed">
+            <a
+              href="/admin/users"
+              className="bg-purple-600 text-white p-4 rounded-lg hover:bg-purple-700 text-center"
+            >
               <h4 className="font-medium">Users</h4>
-              <p className="text-sm opacity-90">Coming soon</p>
-            </div>
-            <div className="bg-gray-300 text-gray-600 p-4 rounded-lg text-center cursor-not-allowed">
+              <p className="text-sm opacity-90">Manage user accounts</p>
+            </a>
+            <a
+              href="/admin/products"
+              className="bg-orange-600 text-white p-4 rounded-lg hover:bg-orange-700 text-center"
+            >
               <h4 className="font-medium">Products</h4>
-              <p className="text-sm opacity-90">Coming soon</p>
-            </div>
+              <p className="text-sm opacity-90">Moderate product listings</p>
+            </a>
           </div>
         </div>
 
