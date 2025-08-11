@@ -3,6 +3,8 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useAuth } from "../../stores/useAuth";
+import { useViewport } from "@/hooks/useViewport";
+import { useResponsiveTypography } from "@/hooks/useResponsiveTypography";
 import Loading from "@/components/Loading";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, addDoc, deleteDoc } from "firebase/firestore";
@@ -10,6 +12,8 @@ import { collection, query, where, getDocs, addDoc, deleteDoc } from "firebase/f
 const CheckoutPage = () => {
   const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { isMobile, isTablet, isTouchDevice } = useViewport();
+  const { getResponsiveTextClass, getResponsiveHeadingClass } = useResponsiveTypography();
 
   const [name, setName] = useState("");
   const [phone, setPhone] = useState("");
@@ -137,19 +141,80 @@ const CheckoutPage = () => {
     }
   };
 
+  // Responsive classes
+  const containerClasses = `
+    container mx-auto 
+    ${isMobile ? 'px-4 py-8' : isTablet ? 'px-6 py-12' : 'px-8 py-16'}
+  `;
+
+  const formClasses = `
+    mt-6 ${isMobile ? 'w-full' : isTablet ? 'max-w-2xl' : 'max-w-lg'} mx-auto
+  `;
+
+  const inputClasses = `
+    border border-gray-300 rounded-lg w-full 
+    ${isMobile ? 'p-4' : 'p-3'} 
+    ${getResponsiveTextClass('body-base')}
+    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent
+    disabled:bg-gray-100 disabled:cursor-not-allowed
+    transition-colors duration-200
+  `;
+
+  const labelClasses = `
+    block font-medium mb-2 ${getResponsiveTextClass('body-base')}
+  `;
+
+  const submitButtonClasses = `
+    bg-blue-600 text-white font-bold rounded-lg mt-6 w-full
+    ${isMobile ? 'px-6 py-4' : 'px-6 py-3'} 
+    ${getResponsiveTextClass('body-lg')}
+    ${isTouchDevice ? 'min-h-[48px] active:scale-95' : 'min-h-[44px]'}
+    transition-all duration-200
+    disabled:opacity-50 disabled:cursor-not-allowed
+    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+    ${isSubmitting || deliveryCompanies.length === 0 ? '' : 'hover:bg-blue-700 hover:shadow-lg'}
+  `;
+
+  const fieldSpacing = isMobile ? 'mt-6' : 'mt-4';
+
   return (
-    <div className="container mx-auto px-4 py-16">
-      <h1 className="text-3xl font-bold mb-6 text-center">Checkout</h1>
-      <p className="text-center">
-        Thank you for your purchase, {user.email.split("@")[0]}! Please provide your delivery details below:
-      </p>
+    <div className={containerClasses}>
+      <div className={isMobile ? 'text-center' : 'text-center'}>
+        <h1 className={`${getResponsiveHeadingClass(1, 'display')} mb-6`}>
+          Checkout
+        </h1>
+        <p className={`${getResponsiveTextClass('body-base')} text-gray-600`}>
+          Thank you for your purchase, {user.email.split("@")[0]}! Please provide your delivery details below:
+        </p>
+      </div>
 
-      {error && <p className="text-red-500 text-center mt-2">{error}</p>}
-      {success && <p className="text-green-500 text-center mt-2">Order placed successfully!</p>}
+      {/* Error and Success Messages */}
+      {error && (
+        <div className={`
+          bg-red-50 border border-red-200 rounded-lg p-4 mt-6
+          ${isMobile ? 'text-center' : ''}
+        `}>
+          <p className={`${getResponsiveTextClass('body-base')} text-red-800`}>
+            {error}
+          </p>
+        </div>
+      )}
+      
+      {success && (
+        <div className={`
+          bg-green-50 border border-green-200 rounded-lg p-4 mt-6
+          ${isMobile ? 'text-center' : ''}
+        `}>
+          <p className={`${getResponsiveTextClass('body-base')} text-green-800`}>
+            Order placed successfully!
+          </p>
+        </div>
+      )}
 
-      <form className="mt-4 max-w-lg mx-auto" onSubmit={handleCheckout}>
+      <form className={formClasses} onSubmit={handleCheckout}>
+        {/* Name Field */}
         <div>
-          <label htmlFor="name" className="block font-medium">
+          <label htmlFor="name" className={labelClasses}>
             Name <span className="text-red-500">*</span>
           </label>
           <input
@@ -157,13 +222,16 @@ const CheckoutPage = () => {
             id="name"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            className="border rounded w-full p-2"
+            className={inputClasses}
+            placeholder="Enter your full name"
             required
+            autoComplete="name"
           />
         </div>
 
-        <div className="mt-4">
-          <label htmlFor="phone" className="block font-medium">
+        {/* Phone Field */}
+        <div className={fieldSpacing}>
+          <label htmlFor="phone" className={labelClasses}>
             Phone Number <span className="text-red-500">*</span>
           </label>
           <input
@@ -171,13 +239,16 @@ const CheckoutPage = () => {
             id="phone"
             value={phone}
             onChange={(e) => setPhone(e.target.value)}
-            className="border rounded w-full p-2"
+            className={inputClasses}
+            placeholder="Enter your phone number"
             required
+            autoComplete="tel"
           />
         </div>
 
-        <div className="mt-4">
-          <label htmlFor="address" className="block font-medium">
+        {/* Address Field */}
+        <div className={fieldSpacing}>
+          <label htmlFor="address" className={labelClasses}>
             Address <span className="text-red-500">*</span>
           </label>
           <input
@@ -185,20 +256,23 @@ const CheckoutPage = () => {
             id="address"
             value={address}
             onChange={(e) => setAddress(e.target.value)}
-            className="border rounded w-full p-2"
+            className={inputClasses}
+            placeholder="Enter your delivery address"
             required
+            autoComplete="address-line1"
           />
         </div>
 
-        <div className="mt-4">
-          <label htmlFor="deliveryCompany" className="block font-medium">
+        {/* Delivery Company Field */}
+        <div className={fieldSpacing}>
+          <label htmlFor="deliveryCompany" className={labelClasses}>
             Delivery Company <span className="text-red-500">*</span>
           </label>
           <select
             id="deliveryCompany"
             value={deliveryCompanyId}
             onChange={(e) => setDeliveryCompanyId(e.target.value)}
-            className="border rounded w-full p-2"
+            className={inputClasses}
             disabled={deliveryCompanies.length === 0}
           >
             {deliveryCompanies.length === 0 ? (
@@ -212,31 +286,41 @@ const CheckoutPage = () => {
             )}
           </select>
           {deliveryCompanies.length === 0 && (
-            <p className="text-sm text-gray-500 mt-1">Please add a delivery company first.</p>
+            <p className={`${getResponsiveTextClass('body-sm')} text-gray-500 mt-2`}>
+              Please add a delivery company first.
+            </p>
           )}
         </div>
 
-        <div className="mt-4">
-          <label htmlFor="notes" className="block font-medium">Additional Notes</label>
+        {/* Notes Field */}
+        <div className={fieldSpacing}>
+          <label htmlFor="notes" className={labelClasses}>
+            Additional Notes
+          </label>
           <textarea
             id="notes"
             value={notes}
             onChange={(e) => setNotes(e.target.value)}
-            className="border rounded w-full p-2"
-            rows="3"
+            className={`${inputClasses} resize-none`}
+            rows={isMobile ? "4" : "3"}
+            placeholder="Any special delivery instructions..."
           />
         </div>
 
+        {/* Submit Button */}
         <button
           type="submit"
           disabled={isSubmitting || deliveryCompanies.length === 0}
-          className={`bg-blue-600 text-white px-6 py-3 rounded font-bold text-lg mt-4 w-full ${
-            isSubmitting || deliveryCompanies.length === 0
-              ? "opacity-50 cursor-not-allowed"
-              : "hover:bg-blue-700"
-          }`}
+          className={submitButtonClasses}
         >
-          {isSubmitting ? "Processing..." : "Confirm Checkout"}
+          {isSubmitting ? (
+            <div className="flex items-center justify-center gap-3">
+              <div className="animate-spin w-5 h-5 border-2 border-current border-t-transparent rounded-full" />
+              Processing...
+            </div>
+          ) : (
+            "Confirm Checkout"
+          )}
         </button>
       </form>
     </div>

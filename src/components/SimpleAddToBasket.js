@@ -1,30 +1,28 @@
 "use client";
 
 import React, { useState } from "react";
-import { useBasketStore } from "@/app/stores/useBasketStore";
+import { useUnifiedBasket } from "@/hooks/useUnifiedBasket";
 import { useViewport } from "@/hooks/useViewport";
 import { useResponsiveTypography } from "@/hooks/useResponsiveTypography";
 
-const AddToBasketButton = ({
-  product,
-  quantity = 1,
+const SimpleAddToBasket = ({ 
+  product, 
   className = "",
   children = "Add to Basket",
   variant = "primary", // "primary", "secondary", "outline"
-  size = "default", // "small", "default", "large"
-  fullWidth = false
+  size = "default" // "small", "default", "large"
 }) => {
-  const { addToBasket, isLoading } = useBasketStore();
+  const { addToBasket, isLoading } = useUnifiedBasket();
   const [isAdding, setIsAdding] = useState(false);
   const { isMobile, isTablet, isTouchDevice } = useViewport();
   const { getResponsiveTextClass } = useResponsiveTypography();
 
   const handleAddToBasket = async () => {
-    if (!product || !product.id || isAdding || isLoading) return;
+    if (!product || isAdding || isLoading) return;
 
     setIsAdding(true);
     try {
-      await addToBasket(product, quantity);
+      await addToBasket(product, 1);
       // Could show success message here
     } catch (error) {
       console.error("Error adding to basket:", error);
@@ -71,11 +69,11 @@ const AddToBasketButton = ({
   const buttonClasses = `
     ${getSizeClasses()}
     ${getVariantClasses()}
-    ${fullWidth || isMobile ? 'w-full' : ''}
     rounded-lg font-medium transition-all duration-200
     disabled:opacity-50 disabled:cursor-not-allowed
     focus:outline-none focus:ring-2 focus:ring-offset-2
     ${isTouchDevice ? 'active:scale-95' : 'hover:shadow-md'}
+    ${isMobile ? 'w-full' : ''}
     ${className}
   `;
 
@@ -119,4 +117,4 @@ const AddToBasketButton = ({
   );
 };
 
-export default AddToBasketButton;
+export default SimpleAddToBasket;

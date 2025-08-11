@@ -11,7 +11,7 @@ import SearchModal from "./SearchModal";
 import NavLinks from "./NavLinks";
 import MobileMenu from "./MobileMenu";
 import DarkModeToggle from "./DarkModeToggle";
-// import BasketCounter from "./BasketCounter"; // Temporarily disabled
+import BasketCounter from "./BasketCounter";
 import { useViewport } from "@/hooks/useViewport";
 
 const Header = () => {
@@ -90,11 +90,8 @@ const Header = () => {
               </button>
             )}
 
-            {/* Basket Counter - Temporarily disabled to fix blank page */}
-            {/* <BasketCounter 
-              variant={isMobile ? "icon-only" : "compact"}
-              className="theme-transition"
-            /> */}
+            {/* Basket Counter */}
+            <BasketCounter className="theme-transition" />
 
             {/* Enhanced Navigation Links (Desktop) with better spacing and hover effects */}
             <nav className="hidden lg:flex items-center space-x-2" role="navigation" aria-label="Main navigation">

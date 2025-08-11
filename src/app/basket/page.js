@@ -1,155 +1,255 @@
 "use client";
 
-import React, { useState, useEffect } from "react";
+import React, { useEffect } from "react";
 import { useRouter } from "next/navigation";
-import ItemCard from "@/components/ItemCard";
+import { useBasketStore } from "../stores/useBasketStore";
 import { useAuth } from "../stores/useAuth";
+import { useViewport } from "@/hooks/useViewport";
+import { useResponsiveTypography } from "@/hooks/useResponsiveTypography";
+import BasketItem from "@/components/BasketItem";
 import Loading from "@/components/Loading";
-import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs, doc, getDoc, deleteDoc } from "firebase/firestore";
 
 const BasketPage = () => {
-  const [basketItems, setBasketItems] = useState([]);
-  const [isLoadingItems, setIsLoadingItems] = useState(true);
-  const [error, setError] = useState(null);
-  const { user, loading: authLoading } = useAuth();
   const router = useRouter();
+  const { user, loading: authLoading } = useAuth();
+  const basketStore = useBasketStore();
+  const { isMobile, isTablet, isTouchDevice } = useViewport();
+  const { getResponsiveTextClass, getResponsiveHeadingClass } = useResponsiveTypography();
 
+  // Initialize basket when component mounts
   useEffect(() => {
-    const fetchBasketItems = async () => {
-      if (!user) return;
+    if (!authLoading) {
+      basketStore.initializeBasket().catch(error => {
+        console.error("Failed to initialize basket:", error);
+      });
+    }
+  }, [authLoading]);
 
-      try {
-        setIsLoadingItems(true);
-        setError(null);
+  // Handle authentication redirect for authenticated-only features
+  // Note: Guest users can still use the basket
+  const isAuthenticated = !!user;
+  const basketItems = basketStore.getAllItems();
 
-        const cartQuery = query(collection(db, "cart"), where("userId", "==", user.uid));
-        const cartSnapshot = await getDocs(cartQuery);
-        const cartItems = cartSnapshot.docs.map((doc) => ({
-          id: doc.id,
-          ...doc.data(),
-        }));
-
-        if (cartItems.length === 0) {
-          setBasketItems([]);
-          setIsLoadingItems(false);
-          return;
-        }
-
-        const productIds = cartItems.map((item) => item.productId);
-        const productPromises = productIds.map(async (productId) => {
-          const productDocRef = doc(db, "products", productId);
-          const productDocSnap = await getDoc(productDocRef);
-          return productDocSnap.exists() ? { id: productId, ...productDocSnap.data() } : null;
-        });
-        const productDocs = await Promise.all(productPromises);
-        const productsMap = productDocs.filter((doc) => doc).reduce((map, doc) => {
-          map[doc.id] = doc;
-          return map;
-        }, {});
-
-        const enrichedItems = cartItems
-          .map((cartItem) => {
-            const product = productsMap[cartItem.productId];
-            if (!product) return null;
-
-            const displayImage =
-              Array.isArray(product.imageUrls) && product.imageUrls.length > 0
-                ? product.imageUrls[0]
-                : product.image || "/default-image.jpg";
-
-            const price = typeof product.price === "string" ? parseFloat(product.price) || 0 : product.price || 0;
-            return {
-              id: cartItem.id,
-              productId: cartItem.productId,
-              quantity: cartItem.quantity || 1,
-              image: displayImage,
-              title: product.title || "Unknown Product",
-              price,
-              likes: product.likes || 0,
-              views: product.views || 0,
-              description: `Price: ${price.toFixed(2)} | Quantity: ${cartItem.quantity || 1}`,
-              link: `/listings/${cartItem.productId}`,
-            };
-          })
-          .filter(Boolean);
-
-        setBasketItems(enrichedItems);
-      } catch (err) {
-        console.error("Error fetching basket items:", err);
-        setError("Failed to load basket items. Please try again.");
-      } finally {
-        setIsLoadingItems(false);
-      }
-    };
-
-    if (!authLoading && user) fetchBasketItems();
-  }, [user, authLoading]);
-
-  if (authLoading || isLoadingItems) return <Loading />;
-  if (!user) {
-    router.push("/auth");
-    return null;
-  }
-
-  const handleRemove = async (id) => {
+  // Handle quantity change
+  const handleQuantityChange = async (itemId, newQuantity) => {
     try {
-      await deleteDoc(doc(db, "cart", id));
-      setBasketItems(basketItems.filter((item) => item.id !== id));
-    } catch (err) {
-      console.error("Error removing item:", err);
-      setError("Failed to remove item. Please try again.");
+      await basketStore.updateQuantity(itemId, newQuantity);
+    } catch (error) {
+      console.error("Error updating quantity:", error);
     }
   };
 
+  // Handle remove item
+  const handleRemoveItem = async (itemId) => {
+    try {
+      await basketStore.removeFromBasket(itemId);
+    } catch (error) {
+      console.error("Error removing item:", error);
+    }
+  };
+
+  // Handle checkout
   const handleCheckout = () => {
     if (basketItems.length === 0) {
-      setError("Your basket is empty. Add items before checking out.");
+      alert("Your basket is empty. Add items before checking out.");
       return;
     }
+    
+    // Redirect to auth if not authenticated
+    if (!isAuthenticated) {
+      router.push("/auth?redirect=/basket/checkout");
+      return;
+    }
+    
     router.push("/basket/checkout");
   };
 
+  // Handle clear basket
+  const handleClearBasket = async () => {
+    const confirmed = window.confirm("Are you sure you want to clear your entire basket?");
+    if (!confirmed) return;
+
+    try {
+      await basketStore.clearBasket();
+    } catch (error) {
+      console.error("Error clearing basket:", error);
+    }
+  };
+
+  // Loading state
+  if (authLoading || (basketStore.isLoading && basketItems.length === 0)) {
+    return <Loading />;
+  }
+
+  // Responsive classes
+  const containerClasses = `
+    min-h-screen bg-gray-50
+    ${isMobile ? 'pb-20' : 'pb-8'}
+  `;
+
+  const mainContainerClasses = `
+    container mx-auto 
+    ${isMobile ? 'px-4' : isTablet ? 'px-6' : 'px-8'}
+    ${isMobile ? 'py-4' : 'py-8'}
+  `;
+
+  const summaryCardClasses = `
+    bg-white border border-gray-200 rounded-lg 
+    ${isMobile ? 'p-4' : 'p-6'} mb-6
+  `;
+
+  const checkoutButtonClasses = `
+    ${isMobile ? 'w-full px-6 py-4' : 'px-8 py-3'} 
+    bg-blue-600 text-white font-semibold rounded-lg 
+    hover:bg-blue-700 transition-colors 
+    disabled:opacity-50 disabled:cursor-not-allowed
+    ${isTouchDevice ? 'min-h-[48px] active:scale-95' : 'min-h-[44px]'}
+    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+  `;
+
+  const clearButtonClasses = `
+    ${isMobile ? 'px-4 py-2' : 'px-3 py-1'} 
+    ${getResponsiveTextClass('body-sm')} text-red-600 
+    hover:text-red-700 hover:bg-red-50 rounded-md transition-colors
+    ${isTouchDevice ? 'min-h-[44px] active:scale-95' : ''}
+    focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+  `;
+
   return (
-    <div className="container mx-auto px-4 py-16">
-      <h1 className="text-3xl font-bold mb-6 text-center">Your Basket</h1>
-      {error && <p className="text-center text-red-600 mb-4">{error}</p>}
-      {basketItems.length > 0 ? (
-        <>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            {basketItems.map((item) => (
-              <div key={item.id} className="relative">
-                <ItemCard
-                  id={item.productId}
-                  image={item.image}
-                  title={item.title}
-                  price={item.price}
-                  likes={item.likes}
-                  views={item.views}
-                  description={item.description}
-                  link={item.link}
+    <div className={containerClasses}>
+      <div className={mainContainerClasses}>
+        {/* Header */}
+        <div className={`mb-6 ${isMobile ? 'text-center' : ''}`}>
+          <h1 className={`${getResponsiveHeadingClass(1, 'display')} text-gray-900 mb-4`}>
+            Your Basket
+          </h1>
+          
+          {/* Basket Summary */}
+          {basketItems.length > 0 && (
+            <div className={summaryCardClasses}>
+              <div className={`flex items-center ${isMobile ? 'flex-col gap-4' : 'justify-between'}`}>
+                <div className={isMobile ? 'text-center' : ''}>
+                  <p className={`${getResponsiveTextClass('body-base')} text-gray-600`}>
+                    {basketStore.itemCount} items • Total: ${basketStore.totalPrice.toFixed(2)}
+                  </p>
+                  {!isAuthenticated && (
+                    <p className={`${getResponsiveTextClass('body-sm')} text-blue-600 mt-1`}>
+                      Sign in to save your basket and checkout
+                    </p>
+                  )}
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleClearBasket}
+                    className={clearButtonClasses}
+                  >
+                    Clear Basket
+                  </button>
+                </div>
+              </div>
+            </div>
+          )}
+        </div>
+
+        {/* Content */}
+        {basketItems.length > 0 ? (
+          <>
+            {/* Basket Items */}
+            <div className={`space-y-4 mb-8 ${isMobile ? 'space-y-3' : ''}`}>
+              {basketItems.map((item) => (
+                <BasketItem
+                  key={item.id}
+                  item={item}
+                  onQuantityChange={handleQuantityChange}
+                  onRemove={handleRemoveItem}
+                  isUpdating={basketStore.isLoading}
                 />
+              ))}
+            </div>
+
+            {/* Checkout Section */}
+            <div className={summaryCardClasses}>
+              <div className={`flex items-center ${isMobile ? 'flex-col gap-4' : 'justify-between'}`}>
+                <div className={isMobile ? 'text-center' : ''}>
+                  <div className={`${getResponsiveTextClass('heading-2')} font-bold text-gray-900`}>
+                    Total: ${basketStore.totalPrice.toFixed(2)}
+                  </div>
+                  <div className={`${getResponsiveTextClass('body-base')} text-gray-600`}>
+                    {basketStore.itemCount} items
+                  </div>
+                </div>
                 <button
-                  onClick={() => handleRemove(item.id)}
-                  className="absolute top-2 right-2 bg-red-600 text-white px-2 py-1 rounded hover:bg-red-700"
+                  onClick={handleCheckout}
+                  disabled={basketStore.isLoading}
+                  className={checkoutButtonClasses}
                 >
-                  Remove
+                  {basketStore.isLoading ? "Processing..." : "Proceed to Checkout"}
                 </button>
               </div>
-            ))}
-          </div>
-          <div className="text-center mt-8">
+            </div>
+          </>
+        ) : (
+          /* Empty Basket State */
+          <div className={`text-center ${isMobile ? 'py-12' : 'py-16'}`}>
+            <div className={`${isMobile ? 'w-16 h-16' : 'w-24 h-24'} mx-auto mb-6 text-gray-400`}>
+              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-full h-full">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0h7M9.5 18a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm7 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
+              </svg>
+            </div>
+            <h2 className={`${getResponsiveHeadingClass(2)} text-gray-900 mb-2`}>
+              Your basket is empty
+            </h2>
+            <p className={`${getResponsiveTextClass('body-base')} text-gray-600 mb-6`}>
+              Discover amazing products from fellow students
+            </p>
             <button
-              onClick={handleCheckout}
-              className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 font-bold text-lg"
+              onClick={() => router.push("/")}
+              className={`
+                ${isMobile ? 'w-full px-6 py-4' : 'px-6 py-3'} 
+                bg-blue-600 text-white font-semibold rounded-lg 
+                hover:bg-blue-700 transition-colors
+                ${isTouchDevice ? 'min-h-[48px] active:scale-95' : 'min-h-[44px]'}
+                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+              `}
             >
-              Proceed to Checkout
+              Start Shopping
             </button>
           </div>
-        </>
-      ) : (
-        <p className="text-center text-gray-600">Your basket is empty.</p>
-      )}
+        )}
+
+        {/* Error Display */}
+        {basketStore.error && (
+          <div className={`
+            fixed ${isMobile ? 'bottom-4 left-4 right-4' : 'bottom-4 right-4'} 
+            bg-red-50 border border-red-200 rounded-lg p-4 shadow-lg 
+            ${isMobile ? 'max-w-none' : 'max-w-sm'}
+          `}>
+            <div className="flex items-start gap-3">
+              <div className="text-red-600 flex-shrink-0">
+                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+                </svg>
+              </div>
+              <div className="flex-1">
+                <p className={`${getResponsiveTextClass('body-sm')} text-red-800`}>
+                  {basketStore.error}
+                </p>
+                <button
+                  onClick={() => basketStore.clearError()}
+                  className={`
+                    ${getResponsiveTextClass('body-xs')} text-red-600 
+                    hover:text-red-800 mt-1 underline
+                    ${isTouchDevice ? 'min-h-[44px] py-2' : ''}
+                    focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded
+                  `}
+                >
+                  Dismiss
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+      </div>
     </div>
   );
 };
