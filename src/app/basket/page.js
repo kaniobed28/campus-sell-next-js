@@ -53,7 +53,6 @@ const BasketPage = () => {
             const product = productsMap[cartItem.productId];
             if (!product) return null;
 
-            // Normalize image: use first URL from imageUrls if present, otherwise use image
             const displayImage =
               Array.isArray(product.imageUrls) && product.imageUrls.length > 0
                 ? product.imageUrls[0]
@@ -64,12 +63,12 @@ const BasketPage = () => {
               id: cartItem.id,
               productId: cartItem.productId,
               quantity: cartItem.quantity || 1,
-              image: displayImage, // Pass normalized image
+              image: displayImage,
               title: product.title || "Unknown Product",
               price,
               likes: product.likes || 0,
               views: product.views || 0,
-              description: `Price: $${price.toFixed(2)} | Quantity: ${cartItem.quantity || 1}`,
+              description: `Price: ${price.toFixed(2)} | Quantity: ${cartItem.quantity || 1}`,
               link: `/listings/${cartItem.productId}`,
             };
           })
@@ -108,7 +107,7 @@ const BasketPage = () => {
       setError("Your basket is empty. Add items before checking out.");
       return;
     }
-    router.push("/basket/checkout"); // Redirect to checkout page
+    router.push("/basket/checkout");
   };
 
   return (

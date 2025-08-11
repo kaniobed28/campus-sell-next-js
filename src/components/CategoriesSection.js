@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import Link from "next/link";
 import useCategoryStore from "@/stores/useCategoryStore";
+import { useViewport, useResponsiveSpacing } from "@/hooks/useViewport";
 
 // Fallback categories for when database is empty
 const fallbackCategories = [
@@ -37,6 +38,8 @@ const fallbackCategories = [
 const CategoriesSection = () => {
   const { categoryTree, fetchCategoryTree } = useCategoryStore();
   const [displayCategories, setDisplayCategories] = useState(fallbackCategories);
+  const { isMobile, isTablet, isDesktop } = useViewport();
+  const spacing = useResponsiveSpacing();
 
   useEffect(() => {
     fetchCategoryTree();
@@ -44,8 +47,9 @@ const CategoriesSection = () => {
 
   useEffect(() => {
     if (categoryTree && categoryTree.length > 0) {
-      // Use real categories from database, limit to first 4 for homepage
-      const realCategories = categoryTree.slice(0, 4).map((category, index) => ({
+      // Use real categories from database, limit based on screen size
+      const categoryLimit = isMobile ? 4 : isTablet ? 6 : 8;
+      const realCategories = categoryTree.slice(0, categoryLimit).map((category, index) => ({
         name: category.name,
         icon: category.icon || fallbackCategories[index]?.icon || "📁",
         types: category.children.map(child => child.name).slice(0, 4),
@@ -56,42 +60,49 @@ const CategoriesSection = () => {
       }));
       setDisplayCategories(realCategories);
     }
-  }, [categoryTree]);
+  }, [categoryTree, isMobile, isTablet]);
 
   return (
-    <section className="py-16 bg-background theme-transition">
-      <div className="container mx-auto px-4">
-        <div className="text-center mb-12">
-          <h2 className="text-3xl md:text-4xl font-bold mb-4 text-foreground">
+    <section className="py-12 sm:py-16 lg:py-20 bg-background theme-transition">
+      <div className={`container mx-auto ${spacing.container}`}>
+        <div className="text-center mb-8 sm:mb-12">
+          <h2 className="text-2xl sm:text-3xl md:text-4xl lg:text-5xl font-bold mb-3 sm:mb-4 text-foreground">
             Explore Categories
           </h2>
-          <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
+          <p className="text-muted-foreground text-base sm:text-lg lg:text-xl max-w-2xl mx-auto leading-relaxed px-2 sm:px-0">
             Discover what your campus community has to offer across different categories
           </p>
         </div>
         
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-6">
+        {/* Responsive grid: 2 cols mobile, 3 cols tablet, 4 cols desktop */}
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-3 sm:gap-4 md:gap-6">
           {displayCategories.map((category, index) => (
             <Link
               href={`/categories/${category.slug}`}
               key={index}
-              className="group card-base rounded-xl p-6 text-center hover:shadow-lg theme-transition transform hover:-translate-y-1"
+              className="group card-base rounded-lg sm:rounded-xl p-3 sm:p-4 md:p-6 text-center hover:shadow-lg theme-transition transform hover:-translate-y-1 min-h-[120px] sm:min-h-[140px] md:min-h-[160px] flex flex-col justify-center"
             >
-              <div className="text-4xl mb-4 group-hover:scale-110 transition-transform duration-300">
+              <div className="text-2xl sm:text-3xl md:text-4xl mb-2 sm:mb-3 md:mb-4 group-hover:scale-110 transition-transform duration-300">
                 {category.icon}
               </div>
-              <h3 className="font-semibold text-lg mb-2 text-card-foreground group-hover:text-primary theme-transition">
+              <h3 className="font-semibold text-sm sm:text-base md:text-lg mb-1 sm:mb-2 text-card-foreground group-hover:text-primary theme-transition leading-tight">
                 {category.name}
               </h3>
-              <p className="text-sm text-muted-foreground">
+              <p className="text-xs sm:text-sm text-muted-foreground mb-1 sm:mb-2">
                 {category.types.length} subcategories
               </p>
-              <div className="mt-3 text-xs text-muted-foreground">
-                {category.types.slice(0, 2).join(", ")}
-                {category.types.length > 2 && "..."}
-              </div>
+              
+              {/* Show subcategories only on larger screens */}
+              {!isMobile && (
+                <div className="text-xs text-muted-foreground leading-tight">
+                  {category.types.slice(0, 2).join(", ")}
+                  {category.types.length > 2 && "..."}
+                </div>
+              )}
+              
+              {/* Product count with responsive visibility */}
               {category.productCount > 0 && (
-                <div className="mt-2 text-xs text-primary">
+                <div className="mt-1 sm:mt-2 text-xs text-primary font-medium">
                   {category.productCount} products
                 </div>
               )}
@@ -99,10 +110,11 @@ const CategoriesSection = () => {
           ))}
         </div>
         
-        <div className="text-center mt-8">
+        {/* View all link with improved touch target */}
+        <div className="text-center mt-6 sm:mt-8">
           <Link
             href="/categories"
-            className="inline-flex items-center text-primary hover:text-accent theme-transition font-medium"
+            className="inline-flex items-center text-primary hover:text-accent theme-transition font-medium py-2 px-4 rounded-lg hover:bg-primary/10 min-h-[44px]"
           >
             View All Categories
             <svg className="ml-2 w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">

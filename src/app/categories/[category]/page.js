@@ -4,7 +4,7 @@ import { usePathname } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { collection, query, where, getDocs, orderBy } from "firebase/firestore";
 import Link from "next/link";
-import ItemCard from "@/components/ItemCard";
+import ProductGrid from "@/components/ProductGrid";
 import Loading from "@/components/Loading";
 
 const CategoryPage = () => {
@@ -189,27 +189,11 @@ const CategoryPage = () => {
         </div>
 
         {/* Products Grid */}
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-          {products.map((product) => {
-            const formattedPrice = typeof product.price === 'number' 
-              ? product.price.toFixed(2) 
-              : parseFloat(product.price || 0).toFixed(2);
-
-            return (
-              <ItemCard
-                key={product.id}
-                id={product.id}
-                image={product.image}
-                title={product.title}
-                description={product.description}
-                price={formattedPrice}
-                link={`/listings/${product.id}`}
-                likes={product.likes}
-                views={product.views}
-              />
-            );
-          })}
-        </div>
+        <ProductGrid 
+          products={products}
+          emptyStateMessage="No products have been listed in this category yet. Be the first to list something!"
+          emptyStateIcon="📦"
+        />
 
         {/* Back to Categories */}
         <div className="mt-12 text-center">

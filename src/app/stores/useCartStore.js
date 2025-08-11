@@ -6,6 +6,7 @@ import { db } from "@/lib/firebase";
 import { collection, addDoc } from "firebase/firestore";
 import useProfileStore from "./useProfileStore";
 
+// Simplified cart store to prevent breaking the app
 export const useCartStore = create((set, get) => ({
   cart: [],
   isLoading: false,

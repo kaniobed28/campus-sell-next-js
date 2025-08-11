@@ -2,9 +2,10 @@
 
 import { useState, useEffect, Suspense } from "react";
 import { db } from "@/lib/firebase";
-import ItemCard from "@/components/ItemCard";
+import ProductGrid from "@/components/ProductGrid";
 import { collection, getDocs } from "firebase/firestore";
 import { useSearchParams } from "next/navigation";
+import { useResponsiveSpacing } from "@/hooks/useViewport";
 
 // Fetch products asynchronously
 const fetchProducts = async (query) => {
@@ -29,6 +30,7 @@ const fetchProducts = async (query) => {
 function SearchPage() {
   const searchParams = useSearchParams();
   const query = searchParams.get("q") || ""; // Get query string from URL
+  const spacing = useResponsiveSpacing();
 
   const [results, setResults] = useState([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -52,46 +54,68 @@ function SearchPage() {
   }, [query]);
 
   return (
-    <div className="container mx-auto px-4 py-16">
-      <h1 className="text-3xl font-bold mb-6">
-        Search Results for "{query || "All Products"}"
-      </h1>
+    <div className={`container mx-auto ${spacing.container} py-8 md:py-16`}>
+      {/* Responsive header */}
+      <div className="mb-6 md:mb-8">
+        <h1 className="text-2xl sm:text-3xl lg:text-4xl font-bold mb-2">
+          Search Results
+        </h1>
+        {query && (
+          <p className="text-base sm:text-lg text-muted-foreground">
+            Showing results for "{query}"
+          </p>
+        )}
+        {!isLoading && !error && (
+          <p className="text-sm text-muted-foreground mt-1">
+            {results.length} {results.length === 1 ? 'result' : 'results'} found
+          </p>
+        )}
+      </div>
 
       {isLoading ? (
-        <p className="text-center">Loading...</p>
-      ) : error ? (
-        <p className="text-center text-red-600">{error}</p>
-      ) : results.length > 0 ? (
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {results.map((item) => {
-            // Normalize image: use first URL from imageUrls if present, otherwise use image
-            const displayImage =
-              Array.isArray(item.imageUrls) && item.imageUrls.length > 0
-                ? item.imageUrls[0]
-                : item.image || "/default-image.jpg";
-
-            const price =
-              typeof item.price === "string"
-                ? parseFloat(item.price) || 0
-                : item.price || 0;
-
-            return (
-              <ItemCard
-                key={item.id}
-                id={item.id}
-                image={displayImage} // Pass normalized image
-                title={item.title || "Unknown Product"}
-                price={price}
-                likes={item.likes || 0}
-                views={item.views || 0}
-                description={`Price: $${price.toFixed(2)}`}
-                link={`/listings/${item.id}`}
-              />
-            );
-          })}
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+          <p className="text-center text-muted-foreground">Loading search results...</p>
         </div>
+      ) : error ? (
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="w-16 h-16 bg-destructive/10 rounded-full flex items-center justify-center mb-4">
+            <span className="text-2xl">⚠️</span>
+          </div>
+          <p className="text-center text-destructive font-medium">{error}</p>
+        </div>
+      ) : results.length > 0 ? (
+        <ProductGrid 
+          products={results.map((item) => ({
+            ...item,
+            // Normalize image: use first URL from imageUrls if present, otherwise use image
+            image: Array.isArray(item.imageUrls) && item.imageUrls.length > 0
+              ? item.imageUrls[0]
+              : item.image || "/default-image.jpg",
+            title: item.title || "Unknown Product",
+            price: typeof item.price === "string"
+              ? parseFloat(item.price) || 0
+              : item.price || 0,
+            description: item.description || item.category || '',
+            link: `/listings/${item.id}`,
+            likes: item.likes || 0,
+            views: item.views || 0
+          }))}
+          showEmptyState={false}
+        />
       ) : (
-        <p className="text-center text-gray-600">No results found for "{query}".</p>
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="w-16 h-16 bg-muted rounded-full flex items-center justify-center mb-4">
+            <span className="text-2xl">🔍</span>
+          </div>
+          <h3 className="text-lg font-medium mb-2">No results found</h3>
+          <p className="text-center text-muted-foreground mb-4">
+            {query ? `No products found for "${query}"` : "No products available"}
+          </p>
+          <p className="text-sm text-muted-foreground text-center max-w-md">
+            Try adjusting your search terms or browse our categories to find what you're looking for.
+          </p>
+        </div>
       )}
     </div>
   );
@@ -100,7 +124,14 @@ function SearchPage() {
 // Export with Suspense boundary
 export default function Page() {
   return (
-    <Suspense fallback={<p>Loading...</p>}>
+    <Suspense fallback={
+      <div className="container mx-auto px-4 py-16">
+        <div className="flex flex-col items-center justify-center py-12">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mb-4"></div>
+          <p className="text-center text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    }>
       <SearchPage />
     </Suspense>
   );

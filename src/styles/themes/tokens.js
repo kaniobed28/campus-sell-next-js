@@ -60,6 +60,163 @@ export const typographyTokens = {
   }
 };
 
+// Responsive typography configuration
+export const responsiveTypographyTokens = {
+  // Responsive font sizes with mobile-first approach
+  responsiveFontSizes: {
+    // Display headings - large impact text
+    'display-xl': {
+      mobile: ['2.25rem', { lineHeight: '2.5rem', letterSpacing: '-0.025em' }],    // 36px
+      tablet: ['3rem', { lineHeight: '3.5rem', letterSpacing: '-0.025em' }],       // 48px
+      desktop: ['4.5rem', { lineHeight: '5rem', letterSpacing: '-0.025em' }],      // 72px
+    },
+    'display-lg': {
+      mobile: ['1.875rem', { lineHeight: '2.25rem', letterSpacing: '-0.025em' }],  // 30px
+      tablet: ['2.25rem', { lineHeight: '2.75rem', letterSpacing: '-0.025em' }],   // 36px
+      desktop: ['3.75rem', { lineHeight: '4.25rem', letterSpacing: '-0.025em' }],  // 60px
+    },
+    'display-md': {
+      mobile: ['1.5rem', { lineHeight: '2rem', letterSpacing: '-0.025em' }],       // 24px
+      tablet: ['1.875rem', { lineHeight: '2.25rem', letterSpacing: '-0.025em' }],  // 30px
+      desktop: ['3rem', { lineHeight: '3.5rem', letterSpacing: '-0.025em' }],      // 48px
+    },
+    
+    // Heading hierarchy
+    'heading-1': {
+      mobile: ['1.5rem', { lineHeight: '2rem', letterSpacing: '-0.025em' }],       // 24px
+      tablet: ['1.875rem', { lineHeight: '2.25rem', letterSpacing: '-0.025em' }],  // 30px
+      desktop: ['2.25rem', { lineHeight: '2.75rem', letterSpacing: '-0.025em' }],  // 36px
+    },
+    'heading-2': {
+      mobile: ['1.25rem', { lineHeight: '1.75rem', letterSpacing: '-0.025em' }],   // 20px
+      tablet: ['1.5rem', { lineHeight: '2rem', letterSpacing: '-0.025em' }],       // 24px
+      desktop: ['1.875rem', { lineHeight: '2.25rem', letterSpacing: '-0.025em' }], // 30px
+    },
+    'heading-3': {
+      mobile: ['1.125rem', { lineHeight: '1.75rem', letterSpacing: '-0.025em' }],  // 18px
+      tablet: ['1.25rem', { lineHeight: '1.75rem', letterSpacing: '-0.025em' }],   // 20px
+      desktop: ['1.5rem', { lineHeight: '2rem', letterSpacing: '-0.025em' }],      // 24px
+    },
+    'heading-4': {
+      mobile: ['1rem', { lineHeight: '1.5rem', letterSpacing: '-0.025em' }],       // 16px
+      tablet: ['1.125rem', { lineHeight: '1.75rem', letterSpacing: '-0.025em' }],  // 18px
+      desktop: ['1.25rem', { lineHeight: '1.75rem', letterSpacing: '-0.025em' }],  // 20px
+    },
+    'heading-5': {
+      mobile: ['0.875rem', { lineHeight: '1.25rem', letterSpacing: '-0.025em' }],  // 14px
+      tablet: ['1rem', { lineHeight: '1.5rem', letterSpacing: '-0.025em' }],       // 16px
+      desktop: ['1.125rem', { lineHeight: '1.75rem', letterSpacing: '-0.025em' }], // 18px
+    },
+    'heading-6': {
+      mobile: ['0.75rem', { lineHeight: '1rem', letterSpacing: '-0.025em' }],      // 12px
+      tablet: ['0.875rem', { lineHeight: '1.25rem', letterSpacing: '-0.025em' }],  // 14px
+      desktop: ['1rem', { lineHeight: '1.5rem', letterSpacing: '-0.025em' }],      // 16px
+    },
+    
+    // Body text sizes
+    'body-xl': {
+      mobile: ['1.125rem', { lineHeight: '1.75rem', letterSpacing: '0' }],         // 18px
+      tablet: ['1.25rem', { lineHeight: '1.875rem', letterSpacing: '0' }],         // 20px
+      desktop: ['1.25rem', { lineHeight: '1.875rem', letterSpacing: '0' }],        // 20px
+    },
+    'body-lg': {
+      mobile: ['1rem', { lineHeight: '1.625rem', letterSpacing: '0' }],            // 16px
+      tablet: ['1.125rem', { lineHeight: '1.75rem', letterSpacing: '0' }],         // 18px
+      desktop: ['1.125rem', { lineHeight: '1.75rem', letterSpacing: '0' }],        // 18px
+    },
+    'body-base': {
+      mobile: ['0.875rem', { lineHeight: '1.375rem', letterSpacing: '0' }],        // 14px
+      tablet: ['1rem', { lineHeight: '1.5rem', letterSpacing: '0' }],              // 16px
+      desktop: ['1rem', { lineHeight: '1.5rem', letterSpacing: '0' }],             // 16px
+    },
+    'body-sm': {
+      mobile: ['0.75rem', { lineHeight: '1.125rem', letterSpacing: '0' }],         // 12px
+      tablet: ['0.875rem', { lineHeight: '1.25rem', letterSpacing: '0' }],         // 14px
+      desktop: ['0.875rem', { lineHeight: '1.25rem', letterSpacing: '0' }],        // 14px
+    },
+    'body-xs': {
+      mobile: ['0.6875rem', { lineHeight: '1rem', letterSpacing: '0' }],           // 11px
+      tablet: ['0.75rem', { lineHeight: '1.125rem', letterSpacing: '0' }],         // 12px
+      desktop: ['0.75rem', { lineHeight: '1.125rem', letterSpacing: '0' }],        // 12px
+    },
+    
+    // Caption and label text
+    'caption': {
+      mobile: ['0.625rem', { lineHeight: '0.875rem', letterSpacing: '0.025em' }],  // 10px
+      tablet: ['0.6875rem', { lineHeight: '1rem', letterSpacing: '0.025em' }],     // 11px
+      desktop: ['0.75rem', { lineHeight: '1.125rem', letterSpacing: '0.025em' }],  // 12px
+    },
+    'label': {
+      mobile: ['0.75rem', { lineHeight: '1.125rem', letterSpacing: '0.025em' }],   // 12px
+      tablet: ['0.875rem', { lineHeight: '1.25rem', letterSpacing: '0.025em' }],   // 14px
+      desktop: ['0.875rem', { lineHeight: '1.25rem', letterSpacing: '0.025em' }],  // 14px
+    },
+  },
+  
+  // Responsive line height multipliers for better readability
+  responsiveLineHeights: {
+    tight: {
+      mobile: '1.25',
+      tablet: '1.25',
+      desktop: '1.25',
+    },
+    snug: {
+      mobile: '1.375',
+      tablet: '1.375',
+      desktop: '1.375',
+    },
+    normal: {
+      mobile: '1.5',
+      tablet: '1.5',
+      desktop: '1.5',
+    },
+    relaxed: {
+      mobile: '1.625',
+      tablet: '1.625',
+      desktop: '1.625',
+    },
+    loose: {
+      mobile: '1.75',
+      tablet: '1.75',
+      desktop: '1.75',
+    },
+  },
+  
+  // Responsive letter spacing for optimal readability
+  responsiveLetterSpacing: {
+    tighter: {
+      mobile: '-0.05em',
+      tablet: '-0.05em',
+      desktop: '-0.05em',
+    },
+    tight: {
+      mobile: '-0.025em',
+      tablet: '-0.025em',
+      desktop: '-0.025em',
+    },
+    normal: {
+      mobile: '0em',
+      tablet: '0em',
+      desktop: '0em',
+    },
+    wide: {
+      mobile: '0.025em',
+      tablet: '0.025em',
+      desktop: '0.025em',
+    },
+    wider: {
+      mobile: '0.05em',
+      tablet: '0.05em',
+      desktop: '0.05em',
+    },
+    widest: {
+      mobile: '0.1em',
+      tablet: '0.1em',
+      desktop: '0.1em',
+    },
+  },
+};
+
 export const spacingTokens = {
   0: '0px',
   1: '0.25rem',

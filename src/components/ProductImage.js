@@ -2,6 +2,7 @@
 import { HeartIcon } from "@heroicons/react/24/outline";
 import { Carousel } from "react-responsive-carousel";
 import "react-responsive-carousel/lib/styles/carousel.min.css";
+import ResponsiveImage from "./ResponsiveImage";
 
 const ProductImage = ({ image, name }) => {
   const isArray = Array.isArray(image);
@@ -45,11 +46,15 @@ const ProductImage = ({ image, name }) => {
           }
         >
           {image.map((imgUrl, index) => (
-            <div key={index} className="relative aspect-square">
-              <img
+            <div key={index} className="relative">
+              <ResponsiveImage
                 src={imgUrl}
                 alt={`${name} - Image ${index + 1}`}
-                className="w-full h-full object-cover rounded-xl"
+                aspectRatio="square"
+                className="rounded-xl"
+                containerClassName="aspect-square"
+                priority={index === 0}
+                sizes="(max-width: 768px) 100vw, 50vw"
               />
               <button className="absolute top-4 right-4 p-2 bg-card/90 hover:bg-card rounded-full shadow-md theme-transition focus-ring">
                 <HeartIcon className="w-5 h-5 text-destructive" />
@@ -64,13 +69,14 @@ const ProductImage = ({ image, name }) => {
   if (typeof image === "string" && image) {
     return (
       <div className="relative group overflow-hidden rounded-xl bg-card">
-        <div className="aspect-square">
-          <img
-            src={image}
-            alt={name}
-            className="w-full h-full object-cover rounded-xl transform transition-transform duration-300 group-hover:scale-105"
-          />
-        </div>
+        <ResponsiveImage
+          src={image}
+          alt={name}
+          aspectRatio="square"
+          className="rounded-xl transform transition-transform duration-300 group-hover:scale-105"
+          priority={true}
+          sizes="(max-width: 768px) 100vw, 50vw"
+        />
         <button className="absolute top-4 right-4 p-2 bg-card/90 hover:bg-card rounded-full shadow-md theme-transition focus-ring">
           <HeartIcon className="w-5 h-5 text-destructive" />
         </button>

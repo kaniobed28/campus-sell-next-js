@@ -2,8 +2,9 @@
 import React, { useEffect } from "react";
 import { useProductStore } from "../stores/useProductStore";
 import ProductsSidebar from "../../components/ProductsSideBar";
-import ItemCard from "../../components/ItemCard";
+import ProductGrid from "../../components/ProductGrid";
 import Loading from "@/components/Loading";
+import { useResponsiveSpacing } from "@/hooks/useViewport";
 
 export default function ProductsPage() {
   const {
@@ -14,6 +15,8 @@ export default function ProductsPage() {
     error,
     filters, // To monitor changes in filters
   } = useProductStore();
+  
+  const spacing = useResponsiveSpacing();
 
   // Fetch products from Firebase when the component mounts
   useEffect(() => {
@@ -31,10 +34,10 @@ export default function ProductsPage() {
       <ProductsSidebar />
 
       {/* Product Grid */}
-      <main className="flex-1 p-4">
+      <main className={`flex-1 ${spacing.container} py-4`}>
         {/* Header */}
         <div className="mb-6">
-          <h1 className="text-3xl font-bold text-foreground mb-2">
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground mb-2">
             Campus Marketplace
           </h1>
           <p className="text-muted-foreground">
@@ -77,38 +80,25 @@ export default function ProductsPage() {
             </a>
           </div>
         ) : (
-          <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
-            {filteredProducts.map((product) => {
+          <ProductGrid 
+            products={filteredProducts.map((product) => ({
+              ...product,
               // Get the best available image
-              const displayImage = product.imageUrls?.[0] || product.image || "/default-image.jpg";
-              
-              // Format price properly
-              const formattedPrice = typeof product.price === 'number' 
-                ? product.price.toFixed(2) 
-                : parseFloat(product.price || 0).toFixed(2);
-
+              image: product.imageUrls?.[0] || product.image || "/default-image.jpg",
               // Create a rich description with category info
-              const description = [
+              description: [
                 product.description,
                 product.category && `Category: ${product.category}`,
                 product.sellerName && `Seller: ${product.sellerName}`
-              ].filter(Boolean).join(' • ');
-
-              return (
-                <ItemCard
-                  key={product.id}
-                  id={product.id}
-                  image={displayImage}
-                  title={product.title || product.name || 'Untitled Product'}
-                  description={description}
-                  price={formattedPrice}
-                  link={`/listings/${product.id}`}
-                  likes={product.likes || 0}
-                  views={product.views || 0}
-                />
-              );
-            })}
-          </div>
+              ].filter(Boolean).join(' • ')
+            }))}
+            emptyStateMessage={
+              filters.search || filters.category !== 'All' 
+                ? 'Try adjusting your filters or search terms'
+                : 'Be the first to list a product!'
+            }
+            emptyStateIcon="📦"
+          />
         )}
 
         {/* Debug Info (remove in production) */}

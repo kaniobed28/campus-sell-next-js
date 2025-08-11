@@ -195,16 +195,101 @@
   font-size: 0.875rem;
   font-weight: 500;
   color: var(--foreground);
+  line-height: 1.25;
 }
 
 .form-error {
   font-size: 0.875rem;
   color: var(--destructive);
+  line-height: 1.4;
 }
 
 .form-success {
   font-size: 0.875rem;
   color: var(--success);
+  line-height: 1.4;
+}
+
+/* Responsive form enhancements */
+@media (max-width: 767px) {
+  .form-label {
+    font-size: 0.875rem;
+    line-height: 1.3;
+  }
+  
+  .form-error,
+  .form-success {
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+}
+
+/* Touch-friendly form elements */
+.touch-target {
+  min-height: 44px;
+  min-width: 44px;
+}
+
+@media (min-width: 768px) {
+  .touch-target {
+    min-height: 36px;
+    min-width: 36px;
+  }
+}
+
+/* Form validation states */
+.form-field-error .input-base {
+  border-color: var(--destructive);
+  box-shadow: 0 0 0 1px var(--destructive);
+}
+
+.form-field-success .input-base {
+  border-color: var(--success);
+  box-shadow: 0 0 0 1px var(--success);
+}
+
+/* Improved focus states for forms */
+.input-base:focus-visible {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-color: transparent;
+}
+
+/* Form layout utilities */
+.form-grid-1 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+.form-grid-2 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .form-grid-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+.form-grid-3 {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1rem;
+}
+
+@media (min-width: 768px) {
+  .form-grid-3 {
+    grid-template-columns: 1fr 1fr;
+  }
+}
+
+@media (min-width: 1024px) {
+  .form-grid-3 {
+    grid-template-columns: 1fr 1fr 1fr;
+  }
 }
 
 /* Loading styles */
@@ -285,7 +370,386 @@
   -webkit-line-clamp: 3;
 }
 
-/* Brand consistency helpers */
+/* Responsive Typography System */
+
+/* Display text classes - for hero sections and major headings */
+.text-display-xl {
+  font-size: 2.25rem;
+  line-height: 2.5rem;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+@media (min-width: 768px) {
+  .text-display-xl {
+    font-size: 3rem;
+    line-height: 3.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .text-display-xl {
+    font-size: 4.5rem;
+    line-height: 5rem;
+  }
+}
+
+.text-display-lg {
+  font-size: 1.875rem;
+  line-height: 2.25rem;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+@media (min-width: 768px) {
+  .text-display-lg {
+    font-size: 2.25rem;
+    line-height: 2.75rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .text-display-lg {
+    font-size: 3.75rem;
+    line-height: 4.25rem;
+  }
+}
+
+.text-display-md {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+@media (min-width: 768px) {
+  .text-display-md {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .text-display-md {
+    font-size: 3rem;
+    line-height: 3.5rem;
+  }
+}
+
+/* Responsive heading hierarchy */
+.text-heading-1 {
+  font-size: 1.5rem;
+  line-height: 2rem;
+  letter-spacing: -0.025em;
+  font-weight: 700;
+}
+
+@media (min-width: 768px) {
+  .text-heading-1 {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .text-heading-1 {
+    font-size: 2.25rem;
+    line-height: 2.75rem;
+  }
+}
+
+.text-heading-2 {
+  font-size: 1.25rem;
+  line-height: 1.75rem;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .text-heading-2 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .text-heading-2 {
+    font-size: 1.875rem;
+    line-height: 2.25rem;
+  }
+}
+
+.text-heading-3 {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .text-heading-3 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .text-heading-3 {
+    font-size: 1.5rem;
+    line-height: 2rem;
+  }
+}
+
+.text-heading-4 {
+  font-size: 1rem;
+  line-height: 1.5rem;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .text-heading-4 {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .text-heading-4 {
+    font-size: 1.25rem;
+    line-height: 1.75rem;
+  }
+}
+
+.text-heading-5 {
+  font-size: 0.875rem;
+  line-height: 1.25rem;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .text-heading-5 {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .text-heading-5 {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+}
+
+.text-heading-6 {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  letter-spacing: -0.025em;
+  font-weight: 600;
+}
+
+@media (min-width: 768px) {
+  .text-heading-6 {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .text-heading-6 {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+}
+
+/* Responsive body text classes */
+.text-body-xl {
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+@media (min-width: 768px) {
+  .text-body-xl {
+    font-size: 1.25rem;
+    line-height: 1.875rem;
+  }
+}
+
+.text-body-lg {
+  font-size: 1rem;
+  line-height: 1.625rem;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+@media (min-width: 768px) {
+  .text-body-lg {
+    font-size: 1.125rem;
+    line-height: 1.75rem;
+  }
+}
+
+.text-body-base {
+  font-size: 0.875rem;
+  line-height: 1.375rem;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+@media (min-width: 768px) {
+  .text-body-base {
+    font-size: 1rem;
+    line-height: 1.5rem;
+  }
+}
+
+.text-body-sm {
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+@media (min-width: 768px) {
+  .text-body-sm {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+}
+
+.text-body-xs {
+  font-size: 0.6875rem;
+  line-height: 1rem;
+  letter-spacing: 0;
+  font-weight: 400;
+}
+
+@media (min-width: 768px) {
+  .text-body-xs {
+    font-size: 0.75rem;
+    line-height: 1.125rem;
+  }
+}
+
+/* Caption and label text */
+.text-caption {
+  font-size: 0.625rem;
+  line-height: 0.875rem;
+  letter-spacing: 0.025em;
+  font-weight: 400;
+}
+
+@media (min-width: 768px) {
+  .text-caption {
+    font-size: 0.6875rem;
+    line-height: 1rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .text-caption {
+    font-size: 0.75rem;
+    line-height: 1.125rem;
+  }
+}
+
+.text-label {
+  font-size: 0.75rem;
+  line-height: 1.125rem;
+  letter-spacing: 0.025em;
+  font-weight: 500;
+}
+
+@media (min-width: 768px) {
+  .text-label {
+    font-size: 0.875rem;
+    line-height: 1.25rem;
+  }
+}
+
+/* Responsive line height utilities */
+.leading-responsive-tight {
+  line-height: 1.25;
+}
+
+.leading-responsive-snug {
+  line-height: 1.375;
+}
+
+.leading-responsive-normal {
+  line-height: 1.5;
+}
+
+.leading-responsive-relaxed {
+  line-height: 1.625;
+}
+
+.leading-responsive-loose {
+  line-height: 1.75;
+}
+
+/* Responsive letter spacing utilities */
+.tracking-responsive-tighter {
+  letter-spacing: -0.05em;
+}
+
+.tracking-responsive-tight {
+  letter-spacing: -0.025em;
+}
+
+.tracking-responsive-normal {
+  letter-spacing: 0em;
+}
+
+.tracking-responsive-wide {
+  letter-spacing: 0.025em;
+}
+
+.tracking-responsive-wider {
+  letter-spacing: 0.05em;
+}
+
+.tracking-responsive-widest {
+  letter-spacing: 0.1em;
+}
+
+/* Responsive text alignment utilities */
+.text-responsive-center {
+  text-align: center;
+}
+
+@media (min-width: 768px) {
+  .text-responsive-left {
+    text-align: left;
+  }
+  
+  .text-responsive-center-md {
+    text-align: center;
+  }
+  
+  .text-responsive-right-md {
+    text-align: right;
+  }
+}
+
+@media (min-width: 1024px) {
+  .text-responsive-left-lg {
+    text-align: left;
+  }
+  
+  .text-responsive-center-lg {
+    text-align: center;
+  }
+  
+  .text-responsive-right-lg {
+    text-align: right;
+  }
+}
+
+/* Brand consistency helpers with responsive typography */
 .brand-heading {
   font-weight: 700;
   letter-spacing: -0.025em;
@@ -310,6 +774,64 @@
 
 .brand-link:hover {
   color: var(--accent);
+}
+
+/* Responsive text truncation utilities */
+.text-responsive-truncate {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+@media (min-width: 768px) {
+  .text-responsive-wrap-md {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+  }
+}
+
+/* Responsive text color utilities for better contrast */
+.text-responsive-contrast {
+  color: var(--foreground);
+}
+
+.text-responsive-muted {
+  color: var(--muted-foreground);
+}
+
+.text-responsive-accent {
+  color: var(--accent);
+}
+
+/* Typography accessibility enhancements */
+.text-accessible-focus:focus {
+  outline: 2px solid var(--ring);
+  outline-offset: 2px;
+  border-radius: 2px;
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .text-heading-1,
+  .text-heading-2,
+  .text-heading-3,
+  .text-heading-4,
+  .text-heading-5,
+  .text-heading-6,
+  .text-display-xl,
+  .text-display-lg,
+  .text-display-md {
+    font-weight: 800;
+  }
+  
+  .text-body-xl,
+  .text-body-lg,
+  .text-body-base,
+  .text-body-sm,
+  .text-body-xs {
+    font-weight: 500;
+  }
 }
 
 /* Enhanced interactive states */
