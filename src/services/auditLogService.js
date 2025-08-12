@@ -25,12 +25,20 @@ class AuditLogService {
    */
   async logAction(adminEmail, action, targetType, targetId, details = {}, ipAddress = null) {
     try {
+      // Filter out undefined values from details
+      const cleanDetails = {};
+      Object.keys(details).forEach(key => {
+        if (details[key] !== undefined && details[key] !== null) {
+          cleanDetails[key] = details[key];
+        }
+      });
+
       const logEntry = {
         adminEmail,
         action,
         targetType,
         targetId,
-        details,
+        details: cleanDetails,
         timestamp: serverTimestamp(),
         ipAddress: ipAddress || this.getClientIP(),
         userAgent: this.getUserAgent()

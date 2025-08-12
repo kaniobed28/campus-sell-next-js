@@ -2,6 +2,8 @@
 import React, { useState, useEffect } from 'react';
 import AdminAuthGuard from '@/components/admin/AdminAuthGuard';
 import AdminLayout from '@/components/admin/AdminLayout';
+import ResponsiveAdminTable from '@/components/admin/ResponsiveAdminTable';
+import ResponsiveAdminModal from '@/components/admin/ResponsiveAdminModal';
 import { userManagementService } from '@/services/userManagementService';
 import { useAuditLog } from '@/hooks/useAuditLog';
 import { ADMIN_PERMISSIONS, USER_STATUS, AUDIT_ACTION_TYPES } from '@/types/admin';
@@ -312,194 +314,188 @@ const UserManagementContent = () => {
       )}
 
       {/* Users Table */}
-      <div className="bg-white rounded-lg shadow overflow-hidden">
-        <div className="px-6 py-4 border-b border-gray-200">
-          <h3 className="text-lg font-semibold">Users ({users.length})</h3>
-        </div>
-        
-        {loading ? (
-          <div className="p-6 text-center">
-            <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-            <p>Loading users...</p>
-          </div>
-        ) : users.length === 0 ? (
-          <div className="p-6 text-center text-gray-500">
-            No users found matching the current filters.
-          </div>
-        ) : (
-          <div className="overflow-x-auto">
-            <table className="min-w-full divide-y divide-gray-200">
-              <thead className="bg-gray-50">
-                <tr>
-                  <th className="px-6 py-3 text-left">
-                    <input
-                      type="checkbox"
-                      checked={selectedUsers.length === users.length}
-                      onChange={(e) => handleSelectAll(e.target.checked)}
-                      className="rounded border-gray-300"
-                    />
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    User
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Status
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Registration
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Last Login
-                  </th>
-                  <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Actions
-                  </th>
-                </tr>
-              </thead>
-              <tbody className="bg-white divide-y divide-gray-200">
-                {users.map((user) => (
-                  <tr key={user.uid} className="hover:bg-gray-50">
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <input
-                        type="checkbox"
-                        checked={selectedUsers.includes(user.uid)}
-                        onChange={(e) => handleUserSelect(user.uid, e.target.checked)}
-                        className="rounded border-gray-300"
-                      />
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <div className="flex items-center">
-                        <div>
-                          <div className="text-sm font-medium text-gray-900">
-                            {user.displayName || 'No Name'}
-                          </div>
-                          <div className="text-sm text-gray-500">{user.email}</div>
-                        </div>
-                      </div>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap">
-                      <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(user.status || USER_STATUS.ACTIVE)}`}>
-                        {(user.status || USER_STATUS.ACTIVE).toUpperCase()}
-                      </span>
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatDate(user.registrationDate)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {formatDate(user.lastLogin)}
-                    </td>
-                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
-                      <button
-                        onClick={() => openUserModal(user)}
-                        className="text-blue-600 hover:text-blue-900 mr-3"
-                      >
-                        View Details
-                      </button>
-                      {user.status === USER_STATUS.SUSPENDED && (
-                        <button
-                          onClick={() => handleUserAction('activate', user.uid)}
-                          className="text-green-600 hover:text-green-900 mr-3"
-                        >
-                          Activate
-                        </button>
-                      )}
-                      {(user.status === USER_STATUS.ACTIVE || !user.status) && (
-                        <button
-                          onClick={() => handleUserAction('suspend', user.uid, 'Admin action')}
-                          className="text-yellow-600 hover:text-yellow-900 mr-3"
-                        >
-                          Suspend
-                        </button>
-                      )}
-                      {user.status !== USER_STATUS.BANNED && (
-                        <button
-                          onClick={() => handleUserAction('ban', user.uid, 'Admin action')}
-                          className="text-red-600 hover:text-red-900"
-                        >
-                          Ban
-                        </button>
-                      )}
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
-        )}
-      </div>
-
-      {/* User Details Modal */}
-      {showUserModal && selectedUser && (
-        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-          <div className="bg-white rounded-lg shadow-xl p-6 max-w-2xl w-full mx-4 max-h-96 overflow-y-auto">
-            <div className="flex justify-between items-center mb-4">
-              <h3 className="text-lg font-semibold">User Details</h3>
-              <button
-                onClick={() => setShowUserModal(false)}
-                className="text-gray-400 hover:text-gray-600"
-              >
-                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
-                </svg>
-              </button>
-            </div>
-            
-            <div className="space-y-4">
-              <div className="grid grid-cols-2 gap-4">
+      <ResponsiveAdminTable
+        data={users}
+        columns={[
+          {
+            key: 'main',
+            label: 'User',
+            render: (_, user) => (
+              <div className="flex items-center">
                 <div>
-                  <label className="block text-sm font-medium text-gray-700">Email</label>
-                  <p className="text-sm text-gray-900">{selectedUser.email}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Display Name</label>
-                  <p className="text-sm text-gray-900">{selectedUser.displayName || 'N/A'}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Status</label>
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedUser.status || USER_STATUS.ACTIVE)}`}>
-                    {(selectedUser.status || USER_STATUS.ACTIVE).toUpperCase()}
-                  </span>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Registration Date</label>
-                  <p className="text-sm text-gray-900">{formatDate(selectedUser.registrationDate)}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Last Login</label>
-                  <p className="text-sm text-gray-900">{formatDate(selectedUser.lastLogin)}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">User ID</label>
-                  <p className="text-sm text-gray-900 font-mono">{selectedUser.uid}</p>
+                  <div className="text-sm font-medium text-gray-900">
+                    {user.displayName || 'No Name'}
+                  </div>
+                  <div className="text-sm text-gray-500">{user.email}</div>
                 </div>
               </div>
-              
-              {selectedUser.suspensionReason && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Suspension Reason</label>
-                  <p className="text-sm text-gray-900">{selectedUser.suspensionReason}</p>
-                </div>
-              )}
-              
-              {selectedUser.banReason && (
-                <div>
-                  <label className="block text-sm font-medium text-gray-700">Ban Reason</label>
-                  <p className="text-sm text-gray-900">{selectedUser.banReason}</p>
-                </div>
-              )}
+            )
+          },
+          {
+            key: 'status',
+            label: 'Status',
+            render: (_, user) => (
+              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(user.status || USER_STATUS.ACTIVE)}`}>
+                {(user.status || USER_STATUS.ACTIVE).toUpperCase()}
+              </span>
+            )
+          },
+          {
+            key: 'date',
+            label: 'Registration',
+            render: (_, user) => formatDate(user.registrationDate)
+          },
+          {
+            key: 'lastLogin',
+            label: 'Last Login',
+            render: (_, user) => formatDate(user.lastLogin)
+          },
+          {
+            key: 'actions',
+            label: 'Actions',
+            render: (_, user) => (
+              <div className="flex flex-col space-y-1 sm:flex-row sm:space-y-0 sm:space-x-2">
+                <button
+                  onClick={() => openUserModal(user)}
+                  className="text-blue-600 hover:text-blue-900 text-sm font-medium"
+                >
+                  View Details
+                </button>
+                {user.status === USER_STATUS.SUSPENDED && (
+                  <button
+                    onClick={() => handleUserAction('activate', user.uid)}
+                    className="text-green-600 hover:text-green-900 text-sm font-medium"
+                  >
+                    Activate
+                  </button>
+                )}
+                {(user.status === USER_STATUS.ACTIVE || !user.status) && (
+                  <button
+                    onClick={() => handleUserAction('suspend', user.uid, 'Admin action')}
+                    className="text-yellow-600 hover:text-yellow-900 text-sm font-medium"
+                  >
+                    Suspend
+                  </button>
+                )}
+                {user.status !== USER_STATUS.BANNED && (
+                  <button
+                    onClick={() => handleUserAction('ban', user.uid, 'Admin action')}
+                    className="text-red-600 hover:text-red-900 text-sm font-medium"
+                  >
+                    Ban
+                  </button>
+                )}
+              </div>
+            )
+          }
+        ]}
+        loading={loading}
+        onRowClick={openUserModal}
+        onRowSelect={handleUserSelect}
+        selectedRows={selectedUsers}
+        showSelection={true}
+        emptyMessage="No users found matching the current filters."
+      />
+
+      {/* User Details Modal */}
+      <ResponsiveAdminModal
+        isOpen={showUserModal}
+        onClose={() => setShowUserModal(false)}
+        title="User Details"
+        size="lg"
+        actions={
+          <button
+            onClick={() => setShowUserModal(false)}
+            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
+          >
+            Close
+          </button>
+        }
+      >
+        {selectedUser && (
+          <div className="space-y-6">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
+                <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">{selectedUser.email}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Display Name</label>
+                <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">{selectedUser.displayName || 'N/A'}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
+                <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedUser.status || USER_STATUS.ACTIVE)}`}>
+                  {(selectedUser.status || USER_STATUS.ACTIVE).toUpperCase()}
+                </span>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Registration Date</label>
+                <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">{formatDate(selectedUser.registrationDate)}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Last Login</label>
+                <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">{formatDate(selectedUser.lastLogin)}</p>
+              </div>
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">User ID</label>
+                <p className="text-sm text-gray-900 font-mono p-2 bg-gray-50 rounded break-all">{selectedUser.uid}</p>
+              </div>
             </div>
             
-            <div className="mt-6 flex justify-end space-x-3">
-              <button
-                onClick={() => setShowUserModal(false)}
-                className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700"
-              >
-                Close
-              </button>
+            {selectedUser.suspensionReason && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Suspension Reason</label>
+                <p className="text-sm text-gray-900 p-3 bg-yellow-50 border border-yellow-200 rounded">{selectedUser.suspensionReason}</p>
+              </div>
+            )}
+            
+            {selectedUser.banReason && (
+              <div>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Ban Reason</label>
+                <p className="text-sm text-gray-900 p-3 bg-red-50 border border-red-200 rounded">{selectedUser.banReason}</p>
+              </div>
+            )}
+
+            {/* Action buttons for mobile */}
+            <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3 pt-4 border-t">
+              {selectedUser.status === USER_STATUS.SUSPENDED && (
+                <button
+                  onClick={() => {
+                    handleUserAction('activate', selectedUser.uid);
+                    setShowUserModal(false);
+                  }}
+                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                >
+                  Activate User
+                </button>
+              )}
+              {(selectedUser.status === USER_STATUS.ACTIVE || !selectedUser.status) && (
+                <button
+                  onClick={() => {
+                    handleUserAction('suspend', selectedUser.uid, 'Admin action');
+                    setShowUserModal(false);
+                  }}
+                  className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
+                >
+                  Suspend User
+                </button>
+              )}
+              {selectedUser.status !== USER_STATUS.BANNED && (
+                <button
+                  onClick={() => {
+                    handleUserAction('ban', selectedUser.uid, 'Admin action');
+                    setShowUserModal(false);
+                  }}
+                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                >
+                  Ban User
+                </button>
+              )}
             </div>
           </div>
-        </div>
-      )}
+        )}
+      </ResponsiveAdminModal>
     </AdminLayout>
   );
 };

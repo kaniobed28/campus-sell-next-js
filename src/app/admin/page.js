@@ -7,6 +7,7 @@ import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useAuditLog } from '@/hooks/useAuditLog';
 import { adminSessionManager } from '@/lib/adminSessionManager';
 import { auditLogService } from '@/services/auditLogService';
+import { ADMIN_ROLES } from '@/types/admin';
 
 const AdminDashboardContent = () => {
   const router = useRouter();
@@ -128,7 +129,7 @@ const AdminDashboardContent = () => {
         {/* Quick Actions */}
         <div className="bg-white rounded-lg shadow p-6">
           <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
-          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className={`grid grid-cols-1 md:grid-cols-2 ${adminData?.role === ADMIN_ROLES.PRINCIPAL ? 'lg:grid-cols-5' : 'lg:grid-cols-4'} gap-4`}>
             <a
               href="/admin/init-system"
               className="bg-blue-600 text-white p-4 rounded-lg hover:bg-blue-700 text-center"
@@ -157,6 +158,15 @@ const AdminDashboardContent = () => {
               <h4 className="font-medium">Products</h4>
               <p className="text-sm opacity-90">Moderate product listings</p>
             </a>
+            {adminData?.role === ADMIN_ROLES.PRINCIPAL && (
+              <a
+                href="/admin/admins"
+                className="bg-red-600 text-white p-4 rounded-lg hover:bg-red-700 text-center"
+              >
+                <h4 className="font-medium">Admin Management</h4>
+                <p className="text-sm opacity-90">Manage admin accounts</p>
+              </a>
+            )}
           </div>
         </div>
 
