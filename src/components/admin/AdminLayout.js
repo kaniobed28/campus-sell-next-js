@@ -36,6 +36,7 @@ const AdminLayout = ({ children, title = "Admin Dashboard", breadcrumbs = [] }) 
     { href: '/admin/init-categories', label: 'Categories', icon: '📂' },
     { href: '/admin/users', label: 'Users', icon: '👥' },
     { href: '/admin/products', label: 'Products', icon: '📦' },
+    { href: '/admin/delivery-companies', label: 'Delivery Companies', icon: '🚚' },
     { href: '/admin/audit-logs', label: 'Audit Logs', icon: '📋' },
     ...(adminData?.role === ADMIN_ROLES.PRINCIPAL ? [
       { href: '/admin/admins', label: 'Admin Management', icon: '👑' }

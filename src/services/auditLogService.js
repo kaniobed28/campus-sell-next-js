@@ -310,6 +310,10 @@ class AuditLogService {
   async logSystemAction(adminEmail, action, details = {}) {
     return this.logAction(adminEmail, action, 'system', 'system', details);
   }
+
+  async logDeliveryCompanyAction(adminEmail, action, companyId, details = {}) {
+    return this.logAction(adminEmail, action, 'delivery_company', companyId, details);
+  }
 }
 
 // Export singleton instance

@@ -25,6 +25,7 @@ export const ADMIN_PERMISSIONS = {
   USER_MANAGEMENT: 'user_management',
   PRODUCT_MODERATION: 'product_moderation',
   CATEGORY_MANAGEMENT: 'category_management',
+  DELIVERY_MANAGEMENT: 'delivery_management',
   ANALYTICS_VIEW: 'analytics_view',
   PLATFORM_SETTINGS: 'platform_settings',
   ADMIN_MANAGEMENT: 'admin_management',
@@ -38,6 +39,7 @@ const ROLE_PERMISSIONS = {
     ADMIN_PERMISSIONS.USER_MANAGEMENT,
     ADMIN_PERMISSIONS.PRODUCT_MODERATION,
     ADMIN_PERMISSIONS.CATEGORY_MANAGEMENT,
+    ADMIN_PERMISSIONS.DELIVERY_MANAGEMENT,
     ADMIN_PERMISSIONS.ANALYTICS_VIEW,
     ADMIN_PERMISSIONS.AUDIT_LOGS
   ],
@@ -64,6 +66,7 @@ class AdminAuthService {
       const existingAdmin = await getDoc(principalAdminDoc);
       
       if (!existingAdmin.exists()) {
+        // Create new principal admin
         const principalAdminData = {
           email: principalEmail,
           role: ADMIN_ROLES.PRINCIPAL,
@@ -78,8 +81,23 @@ class AdminAuthService {
         console.log('Principal admin initialized successfully');
         return principalAdminData;
       } else {
-        console.log('Principal admin already exists');
-        return existingAdmin.data();
+        // Update existing principal admin permissions to ensure they're current
+        const currentData = existingAdmin.data();
+        const updatedData = {
+          ...currentData,
+          permissions: ROLE_PERMISSIONS[ADMIN_ROLES.PRINCIPAL],
+          updatedAt: serverTimestamp(),
+          updatedBy: 'system'
+        };
+
+        await updateDoc(principalAdminDoc, {
+          permissions: ROLE_PERMISSIONS[ADMIN_ROLES.PRINCIPAL],
+          updatedAt: serverTimestamp(),
+          updatedBy: 'system'
+        });
+
+        console.log('Principal admin permissions updated successfully');
+        return updatedData;
       }
     } catch (error) {
       console.error('Error initializing principal admin:', error);

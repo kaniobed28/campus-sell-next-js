@@ -77,7 +77,7 @@ const InitAdminSystemPage = () => {
           <h2 className="text-xl font-semibold mb-3">Initialize Admin System</h2>
           <p className="text-muted-foreground mb-4">
             Set up the admin system and initialize the principal admin (kaniobed28@gmail.com). 
-            This will only create the admin if it doesn't exist.
+            This will create the admin if it doesn't exist, or update permissions if it does.
           </p>
           <button
             onClick={handleInitialize}
