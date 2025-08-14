@@ -15,7 +15,8 @@ import {
   faUser,
   faSignOutAlt,
   faSignInAlt,
-  faShoppingCart
+  faShoppingCart,
+  faClipboardList
 } from "@fortawesome/free-solid-svg-icons";
 import { useViewport } from "@/hooks/useViewport";
 
@@ -110,6 +111,7 @@ const NavLinks = forwardRef(({ user, handleSignOut, onLinkClick, isMobile = fals
   const navigationItems = [
     { href: "/categories", label: "Categories", icon: faList },
     { href: "/listings", label: "Listings", icon: faStore },
+    ...(user ? [{ href: "/orders", label: "My Orders", icon: faClipboardList }] : []),
     { href: "/setup", label: "Setup", icon: faCog },
     { href: "/contact", label: "Contact Us", icon: faEnvelope }
   ];

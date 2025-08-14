@@ -357,7 +357,7 @@ class DeliveryCompanyService {
   /**
    * Search delivery companies
    */
-  async searchCompanies(searchTerm, limit = 50) {
+  async searchCompanies(searchTerm, limitCount = 50) {
     try {
       if (!searchTerm || searchTerm.trim().length < 2) {
         throw new Error('Search term must be at least 2 characters');
@@ -372,13 +372,13 @@ class DeliveryCompanyService {
           deliveryCompaniesRef,
           where('name', '>=', searchTerm),
           where('name', '<=', searchTerm + '\uf8ff'),
-          limit(limit)
+          limit(limitCount)
         ),
         query(
           deliveryCompaniesRef,
           where('contactInfo.email', '>=', searchLower),
           where('contactInfo.email', '<=', searchLower + '\uf8ff'),
-          limit(limit)
+          limit(limitCount)
         )
       ];
 
@@ -397,7 +397,7 @@ class DeliveryCompanyService {
         });
       });
 
-      return Array.from(companiesMap.values()).slice(0, limit);
+      return Array.from(companiesMap.values()).slice(0, limitCount);
     } catch (error) {
       console.error('Error searching delivery companies:', error);
       throw error;
@@ -407,13 +407,13 @@ class DeliveryCompanyService {
   /**
    * Get companies by status
    */
-  async getCompaniesByStatus(status, limit = 50) {
+  async getCompaniesByStatus(status, limitCount = 50) {
     try {
       const q = query(
         deliveryCompaniesRef,
         where('status', '==', status),
         orderBy('updatedAt', 'desc'),
-        limit(limit)
+        limit(limitCount)
       );
 
       const snapshot = await getDocs(q);
@@ -737,7 +737,6 @@ class DeliveryCompanyService {
         recordedAt: getServerTimestamp(),
         recordedBy: adminEmail
       }));
-
       return {
         id: docRef.id,
         ...metricsData
@@ -819,6 +818,35 @@ class DeliveryCompanyService {
     // This would implement time estimation logic
     const baseTime = deliveryType === 'express' ? 30 : deliveryType === 'sameDay' ? 60 : 120;
     return `${baseTime} minutes`;
+  }
+
+  /**
+   * Clear all delivery companies (for testing/reset purposes)
+   */
+  async clearAllCompanies(adminEmail) {
+    try {
+      const snapshot = await getDocs(deliveryCompaniesRef);
+      const batch = createBatch();
+
+      snapshot.forEach((doc) => {
+        batch.delete(doc.ref);
+      });
+
+      await batch.commit();
+
+      // Log audit event
+      await auditLogService.logDeliveryCompanyAction(
+        adminEmail,
+        'all_companies_cleared',
+        'multiple',
+        { count: snapshot.size }
+      );
+
+      return { success: true, deletedCount: snapshot.size };
+    } catch (error) {
+      console.error('Error clearing delivery companies:', error);
+      throw error;
+    }
   }
 
   /**

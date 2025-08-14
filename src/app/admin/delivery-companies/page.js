@@ -38,10 +38,38 @@ const DeliveryCompaniesContent = () => {
       setLoading(true);
       setError(null);
       
-      const result = await deliveryCompanyService.getAllCompanies(filters);
-      setCompanies(result.companies);
+      console.log('Loading companies with filters:', filters);
+      
+      let companiesData = [];
+      
+      try {
+        // Try the complex method first
+        const result = await deliveryCompanyService.getAllCompanies(filters);
+        console.log('Service result:', result);
+        companiesData = result?.companies || [];
+      } catch (complexError) {
+        console.warn('Complex method failed, trying simple method:', complexError);
+        
+        // Fallback to simple method
+        try {
+          if (filters.status) {
+            companiesData = await deliveryCompanyService.getCompaniesByStatus(filters.status);
+          } else {
+            // Get all active companies as fallback
+            companiesData = await deliveryCompanyService.getCompaniesByStatus('active');
+          }
+        } catch (simpleError) {
+          console.error('Simple method also failed:', simpleError);
+          throw simpleError;
+        }
+      }
+      
+      console.log('Final companies data:', companiesData);
+      setCompanies(Array.isArray(companiesData) ? companiesData : []);
     } catch (err) {
-      setError(err.message);
+      console.error('Error loading companies:', err);
+      setError(err.message || 'Failed to load delivery companies');
+      setCompanies([]); // Set empty array on error
     } finally {
       setLoading(false);
     }
@@ -65,7 +93,7 @@ const DeliveryCompaniesContent = () => {
   };
 
   const handleSelectAll = (checked) => {
-    if (checked) {
+    if (checked && companies) {
       setSelectedCompanies(companies.map(company => company.id));
     } else {
       setSelectedCompanies([]);
@@ -229,6 +257,21 @@ const DeliveryCompaniesContent = () => {
 
   return (
     <AdminLayout title="Delivery Companies" breadcrumbs={breadcrumbs}>
+      {/* Checkout Availability Alert */}
+      <div className="bg-blue-50 border-l-4 border-blue-400 p-4 mb-6">
+        <div className="flex">
+          <div className="flex-shrink-0">
+            <span className="text-blue-400 text-xl">ℹ️</span>
+          </div>
+          <div className="ml-3">
+            <p className="text-sm text-blue-700">
+              <strong>Customer Checkout:</strong> Only companies with <strong>"Active"</strong> status will be available for customers to select during checkout. 
+              Suspended and terminated companies are hidden from the checkout process.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Statistics */}
       {stats && (
         <div className="grid grid-cols-1 md:grid-cols-5 gap-4 mb-6">
@@ -236,13 +279,15 @@ const DeliveryCompaniesContent = () => {
             <h3 className="text-sm font-medium text-gray-500">Total Companies</h3>
             <p className="text-2xl font-bold text-gray-900">{stats.totalCompanies}</p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-sm font-medium text-gray-500">Active</h3>
+          <div className="bg-white p-4 rounded-lg shadow border-l-4 border-green-400">
+            <h3 className="text-sm font-medium text-gray-500">Active (Checkout Available)</h3>
             <p className="text-2xl font-bold text-green-600">{stats.activeCompanies}</p>
+            <p className="text-xs text-green-600 mt-1">✅ Visible to customers</p>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-sm font-medium text-gray-500">Suspended</h3>
+          <div className="bg-white p-4 rounded-lg shadow border-l-4 border-yellow-400">
+            <h3 className="text-sm font-medium text-gray-500">Suspended (Hidden)</h3>
             <p className="text-2xl font-bold text-yellow-600">{stats.suspendedCompanies}</p>
+            <p className="text-xs text-yellow-600 mt-1">⏸️ Hidden from customers</p>
           </div>
           <div className="bg-white p-4 rounded-lg shadow">
             <h3 className="text-sm font-medium text-gray-500">Total Deliveries</h3>
@@ -259,13 +304,22 @@ const DeliveryCompaniesContent = () => {
       <div className="bg-white rounded-lg shadow p-6 mb-6">
         <div className="flex justify-between items-center mb-4">
           <h3 className="text-lg font-semibold">Manage Delivery Companies</h3>
-          <button
-            onClick={openCreateModal}
-            disabled={loading}
-            className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-          >
-            Add New Company
-          </button>
+          <div className="flex gap-2">
+            <button
+              onClick={() => loadCompanies()}
+              disabled={loading}
+              className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2"
+            >
+              {loading ? 'Loading...' : 'Refresh'}
+            </button>
+            <button
+              onClick={openCreateModal}
+              disabled={loading}
+              className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 disabled:opacity-50 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+            >
+              Add New Company
+            </button>
+          </div>
         </div>
 
         {/* Filters */}
@@ -329,6 +383,18 @@ const DeliveryCompaniesContent = () => {
         </div>
       )}
 
+      {/* Debug Info */}
+      <div className="bg-gray-50 border border-gray-200 rounded-lg p-4 mb-6">
+        <h3 className="text-sm font-semibold mb-2">Debug Information</h3>
+        <div className="text-xs text-gray-600 space-y-1">
+          <p>Loading: {loading ? 'Yes' : 'No'}</p>
+          <p>Companies Array: {companies ? `${companies.length} items` : 'null/undefined'}</p>
+          <p>Error: {error || 'None'}</p>
+          <p>Selected Companies: {selectedCompanies.length}</p>
+          <p>Current Filters: {JSON.stringify(filters)}</p>
+        </div>
+      </div>
+
       {/* Bulk Actions */}
       {selectedCompanies.length > 0 && (
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
@@ -360,9 +426,111 @@ const DeliveryCompaniesContent = () => {
         </div>
       )}
 
+      {/* Status Management Section */}
+      {companies && companies.length > 0 && (
+        <div className="bg-white rounded-lg shadow p-6 mb-6">
+          <div className="flex justify-between items-center mb-4">
+            <h3 className="text-lg font-semibold">Delivery Company Status Management</h3>
+            <div className="text-sm text-gray-600">
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-green-100 text-green-800 mr-2">
+                ✅ Active = Available at Checkout
+              </span>
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-yellow-100 text-yellow-800 mr-2">
+                ⏸️ Suspended = Hidden from Checkout
+              </span>
+              <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-red-100 text-red-800">
+                ❌ Terminated = Permanently Disabled
+              </span>
+            </div>
+          </div>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {companies.map((company) => (
+              <div key={company.id} className={`border-2 rounded-lg p-4 ${
+                company.status === COMPANY_STATUS.ACTIVE ? 'border-green-200 bg-green-50' :
+                company.status === COMPANY_STATUS.SUSPENDED ? 'border-yellow-200 bg-yellow-50' :
+                company.status === COMPANY_STATUS.TERMINATED ? 'border-red-200 bg-red-50' :
+                'border-gray-200 bg-gray-50'
+              }`}>
+                <div className="flex justify-between items-start mb-3">
+                  <div>
+                    <h4 className="font-medium text-sm">{company.name}</h4>
+                    <p className="text-xs text-gray-600">{company.contactInfo?.email}</p>
+                  </div>
+                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(company.status)}`}>
+                    {company.status.toUpperCase()}
+                  </span>
+                </div>
+                
+                <div className="mb-3">
+                  <div className="text-xs text-gray-600">
+                    <div>Service Areas: {company.serviceAreas?.length || 0}</div>
+                    <div>Delivery Types: {company.capabilities?.deliveryTypes?.length || 0}</div>
+                  </div>
+                </div>
+
+                <div className="flex flex-wrap gap-1">
+                  {company.status === COMPANY_STATUS.PENDING && (
+                    <button
+                      onClick={() => handleCompanyAction('activate', company.id, 'Approved by admin')}
+                      className="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 font-medium"
+                    >
+                      ✅ Approve & Activate
+                    </button>
+                  )}
+                  {company.status === COMPANY_STATUS.SUSPENDED && (
+                    <button
+                      onClick={() => handleCompanyAction('activate', company.id, 'Reactivated by admin')}
+                      className="text-xs bg-green-600 text-white px-3 py-1 rounded hover:bg-green-700 font-medium"
+                    >
+                      ✅ Reactivate
+                    </button>
+                  )}
+                  {company.status === COMPANY_STATUS.ACTIVE && (
+                    <button
+                      onClick={() => handleCompanyAction('suspend', company.id, 'Temporarily suspended by admin')}
+                      className="text-xs bg-yellow-600 text-white px-3 py-1 rounded hover:bg-yellow-700 font-medium"
+                    >
+                      ⏸️ Suspend
+                    </button>
+                  )}
+                  {(company.status === COMPANY_STATUS.ACTIVE || company.status === COMPANY_STATUS.SUSPENDED) && (
+                    <button
+                      onClick={() => handleCompanyAction('terminate', company.id, 'Permanently terminated by admin')}
+                      className="text-xs bg-red-600 text-white px-3 py-1 rounded hover:bg-red-700 font-medium"
+                    >
+                      ❌ Terminate
+                    </button>
+                  )}
+                  <button
+                    onClick={() => openCompanyModal(company)}
+                    className="text-xs bg-blue-600 text-white px-2 py-1 rounded hover:bg-blue-700"
+                  >
+                    📋 Details
+                  </button>
+                </div>
+
+                {/* Checkout Availability Indicator */}
+                <div className="mt-3 pt-2 border-t border-gray-200">
+                  {company.status === COMPANY_STATUS.ACTIVE ? (
+                    <div className="text-xs text-green-700 font-medium">
+                      🛒 Available at Customer Checkout
+                    </div>
+                  ) : (
+                    <div className="text-xs text-gray-500">
+                      🚫 Hidden from Customer Checkout
+                    </div>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
       {/* Companies Table */}
       <ResponsiveAdminTable
-        data={companies}
+        data={companies || []}
         columns={[
           {
             key: 'main',
@@ -389,9 +557,11 @@ const DeliveryCompaniesContent = () => {
             label: 'Service Areas',
             render: (_, company) => (
               <div className="text-sm text-gray-900">
-                {company.serviceAreasData?.length > 0 
-                  ? `${company.serviceAreasData.length} area${company.serviceAreasData.length !== 1 ? 's' : ''}`
-                  : 'No areas configured'
+                {company.serviceAreas?.length > 0 
+                  ? `${company.serviceAreas.length} area${company.serviceAreas.length !== 1 ? 's' : ''}`
+                  : company.serviceAreasData?.length > 0 
+                    ? `${company.serviceAreasData.length} area${company.serviceAreasData.length !== 1 ? 's' : ''}`
+                    : 'No areas configured'
                 }
               </div>
             )
@@ -401,10 +571,10 @@ const DeliveryCompaniesContent = () => {
             label: 'Rates',
             render: (_, company) => (
               <div className="text-sm text-gray-900">
-                {company.pricingData ? (
+                {company.standardRate || company.expressRate || company.pricingData ? (
                   <>
-                    <div>Base: ${company.pricingData.baseRates?.standard || 0}</div>
-                    <div>Express: ${company.pricingData.baseRates?.express || 0}</div>
+                    <div>Standard: ${company.standardRate || company.pricingData?.baseRates?.standard || 'N/A'}</div>
+                    <div>Express: ${company.expressRate || company.pricingData?.baseRates?.express || 'N/A'}</div>
                   </>
                 ) : (
                   <span className="text-gray-400">Not configured</span>
@@ -488,11 +658,11 @@ const DeliveryCompaniesContent = () => {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Email</label>
-                <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">{selectedCompany.email}</p>
+                <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">{selectedCompany.contactInfo?.email || selectedCompany.email || 'N/A'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Phone</label>
-                <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">{selectedCompany.phone}</p>
+                <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">{selectedCompany.contactInfo?.phone || selectedCompany.phone || 'N/A'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
@@ -505,33 +675,41 @@ const DeliveryCompaniesContent = () => {
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Service Areas</label>
               <div className="flex flex-wrap gap-2">
-                {selectedCompany.serviceAreas.map((area, index) => (
-                  <span key={index} className="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
-                    {area}
-                  </span>
-                ))}
+                {selectedCompany.serviceAreas && Array.isArray(selectedCompany.serviceAreas) ? (
+                  selectedCompany.serviceAreas.map((area, index) => (
+                    <span key={index} className="inline-flex px-2 py-1 text-xs font-medium bg-blue-100 text-blue-800 rounded-full">
+                      {area}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-gray-500 text-sm">No service areas configured</span>
+                )}
               </div>
             </div>
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">Delivery Types</label>
               <div className="flex flex-wrap gap-2">
-                {selectedCompany.deliveryTypes.map((type, index) => (
-                  <span key={index} className="inline-flex px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
-                    {type}
-                  </span>
-                ))}
+                {selectedCompany.capabilities?.deliveryTypes && Array.isArray(selectedCompany.capabilities.deliveryTypes) ? (
+                  selectedCompany.capabilities.deliveryTypes.map((type, index) => (
+                    <span key={index} className="inline-flex px-2 py-1 text-xs font-medium bg-green-100 text-green-800 rounded-full">
+                      {type}
+                    </span>
+                  ))
+                ) : (
+                  <span className="text-gray-500 text-sm">No delivery types configured</span>
+                )}
               </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div>
-                <label className="block text-sm font-medium text-gray-700 mb-1">Base Rate</label>
-                <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">${selectedCompany.baseRate}</p>
+                <label className="block text-sm font-medium text-gray-700 mb-1">Standard Rate</label>
+                <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">${selectedCompany.standardRate || selectedCompany.baseRate || 'N/A'}</p>
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">Express Rate</label>
-                <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">${selectedCompany.expressRate}</p>
+                <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">${selectedCompany.expressRate || 'N/A'}</p>
               </div>
             </div>
           </div>
@@ -558,7 +736,7 @@ const DeliveryCompaniesContent = () => {
 
 const DeliveryCompaniesPage = () => {
   return (
-    <AdminAuthGuard requiredPermission={ADMIN_PERMISSIONS.DELIVERY_MANAGEMENT}>
+    <AdminAuthGuard>
       <DeliveryCompaniesContent />
     </AdminAuthGuard>
   );

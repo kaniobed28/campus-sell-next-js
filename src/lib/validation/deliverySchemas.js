@@ -10,25 +10,53 @@ import Joi from 'joi';
  */
 
 const addressSchema = Joi.object({
-  street: Joi.string().required().min(1).max(200),
-  city: Joi.string().required().min(1).max(100),
-  state: Joi.string().required().min(2).max(50),
-  zipCode: Joi.string().required().pattern(/^\d{5}(-\d{4})?$/),
+  street: Joi.string().min(1).max(200).when('$isRequired', {
+    is: true,
+    then: Joi.required(),
+    otherwise: Joi.optional().allow('')
+  }),
+  city: Joi.string().min(1).max(100).when('$isRequired', {
+    is: true,
+    then: Joi.required(),
+    otherwise: Joi.optional().allow('')
+  }),
+  state: Joi.string().min(2).max(50).when('$isRequired', {
+    is: true,
+    then: Joi.required(),
+    otherwise: Joi.optional().allow('')
+  }),
+  zipCode: Joi.string().pattern(/^\d{5}(-\d{4})?$/).when('$isRequired', {
+    is: true,
+    then: Joi.required(),
+    otherwise: Joi.optional().allow('')
+  }),
   country: Joi.string().default('US').valid('US')
 });
 
 const contactInfoSchema = Joi.object({
-  email: Joi.string().email().required(),
-  phone: Joi.string().required().pattern(/^\+?[\d\s\-\(\)]{10,}$/),
-  address: addressSchema.required(),
-  contactPerson: Joi.string().required().min(2).max(100),
-  website: Joi.string().uri().optional().allow('')
+  email: Joi.string().email().required().messages({
+    'string.email': 'Please enter a valid email address',
+    'any.required': 'Email is required'
+  }),
+  phone: Joi.string().pattern(/^\+?[\d\s\-\(\)]{10,}$/).required().messages({
+    'string.pattern.base': 'Please enter a valid phone number',
+    'any.required': 'Phone number is required'
+  }),
+  address: addressSchema.optional(),
+  contactPerson: Joi.string().min(2).max(100).required().messages({
+    'string.min': 'Contact person name must be at least 2 characters',
+    'string.max': 'Contact person name cannot exceed 100 characters',
+    'any.required': 'Contact person is required'
+  }),
+  website: Joi.string().uri().optional().allow('').messages({
+    'string.uri': 'Please enter a valid website URL'
+  })
 });
 
 const businessInfoSchema = Joi.object({
-  registrationNumber: Joi.string().required().min(1).max(50),
-  taxId: Joi.string().required().min(1).max(50),
-  insurancePolicy: Joi.string().required().min(1).max(100),
+  registrationNumber: Joi.string().min(1).max(50).optional().allow(''),
+  taxId: Joi.string().min(1).max(50).optional().allow(''),
+  insurancePolicy: Joi.string().min(1).max(100).optional().allow(''),
   licenses: Joi.array().items(Joi.object({
     type: Joi.string().required(),
     number: Joi.string().required(),
@@ -36,10 +64,10 @@ const businessInfoSchema = Joi.object({
     issuingAuthority: Joi.string().required()
   })).default([]),
   bankingInfo: Joi.object({
-    accountName: Joi.string().required(),
-    accountNumber: Joi.string().required(),
-    routingNumber: Joi.string().required(),
-    bankName: Joi.string().required()
+    accountName: Joi.string().optional().allow(''),
+    accountNumber: Joi.string().optional().allow(''),
+    routingNumber: Joi.string().optional().allow(''),
+    bankName: Joi.string().optional().allow('')
   }).optional()
 });
 
@@ -86,21 +114,30 @@ const operationalInfoSchema = Joi.object({
     type: Joi.string().valid('bike', 'scooter', 'car', 'van', 'truck').required(),
     count: Joi.number().integer().min(1).required(),
     capacity: Joi.number().min(1).required(),
-    description: Joi.string().optional()
-  })).min(1).required(),
-  driverCount: Joi.number().integer().min(1).required(),
-  operatingHours: operatingHoursSchema.required(),
-  maxDailyCapacity: Joi.number().integer().min(1).required()
+    description: Joi.string().optional().allow('')
+  })).min(1).optional().default([]),
+  driverCount: Joi.number().integer().min(1).optional().default(1),
+  operatingHours: operatingHoursSchema.optional(),
+  maxDailyCapacity: Joi.number().integer().min(1).optional().default(100)
 });
 
 const capabilitiesSchema = Joi.object({
   vehicleTypes: Joi.array().items(
     Joi.string().valid('bike', 'scooter', 'car', 'van', 'truck')
-  ).min(1).required(),
-  maxCapacity: Joi.number().min(1).required(),
+  ).min(1).required().messages({
+    'array.min': 'At least one vehicle type must be selected',
+    'any.required': 'Vehicle types are required'
+  }),
+  maxCapacity: Joi.number().min(1).required().messages({
+    'number.min': 'Maximum capacity must be at least 1',
+    'any.required': 'Maximum capacity is required'
+  }),
   deliveryTypes: Joi.array().items(
     Joi.string().valid('standard', 'express', 'sameDay', 'scheduled')
-  ).min(1).required(),
+  ).min(1).required().messages({
+    'array.min': 'At least one delivery type must be selected',
+    'any.required': 'Delivery types are required'
+  }),
   specialServices: Joi.array().items(
     Joi.string().valid('fragile', 'refrigerated', 'oversized', 'hazmat')
   ).default([])
@@ -125,19 +162,81 @@ const geoPolygonSchema = Joi.object({
  */
 
 export const deliveryCompanySchema = Joi.object({
-  name: Joi.string().required().min(2).max(100),
-  contactInfo: contactInfoSchema.required(),
-  businessInfo: businessInfoSchema.required(),
-  operationalInfo: operationalInfoSchema.required(),
-  capabilities: capabilitiesSchema.required(),
+  name: Joi.string().required().min(2).max(100).messages({
+    'string.min': 'Company name must be at least 2 characters',
+    'string.max': 'Company name cannot exceed 100 characters',
+    'any.required': 'Company name is required'
+  }),
+  contactInfo: contactInfoSchema.required().messages({
+    'any.required': 'Contact information is required'
+  }),
+  businessInfo: businessInfoSchema.optional().default({}),
+  operationalInfo: operationalInfoSchema.optional().default({}),
+  capabilities: capabilitiesSchema.required().messages({
+    'any.required': 'Delivery capabilities are required'
+  }),
+  // Essential delivery information for checkout
+  serviceAreas: Joi.array().items(Joi.string()).min(1).required().messages({
+    'array.min': 'At least one service area must be specified',
+    'any.required': 'Service areas are required'
+  }),
+  standardRate: Joi.number().min(0).when('capabilities.deliveryTypes', {
+    is: Joi.array().items(Joi.string()).has(Joi.string().valid('standard')),
+    then: Joi.required(),
+    otherwise: Joi.optional()
+  }).messages({
+    'number.min': 'Standard delivery rate must be 0 or greater',
+    'any.required': 'Standard delivery rate is required when standard delivery is offered'
+  }),
+  expressRate: Joi.number().min(0).when('capabilities.deliveryTypes', {
+    is: Joi.array().items(Joi.string()).has(Joi.string().valid('express')),
+    then: Joi.required(),
+    otherwise: Joi.optional()
+  }).messages({
+    'number.min': 'Express delivery rate must be 0 or greater',
+    'any.required': 'Express delivery rate is required when express delivery is offered'
+  }),
+  sameDayRate: Joi.number().min(0).when('capabilities.deliveryTypes', {
+    is: Joi.array().items(Joi.string()).has(Joi.string().valid('sameDay')),
+    then: Joi.required(),
+    otherwise: Joi.optional()
+  }).messages({
+    'number.min': 'Same-day delivery rate must be 0 or greater',
+    'any.required': 'Same-day delivery rate is required when same-day delivery is offered'
+  }),
+  standardDeliveryTime: Joi.string().when('capabilities.deliveryTypes', {
+    is: Joi.array().items(Joi.string()).has(Joi.string().valid('standard')),
+    then: Joi.required(),
+    otherwise: Joi.optional()
+  }).messages({
+    'any.required': 'Standard delivery time estimate is required when standard delivery is offered'
+  }),
+  expressDeliveryTime: Joi.string().when('capabilities.deliveryTypes', {
+    is: Joi.array().items(Joi.string()).has(Joi.string().valid('express')),
+    then: Joi.required(),
+    otherwise: Joi.optional()
+  }).messages({
+    'any.required': 'Express delivery time estimate is required when express delivery is offered'
+  }),
+  sameDayDeliveryTime: Joi.string().when('capabilities.deliveryTypes', {
+    is: Joi.array().items(Joi.string()).has(Joi.string().valid('sameDay')),
+    then: Joi.required(),
+    otherwise: Joi.optional()
+  }).messages({
+    'any.required': 'Same-day delivery time estimate is required when same-day delivery is offered'
+  }),
   status: Joi.string().valid('pending', 'active', 'suspended', 'terminated').default('pending'),
   integrationConfig: Joi.object({
     hasAPI: Joi.boolean().default(false),
-    apiEndpoint: Joi.string().uri().optional().allow(null),
-    webhookUrl: Joi.string().uri().optional().allow(null),
+    apiEndpoint: Joi.string().uri().optional().allow(null, '').messages({
+      'string.uri': 'Please enter a valid API endpoint URL'
+    }),
+    webhookUrl: Joi.string().uri().optional().allow(null, '').messages({
+      'string.uri': 'Please enter a valid webhook URL'
+    }),
     authMethod: Joi.string().valid('apiKey', 'oauth', 'basic').optional().allow(null),
     isActive: Joi.boolean().default(false)
-  }).default({})
+  }).optional().default({})
 });
 
 export const deliveryCompanyFormSchema = Joi.object({
@@ -289,11 +388,11 @@ export const performanceMetricsSchema = Joi.object({
 });
 
 export const filtersSchema = Joi.object({
-  status: Joi.string().valid('pending', 'active', 'suspended', 'terminated').optional(),
+  status: Joi.string().valid('pending', 'active', 'suspended', 'terminated', '').optional(),
   capabilities: Joi.array().items(
     Joi.string().valid('standard', 'express', 'sameDay', 'scheduled')
   ).optional(),
-  search: Joi.string().min(2).max(100).optional(),
+  search: Joi.string().min(0).max(100).allow('').optional(),
   orderBy: Joi.string().valid('name', 'createdAt', 'updatedAt', 'status').default('updatedAt'),
   orderDirection: Joi.string().valid('asc', 'desc').default('desc'),
   limit: Joi.number().integer().min(1).max(200).default(50),

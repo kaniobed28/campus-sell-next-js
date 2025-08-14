@@ -22,6 +22,7 @@ const DeliveryCompanyForm = ({
   
   const [formData, setFormData] = useState({
     name: '',
+    serviceAreas: [''],
     contactInfo: {
       email: '',
       phone: '',
@@ -59,6 +60,13 @@ const DeliveryCompanyForm = ({
       deliveryTypes: ['standard'],
       specialServices: []
     },
+    // Delivery rates and times
+    standardRate: 0,
+    expressRate: 0,
+    sameDayRate: 0,
+    standardDeliveryTime: '',
+    expressDeliveryTime: '',
+    sameDayDeliveryTime: '',
     integrationConfig: {
       hasAPI: false,
       apiEndpoint: '',
@@ -104,14 +112,127 @@ const DeliveryCompanyForm = ({
       return newData;
     });
 
-    // Clear error for this field
-    if (errors[path]) {
-      setErrors(prev => {
-        const newErrors = { ...prev };
-        delete newErrors[path];
-        return newErrors;
-      });
+    // Real-time validation - validate immediately after change
+    setTimeout(() => {
+      validateFieldRealTime(path, value);
+    }, 100);
+  };
+
+  const validateFieldRealTime = (path, value) => {
+    const fieldErrors = {};
+    
+    // Validate specific field based on path
+    switch (path) {
+      case 'name':
+        if (!value || value.length < 2) {
+          fieldErrors[path] = 'Company name must be at least 2 characters';
+        }
+        break;
+        
+      case 'contactInfo.email':
+        if (!value || !VALIDATION_RULES.EMAIL.PATTERN.test(value)) {
+          fieldErrors[path] = 'Valid email address is required';
+        }
+        break;
+        
+      case 'contactInfo.phone':
+        if (!value || !VALIDATION_RULES.PHONE.PATTERN.test(value)) {
+          fieldErrors[path] = 'Valid phone number is required';
+        }
+        break;
+        
+      case 'contactInfo.contactPerson':
+        if (!value || value.length < 2) {
+          fieldErrors[path] = 'Contact person name is required';
+        }
+        break;
+        
+      case 'contactInfo.address.zipCode':
+        if (value && !/^\d{5}(-\d{4})?$/.test(value)) {
+          fieldErrors[path] = 'ZIP code must be in format 12345 or 12345-6789';
+        }
+        break;
+        
+      case 'serviceAreas':
+        if (!value || value.length === 0) {
+          fieldErrors[path] = 'At least one service area is required';
+        } else {
+          const hasEmptyAreas = value.some(area => !area || area.trim() === '');
+          if (hasEmptyAreas) {
+            fieldErrors[path] = 'All service areas must have a name';
+          }
+        }
+        break;
+        
+      case 'capabilities.maxCapacity':
+        if (!value || value < 1) {
+          fieldErrors[path] = 'Maximum capacity must be at least 1';
+        }
+        break;
+        
+      case 'standardRate':
+        if (formData.capabilities.deliveryTypes.includes('standard')) {
+          if (value === undefined || value === null || value === '') {
+            fieldErrors[path] = 'Standard delivery rate is required when standard delivery is offered';
+          }
+        }
+        break;
+        
+      case 'standardDeliveryTime':
+        if (formData.capabilities.deliveryTypes.includes('standard')) {
+          if (!value || value.trim() === '') {
+            fieldErrors[path] = 'Standard delivery time estimate is required when standard delivery is offered';
+          }
+        }
+        break;
+        
+      case 'expressRate':
+        if (formData.capabilities.deliveryTypes.includes('express')) {
+          if (value === undefined || value === null || value === '') {
+            fieldErrors[path] = 'Express delivery rate is required when express delivery is offered';
+          }
+        }
+        break;
+        
+      case 'expressDeliveryTime':
+        if (formData.capabilities.deliveryTypes.includes('express')) {
+          if (!value || value.trim() === '') {
+            fieldErrors[path] = 'Express delivery time estimate is required when express delivery is offered';
+          }
+        }
+        break;
+        
+      case 'sameDayRate':
+        if (formData.capabilities.deliveryTypes.includes('sameDay')) {
+          if (value === undefined || value === null || value === '') {
+            fieldErrors[path] = 'Same-day delivery rate is required when same-day delivery is offered';
+          }
+        }
+        break;
+        
+      case 'sameDayDeliveryTime':
+        if (formData.capabilities.deliveryTypes.includes('sameDay')) {
+          if (!value || value.trim() === '') {
+            fieldErrors[path] = 'Same-day delivery time estimate is required when same-day delivery is offered';
+          }
+        }
+        break;
     }
+    
+    // Update errors state
+    setErrors(prev => {
+      const newErrors = { ...prev };
+      
+      // Remove error if field is now valid
+      if (Object.keys(fieldErrors).length === 0) {
+        delete newErrors[path];
+      } else {
+        // Add new error
+        Object.assign(newErrors, fieldErrors);
+      }
+      
+      return newErrors;
+    });
   };
 
   const validateStep = (stepIndex) => {
@@ -121,6 +242,16 @@ const DeliveryCompanyForm = ({
       case 0: // Basic Information
         if (!formData.name || formData.name.length < 2) {
           stepErrors['name'] = 'Company name must be at least 2 characters';
+        }
+        // Add service areas validation
+        if (!formData.serviceAreas || formData.serviceAreas.length === 0) {
+          stepErrors['serviceAreas'] = 'At least one service area is required';
+        } else {
+          // Check for empty service areas
+          const hasEmptyAreas = formData.serviceAreas.some(area => !area || area.trim() === '');
+          if (hasEmptyAreas) {
+            stepErrors['serviceAreas'] = 'All service areas must have a name';
+          }
         }
         break;
         
@@ -134,27 +265,18 @@ const DeliveryCompanyForm = ({
         if (!formData.contactInfo.contactPerson || formData.contactInfo.contactPerson.length < 2) {
           stepErrors['contactInfo.contactPerson'] = 'Contact person name is required';
         }
-        break;
-        
-      case 2: // Business Information
-        if (!formData.businessInfo.registrationNumber) {
-          stepErrors['businessInfo.registrationNumber'] = 'Registration number is required';
-        }
-        if (!formData.businessInfo.taxId) {
-          stepErrors['businessInfo.taxId'] = 'Tax ID is required';
-        }
-        if (!formData.businessInfo.insurancePolicy) {
-          stepErrors['businessInfo.insurancePolicy'] = 'Insurance policy is required';
+        // Validate zip code format if provided
+        if (formData.contactInfo.address.zipCode && !/^\d{5}(-\d{4})?$/.test(formData.contactInfo.address.zipCode)) {
+          stepErrors['contactInfo.address.zipCode'] = 'ZIP code must be in format 12345 or 12345-6789';
         }
         break;
         
-      case 3: // Operations
-        if (!formData.operationalInfo.driverCount || formData.operationalInfo.driverCount < 1) {
-          stepErrors['operationalInfo.driverCount'] = 'At least 1 driver is required';
-        }
-        if (!formData.operationalInfo.maxDailyCapacity || formData.operationalInfo.maxDailyCapacity < 1) {
-          stepErrors['operationalInfo.maxDailyCapacity'] = 'Daily capacity must be at least 1';
-        }
+      case 2: // Business Information - Make optional
+        // These are now optional, no validation needed
+        break;
+        
+      case 3: // Operations - Make optional
+        // These are now optional, no validation needed
         break;
         
       case 4: // Capabilities
@@ -163,6 +285,35 @@ const DeliveryCompanyForm = ({
         }
         if (!formData.capabilities.deliveryTypes.length) {
           stepErrors['capabilities.deliveryTypes'] = 'At least one delivery type is required';
+        }
+        if (!formData.capabilities.maxCapacity || formData.capabilities.maxCapacity < 1) {
+          stepErrors['capabilities.maxCapacity'] = 'Maximum capacity must be at least 1';
+        }
+        
+        // Validate delivery rates and times based on selected delivery types
+        if (formData.capabilities.deliveryTypes.includes('standard')) {
+          if (formData.standardRate === undefined || formData.standardRate === null || formData.standardRate === '') {
+            stepErrors['standardRate'] = 'Standard delivery rate is required when standard delivery is offered';
+          }
+          if (!formData.standardDeliveryTime || formData.standardDeliveryTime.trim() === '') {
+            stepErrors['standardDeliveryTime'] = 'Standard delivery time estimate is required when standard delivery is offered';
+          }
+        }
+        if (formData.capabilities.deliveryTypes.includes('express')) {
+          if (formData.expressRate === undefined || formData.expressRate === null || formData.expressRate === '') {
+            stepErrors['expressRate'] = 'Express delivery rate is required when express delivery is offered';
+          }
+          if (!formData.expressDeliveryTime || formData.expressDeliveryTime.trim() === '') {
+            stepErrors['expressDeliveryTime'] = 'Express delivery time estimate is required when express delivery is offered';
+          }
+        }
+        if (formData.capabilities.deliveryTypes.includes('sameDay')) {
+          if (formData.sameDayRate === undefined || formData.sameDayRate === null || formData.sameDayRate === '') {
+            stepErrors['sameDayRate'] = 'Same-day delivery rate is required when same-day delivery is offered';
+          }
+          if (!formData.sameDayDeliveryTime || formData.sameDayDeliveryTime.trim() === '') {
+            stepErrors['sameDayDeliveryTime'] = 'Same-day delivery time estimate is required when same-day delivery is offered';
+          }
         }
         break;
     }
@@ -199,6 +350,32 @@ const DeliveryCompanyForm = ({
       allErrors = { ...allErrors, ...stepErrors };
     }
     
+    // Additional validation for delivery types and their required fields
+    if (formData.capabilities.deliveryTypes.includes('standard')) {
+      if (!formData.standardRate && formData.standardRate !== 0) {
+        allErrors['standardRate'] = 'Standard delivery rate is required';
+      }
+      if (!formData.standardDeliveryTime || formData.standardDeliveryTime.trim() === '') {
+        allErrors['standardDeliveryTime'] = 'Standard delivery time is required';
+      }
+    }
+    if (formData.capabilities.deliveryTypes.includes('express')) {
+      if (!formData.expressRate && formData.expressRate !== 0) {
+        allErrors['expressRate'] = 'Express delivery rate is required';
+      }
+      if (!formData.expressDeliveryTime || formData.expressDeliveryTime.trim() === '') {
+        allErrors['expressDeliveryTime'] = 'Express delivery time is required';
+      }
+    }
+    if (formData.capabilities.deliveryTypes.includes('sameDay')) {
+      if (!formData.sameDayRate && formData.sameDayRate !== 0) {
+        allErrors['sameDayRate'] = 'Same-day delivery rate is required';
+      }
+      if (!formData.sameDayDeliveryTime || formData.sameDayDeliveryTime.trim() === '') {
+        allErrors['sameDayDeliveryTime'] = 'Same-day delivery time is required';
+      }
+    }
+
     if (Object.keys(allErrors).length > 0) {
       setErrors(allErrors);
       // Go to first step with errors
@@ -212,7 +389,36 @@ const DeliveryCompanyForm = ({
       return;
     }
     
-    onSubmit(formData);
+    // Clean up data before submission
+    const cleanedData = {
+      ...formData,
+      // Remove empty service areas
+      serviceAreas: formData.serviceAreas.filter(area => area && area.trim() !== '')
+    };
+
+    // Remove all delivery rate/time fields first
+    delete cleanedData.standardRate;
+    delete cleanedData.standardDeliveryTime;
+    delete cleanedData.expressRate;
+    delete cleanedData.expressDeliveryTime;
+    delete cleanedData.sameDayRate;
+    delete cleanedData.sameDayDeliveryTime;
+
+    // Only add delivery rates/times for selected delivery types
+    if (formData.capabilities.deliveryTypes.includes('standard')) {
+      cleanedData.standardRate = formData.standardRate;
+      cleanedData.standardDeliveryTime = formData.standardDeliveryTime;
+    }
+    if (formData.capabilities.deliveryTypes.includes('express')) {
+      cleanedData.expressRate = formData.expressRate;
+      cleanedData.expressDeliveryTime = formData.expressDeliveryTime;
+    }
+    if (formData.capabilities.deliveryTypes.includes('sameDay')) {
+      cleanedData.sameDayRate = formData.sameDayRate;
+      cleanedData.sameDayDeliveryTime = formData.sameDayDeliveryTime;
+    }
+    
+    onSubmit(cleanedData);
   };
 
   const addVehicle = () => {
@@ -265,6 +471,57 @@ const DeliveryCompanyForm = ({
                 onChange={(e) => handleInputChange('name', e.target.value)}
                 placeholder="Enter company name"
               />
+            </ResponsiveAdminForm.Field>
+
+            <ResponsiveAdminForm.Field
+              label="Service Areas"
+              required
+              error={errors['serviceAreas']}
+            >
+              <div className="space-y-2">
+                {formData.serviceAreas.map((area, index) => (
+                  <div key={index} className="flex items-center space-x-2">
+                    <ResponsiveAdminForm.Input
+                      value={area}
+                      onChange={(e) => {
+                        const newAreas = [...formData.serviceAreas];
+                        newAreas[index] = e.target.value;
+                        handleInputChange('serviceAreas', newAreas);
+                      }}
+                      placeholder="e.g., Campus Area, Downtown"
+                    />
+                    {formData.serviceAreas.length > 1 && (
+                      <ResponsiveAdminForm.Button
+                        type="button"
+                        variant="danger"
+                        size="sm"
+                        onClick={() => {
+                          const newAreas = formData.serviceAreas.filter((_, i) => i !== index);
+                          handleInputChange('serviceAreas', newAreas);
+                        }}
+                      >
+                        Remove
+                      </ResponsiveAdminForm.Button>
+                    )}
+                  </div>
+                ))}
+                <ResponsiveAdminForm.Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => {
+                    // Only add if the last area is not empty
+                    const lastArea = formData.serviceAreas[formData.serviceAreas.length - 1];
+                    if (!lastArea || lastArea.trim() === '') {
+                      // Focus on the empty field instead of adding a new one
+                      return;
+                    }
+                    handleInputChange('serviceAreas', [...formData.serviceAreas, '']);
+                  }}
+                >
+                  Add Service Area
+                </ResponsiveAdminForm.Button>
+              </div>
             </ResponsiveAdminForm.Field>
           </div>
         );
@@ -609,6 +866,20 @@ const DeliveryCompanyForm = ({
                           ? [...formData.capabilities.deliveryTypes, value]
                           : formData.capabilities.deliveryTypes.filter(t => t !== value);
                         handleInputChange('capabilities.deliveryTypes', newTypes);
+                        
+                        // Immediately validate related rate/time fields
+                        setTimeout(() => {
+                          if (value === 'standard') {
+                            validateFieldRealTime('standardRate', formData.standardRate);
+                            validateFieldRealTime('standardDeliveryTime', formData.standardDeliveryTime);
+                          } else if (value === 'express') {
+                            validateFieldRealTime('expressRate', formData.expressRate);
+                            validateFieldRealTime('expressDeliveryTime', formData.expressDeliveryTime);
+                          } else if (value === 'sameDay') {
+                            validateFieldRealTime('sameDayRate', formData.sameDayRate);
+                            validateFieldRealTime('sameDayDeliveryTime', formData.sameDayDeliveryTime);
+                          }
+                        }, 150);
                       }}
                       className="rounded border-gray-300"
                     />
@@ -630,6 +901,125 @@ const DeliveryCompanyForm = ({
                 onChange={(e) => handleInputChange('capabilities.maxCapacity', parseInt(e.target.value))}
               />
             </ResponsiveAdminForm.Field>
+
+            {/* Delivery Rates and Times */}
+            <div className="border-t pt-6">
+              <h4 className="text-lg font-medium mb-4">Delivery Rates & Times</h4>
+              
+              {formData.capabilities.deliveryTypes.length > 0 && (
+                <div className="mb-4 p-3 bg-yellow-50 border border-yellow-200 rounded-lg">
+                  <p className="text-sm text-yellow-800">
+                    <strong>Required:</strong> You must provide rates and delivery times for each selected delivery type below.
+                    {(formData.capabilities.deliveryTypes.includes('express') && !formData.expressDeliveryTime) ||
+                     (formData.capabilities.deliveryTypes.includes('sameDay') && !formData.sameDayDeliveryTime) ||
+                     (formData.capabilities.deliveryTypes.includes('standard') && !formData.standardDeliveryTime) ? (
+                      <span className="block mt-1 text-red-600 font-medium">⚠️ Missing required delivery information</span>
+                    ) : (
+                      <span className="block mt-1 text-green-600 font-medium">✅ All delivery information complete</span>
+                    )}
+                  </p>
+                </div>
+              )}
+              
+              {formData.capabilities.deliveryTypes.includes('standard') && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 bg-blue-50 rounded-lg border-l-4 border-blue-400">
+                  <ResponsiveAdminForm.Field
+                    label="Standard Delivery Rate ($)"
+                    required
+                    error={errors['standardRate']}
+                  >
+                    <ResponsiveAdminForm.Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.standardRate}
+                      onChange={(e) => handleInputChange('standardRate', parseFloat(e.target.value) || 0)}
+                      placeholder="5.99"
+                      className={errors['standardRate'] ? 'border-red-500 bg-red-50' : formData.standardRate ? 'border-green-500 bg-green-50' : ''}
+                    />
+                  </ResponsiveAdminForm.Field>
+
+                  <ResponsiveAdminForm.Field
+                    label="Standard Delivery Time"
+                    required
+                    error={errors['standardDeliveryTime']}
+                  >
+                    <ResponsiveAdminForm.Input
+                      value={formData.standardDeliveryTime}
+                      onChange={(e) => handleInputChange('standardDeliveryTime', e.target.value)}
+                      placeholder="2-3 business days"
+                      className={errors['standardDeliveryTime'] ? 'border-red-500 bg-red-50' : formData.standardDeliveryTime ? 'border-green-500 bg-green-50' : ''}
+                    />
+                  </ResponsiveAdminForm.Field>
+                </div>
+              )}
+
+              {formData.capabilities.deliveryTypes.includes('express') && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 bg-orange-50 rounded-lg border-l-4 border-orange-400">
+                  <ResponsiveAdminForm.Field
+                    label="Express Delivery Rate ($)"
+                    required
+                    error={errors['expressRate']}
+                  >
+                    <ResponsiveAdminForm.Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.expressRate}
+                      onChange={(e) => handleInputChange('expressRate', parseFloat(e.target.value) || 0)}
+                      placeholder="12.99"
+                      className={errors['expressRate'] ? 'border-red-500 bg-red-50' : formData.expressRate ? 'border-green-500 bg-green-50' : ''}
+                    />
+                  </ResponsiveAdminForm.Field>
+
+                  <ResponsiveAdminForm.Field
+                    label="Express Delivery Time"
+                    required
+                    error={errors['expressDeliveryTime']}
+                  >
+                    <ResponsiveAdminForm.Input
+                      value={formData.expressDeliveryTime}
+                      onChange={(e) => handleInputChange('expressDeliveryTime', e.target.value)}
+                      placeholder="1 business day"
+                      className={errors['expressDeliveryTime'] ? 'border-red-500 bg-red-50' : formData.expressDeliveryTime ? 'border-green-500 bg-green-50' : ''}
+                    />
+                  </ResponsiveAdminForm.Field>
+                </div>
+              )}
+
+              {formData.capabilities.deliveryTypes.includes('sameDay') && (
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4 p-4 bg-purple-50 rounded-lg border-l-4 border-purple-400">
+                  <ResponsiveAdminForm.Field
+                    label="Same-Day Delivery Rate ($)"
+                    required
+                    error={errors['sameDayRate']}
+                  >
+                    <ResponsiveAdminForm.Input
+                      type="number"
+                      min="0"
+                      step="0.01"
+                      value={formData.sameDayRate}
+                      onChange={(e) => handleInputChange('sameDayRate', parseFloat(e.target.value) || 0)}
+                      placeholder="19.99"
+                      className={errors['sameDayRate'] ? 'border-red-500 bg-red-50' : formData.sameDayRate ? 'border-green-500 bg-green-50' : ''}
+                    />
+                  </ResponsiveAdminForm.Field>
+
+                  <ResponsiveAdminForm.Field
+                    label="Same-Day Delivery Time"
+                    required
+                    error={errors['sameDayDeliveryTime']}
+                  >
+                    <ResponsiveAdminForm.Input
+                      value={formData.sameDayDeliveryTime}
+                      onChange={(e) => handleInputChange('sameDayDeliveryTime', e.target.value)}
+                      placeholder="Same day (within 6 hours)"
+                      className={errors['sameDayDeliveryTime'] ? 'border-red-500 bg-red-50' : formData.sameDayDeliveryTime ? 'border-green-500 bg-green-50' : ''}
+                    />
+                  </ResponsiveAdminForm.Field>
+                </div>
+              )}
+            </div>
           </div>
         );
 
@@ -783,9 +1173,14 @@ const DeliveryCompanyForm = ({
               <ResponsiveAdminForm.Button
                 type="submit"
                 loading={loading}
-                disabled={loading}
+                disabled={loading || Object.keys(errors).length > 0}
+                className={Object.keys(errors).length > 0 ? 'opacity-50 cursor-not-allowed' : ''}
               >
-                {mode === 'create' ? 'Create Company' : 'Update Company'}
+                {Object.keys(errors).length > 0 ? (
+                  <>⚠️ Fix {Object.keys(errors).length} error{Object.keys(errors).length > 1 ? 's' : ''} first</>
+                ) : (
+                  mode === 'create' ? 'Create Company' : 'Update Company'
+                )}
               </ResponsiveAdminForm.Button>
             )}
           </div>
