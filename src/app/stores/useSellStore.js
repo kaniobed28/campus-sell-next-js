@@ -324,4 +324,7 @@ export default useSellStore;
 
 
 
+<<<<<<< HEAD
 
+=======
+>>>>>>> 9729b63 (bug space added 2 time)
