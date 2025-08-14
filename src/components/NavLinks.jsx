@@ -1,20 +1,35 @@
 "use client";
 
-import React, { useState } from "react";
+import React, { useState, forwardRef } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { doc, getDoc } from "firebase/firestore";
 import { db } from "@/lib/firebase";
 import SellerPromptModal from "./SellerPromptModal";
+import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
+import {
+  faList,
+  faStore,
+  faCog,
+  faEnvelope,
+  faUser,
+  faSignOutAlt,
+  faSignInAlt,
+  faShoppingCart,
+  faClipboardList
+} from "@fortawesome/free-solid-svg-icons";
+import { useViewport } from "@/hooks/useViewport";
 
-const NavLinks = ({ user, handleSignOut, onLinkClick, isMobile = false }) => {
+const NavLinks = forwardRef(({ user, handleSignOut, onLinkClick, isMobile = false }, ref) => {
   const router = useRouter();
+  const { isTouchDevice } = useViewport();
   const [modalState, setModalState] = useState({
     isOpen: false,
     message: "",
     primaryAction: null,
     secondaryAction: null,
   });
+  const [hoveredLink, setHoveredLink] = useState(null);
 
   const openModal = (message, primaryAction, secondaryAction = { label: "Cancel" }) => {
     setModalState({
@@ -65,7 +80,7 @@ const NavLinks = ({ user, handleSignOut, onLinkClick, isMobile = false }) => {
       console.error("Error checking seller status:", error.message);
       openModal("An error occurred while checking your seller status.", {
         label: "OK",
-        onClick: () => {},
+        onClick: () => { },
       });
       return false;
     }
@@ -79,47 +94,134 @@ const NavLinks = ({ user, handleSignOut, onLinkClick, isMobile = false }) => {
     }
   };
 
+  // Enhanced responsive link classes with better touch targets and hover states
   const linkClass = isMobile
-    ? "text-lg hover:text-secondary transition dark:hover:text-secondary-dark"
-    : "hover:text-secondary transition dark:hover:text-secondary-dark";
+    ? "group block w-full text-left px-6 py-4 text-base font-medium text-foreground hover:bg-accent hover:text-accent-foreground rounded-lg transition-all duration-200 min-h-[48px] flex items-center space-x-3 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background"
+    : "relative px-4 py-2 text-foreground hover:text-accent transition-all duration-200 rounded-md focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background hover:bg-accent/10 font-medium";
 
   const sellButtonClass = isMobile
-    ? "px-6 py-2 bg-accent text-background rounded-lg hover:bg-accent-dark transition dark:bg-accent-dark dark:text-background-dark"
-    : "px-4 py-2 bg-accent text-background rounded-lg hover:bg-accent-dark transition shadow-md dark:bg-accent-dark dark:text-background-dark";
+    ? "group block w-full text-center px-6 py-4 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-all duration-200 font-semibold min-h-[48px] flex items-center justify-center space-x-3 hover:scale-[1.02] active:scale-[0.98] shadow-md hover:shadow-lg focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background"
+    : "px-6 py-2.5 bg-accent text-accent-foreground rounded-lg hover:bg-accent/90 transition-all duration-200 shadow-md hover:shadow-lg font-semibold focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background hover:scale-105 active:scale-95";
+
+  const signOutButtonClass = isMobile
+    ? "group block w-full text-left px-6 py-4 text-base font-medium text-destructive hover:bg-destructive/10 rounded-lg transition-all duration-200 min-h-[48px] flex items-center space-x-3 hover:scale-[1.02] active:scale-[0.98] focus:outline-none focus:ring-2 focus:ring-destructive focus:ring-offset-2 focus:ring-offset-background"
+    : "px-4 py-2 text-destructive hover:text-destructive/80 hover:bg-destructive/10 transition-all duration-200 rounded-md focus:outline-none focus:ring-2 focus:ring-destructive focus:ring-offset-2 focus:ring-offset-background font-medium";
+
+  // Navigation items configuration with icons
+  const navigationItems = [
+    { href: "/categories", label: "Categories", icon: faList },
+    { href: "/listings", label: "Listings", icon: faStore },
+    ...(user ? [{ href: "/orders", label: "My Orders", icon: faClipboardList }] : []),
+    { href: "/setup", label: "Setup", icon: faCog },
+    { href: "/contact", label: "Contact Us", icon: faEnvelope }
+  ];
+
+  // Enhanced link component with hover effects
+  const NavLink = ({ href, children, className, icon, isSpecial = false, ...props }) => (
+    <Link
+      href={href}
+      className={className}
+      onClick={onLinkClick}
+      onMouseEnter={() => !isTouchDevice && setHoveredLink(href)}
+      onMouseLeave={() => !isTouchDevice && setHoveredLink(null)}
+      {...props}
+    >
+      {isMobile && icon && (
+        <FontAwesomeIcon
+          icon={icon}
+          className={`w-5 h-5 ${isSpecial ? 'text-accent-foreground' : 'text-muted-foreground group-hover:text-accent-foreground'} transition-colors duration-200`}
+        />
+      )}
+      <span className={isMobile ? 'flex-1' : ''}>{children}</span>
+      {!isMobile && hoveredLink === href && (
+        <div className="absolute inset-0 bg-accent/5 rounded-md -z-10 animate-pulse" />
+      )}
+    </Link>
+  );
 
   return (
     <>
-      <Link href="/categories" className={linkClass} onClick={onLinkClick}>
-        Categories
-      </Link>
-      <Link href="/listings" className={linkClass} onClick={onLinkClick}>
-        Listings
-      </Link>
-      <Link href="/contact" className={linkClass} onClick={onLinkClick}>
-        Contact Us
-      </Link>
+      {/* Main Navigation Links */}
+      {navigationItems.map((item) => (
+        <NavLink
+          key={item.href}
+          href={item.href}
+          className={linkClass}
+          icon={item.icon}
+          ref={item.href === "/categories" ? ref : null}
+        >
+          {item.label}
+        </NavLink>
+      ))}
+
+      {/* Conditional User/Auth Section */}
       {user ? (
         <>
-          <Link href="/sell" onClick={handleSellClick} className={sellButtonClass}>
-            Sell
+          {/* Sell Button - Special styling */}
+          <Link
+            href="/sell"
+            onClick={handleSellClick}
+            className={sellButtonClass}
+            onMouseEnter={() => !isTouchDevice && setHoveredLink("/sell")}
+            onMouseLeave={() => !isTouchDevice && setHoveredLink(null)}
+          >
+            {isMobile && (
+              <FontAwesomeIcon
+                icon={faShoppingCart}
+                className="w-5 h-5 text-accent-foreground transition-colors duration-200"
+              />
+            )}
+            <span className={isMobile ? 'flex-1' : ''}>Sell</span>
           </Link>
-          <Link href="/profile" className={linkClass} onClick={onLinkClick}>
-            <span>Welcome, {user.email.split("@")[0]}!</span>
-          </Link>
+
+          {/* User Profile Link */}
+          <NavLink
+            href="/profile"
+            className={linkClass}
+            icon={faUser}
+          >
+            {isMobile ? (
+              <>
+                <span className="flex-1">Profile</span>
+                <span className="text-sm text-muted-foreground group-hover:text-accent-foreground">
+                  {user.email.split("@")[0]}
+                </span>
+              </>
+            ) : (
+              `Welcome, ${user.email.split("@")[0]}!`
+            )}
+          </NavLink>
+
+          {/* Sign Out Button */}
           <button
             onClick={() => {
               onLinkClick();
               handleSignOut();
             }}
-            className="text-danger hover:text-danger-dark transition"
+            className={signOutButtonClass}
+            onMouseEnter={() => !isTouchDevice && setHoveredLink("signout")}
+            onMouseLeave={() => !isTouchDevice && setHoveredLink(null)}
           >
-            Sign Out
+            {isMobile && (
+              <FontAwesomeIcon
+                icon={faSignOutAlt}
+                className="w-5 h-5 text-muted-foreground group-hover:text-destructive transition-colors duration-200"
+              />
+            )}
+            <span className={isMobile ? 'flex-1' : ''}>Sign Out</span>
+            {!isMobile && hoveredLink === "signout" && (
+              <div className="absolute inset-0 bg-destructive/5 rounded-md -z-10 animate-pulse" />
+            )}
           </button>
         </>
       ) : (
-        <Link href="/auth" className={linkClass} onClick={onLinkClick}>
+        <NavLink
+          href="/auth"
+          className={linkClass}
+          icon={faSignInAlt}
+        >
           Sign In
-        </Link>
+        </NavLink>
       )}
 
       {/* Seller Prompt Modal */}
@@ -132,6 +234,8 @@ const NavLinks = ({ user, handleSignOut, onLinkClick, isMobile = false }) => {
       />
     </>
   );
-};
+});
+
+NavLinks.displayName = 'NavLinks';
 
 export default NavLinks;

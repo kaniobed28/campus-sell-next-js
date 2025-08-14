@@ -27,6 +27,9 @@ export function ThemeProvider({ children, defaultTheme = 'light', storageKey = '
   const applyTheme = (newTheme) => {
     const root = window.document.documentElement;
     
+    // Add theme-switching class to disable transitions temporarily
+    root.classList.add('theme-switching');
+    
     // Remove existing theme classes
     root.classList.remove('light', 'dark');
     
@@ -35,6 +38,13 @@ export function ThemeProvider({ children, defaultTheme = 'light', storageKey = '
     
     // Store theme preference
     localStorage.setItem(storageKey, newTheme);
+    
+    // Remove theme-switching class after a brief delay to re-enable transitions
+    requestAnimationFrame(() => {
+      setTimeout(() => {
+        root.classList.remove('theme-switching');
+      }, 50);
+    });
   };
 
   const setThemeWithPersistence = (newTheme) => {

@@ -13,11 +13,12 @@ const buttonVariants = {
         link: 'text-primary underline-offset-4 hover:underline',
     },
     size: {
-        sm: 'h-9 px-3 text-sm',
-        md: 'h-10 px-4 py-2',
-        lg: 'h-11 px-8',
-        xl: 'h-12 px-10 text-lg',
-        icon: 'h-10 w-10',
+        sm: 'h-9 px-3 text-sm md:h-8 md:px-2 md:text-xs',
+        md: 'h-12 px-4 py-3 text-base md:h-10 md:px-4 md:py-2 md:text-sm',
+        lg: 'h-14 px-6 py-4 text-lg md:h-11 md:px-8 md:py-2 md:text-base',
+        xl: 'h-16 px-8 py-5 text-xl md:h-12 md:px-10 md:py-2 md:text-lg',
+        icon: 'h-12 w-12 md:h-10 md:w-10',
+        touch: 'h-12 px-6 py-3 text-base min-h-[44px] min-w-[44px]',
     },
 };
 
