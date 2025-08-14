@@ -22,3 +22,6 @@ const AuthToggle = ({ isSignUp, onToggle }) => {
 };
 
 export default AuthToggle;
+
+
+

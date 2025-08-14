@@ -141,3 +141,5 @@ const InitCategoriesPage = () => {
 };
 
 export default InitCategoriesPage;
+
+

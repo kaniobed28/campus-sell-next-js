@@ -55,3 +55,6 @@ const AuthForm = ({ isSignUp, onSubmit, error, loading = false }) => {
 };
 
 export default AuthForm;
+
+
+

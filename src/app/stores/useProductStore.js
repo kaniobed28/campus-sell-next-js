@@ -128,3 +128,5 @@ export const useProductStore = create((set, get) => ({
     return Array.from(categories);
   },
 }));
+
+
