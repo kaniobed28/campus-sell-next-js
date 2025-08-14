@@ -18,11 +18,4 @@ const TextAreaField = ({ label, id, name, value, onChange, required = false }) =
 );
 
 export default TextAreaField;
-  
 
-
-
-<<<<<<< HEAD
-
-=======
->>>>>>> 9729b63 (bug space added 2 time)

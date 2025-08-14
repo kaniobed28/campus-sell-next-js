@@ -12,11 +12,4 @@ const ProfileFieldEditable = ({ label, name, value, onChange }) => (
   );
   
   export default ProfileFieldEditable;
-  
 
-
-
-<<<<<<< HEAD
-
-=======
->>>>>>> 9729b63 (bug space added 2 time)

@@ -388,9 +388,3 @@ const SellPage = () => {
 
 export default SellPage;
 
-
-
-<<<<<<< HEAD
-
-=======
->>>>>>> 9729b63 (bug space added 2 time)

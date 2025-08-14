@@ -17,11 +17,4 @@ const InputField = ({ label, id, name, value, onChange, type = "text", required 
 );
 
 export default InputField;
-  
 
-
-
-<<<<<<< HEAD
-
-=======
->>>>>>> 9729b63 (bug space added 2 time)

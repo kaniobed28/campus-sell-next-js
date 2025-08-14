@@ -43,8 +43,3 @@ const TypePage = () => {
 };
 
 export default TypePage;
-
-<<<<<<< HEAD
-
-=======
->>>>>>> 9729b63 (bug space added 2 time)

@@ -173,9 +173,3 @@ const CreateDeliveryCompanyPage = () => {
 
 export default CreateDeliveryCompanyPage;
 
-
-
-<<<<<<< HEAD
-
-=======
->>>>>>> 9729b63 (bug space added 2 time)

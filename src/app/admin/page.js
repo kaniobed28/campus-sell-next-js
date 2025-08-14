@@ -67,8 +67,6 @@ const AdminDashboardContent = () => {
     router.push('/auth');
   };
 
-
-
   // Show loading state while admin data is being fetched
   if (loading || !adminData) {
     return (
@@ -248,9 +246,3 @@ const AdminDashboard = () => {
 
 export default AdminDashboard;
 
-
-
-<<<<<<< HEAD
-
-=======
->>>>>>> 9729b63 (bug space added 2 time)
