@@ -43,3 +43,4 @@ const TypePage = () => {
 };
 
 export default TypePage;
+
