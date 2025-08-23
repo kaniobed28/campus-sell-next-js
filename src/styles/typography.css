@@ -1,0 +1,298 @@
+/* Responsive Typography System */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* Base responsive typography layer */
+@layer base {
+  /* Responsive font size scaling */
+  html {
+    font-size: 16px; /* Base font size */
+  }
+  
+  /* Mobile-first responsive scaling */
+  @media (max-width: 640px) {
+    html {
+      font-size: 14px; /* Slightly smaller base for mobile */
+    }
+  }
+  
+  @media (min-width: 1024px) {
+    html {
+      font-size: 16px; /* Standard base for desktop */
+    }
+  }
+  
+  @media (min-width: 1280px) {
+    html {
+      font-size: 18px; /* Larger base for large screens */
+    }
+  }
+}
+
+/* Responsive typography component classes */
+@layer components {
+  /* Responsive heading hierarchy */
+  .heading-display {
+    @apply font-bold tracking-tight leading-none;
+    font-size: clamp(2.5rem, 5vw, 4rem);
+    line-height: clamp(2.75rem, 5.5vw, 4.25rem);
+  }
+  
+  .heading-h1 {
+    @apply font-bold tracking-tight;
+    font-size: clamp(2rem, 4vw, 3rem);
+    line-height: clamp(2.25rem, 4.5vw, 3.25rem);
+  }
+  
+  .heading-h2 {
+    @apply font-semibold tracking-tight;
+    font-size: clamp(1.5rem, 3vw, 2.25rem);
+    line-height: clamp(1.75rem, 3.5vw, 2.5rem);
+  }
+  
+  .heading-h3 {
+    @apply font-semibold;
+    font-size: clamp(1.25rem, 2.5vw, 1.875rem);
+    line-height: clamp(1.5rem, 3vw, 2.25rem);
+  }
+  
+  .heading-h4 {
+    @apply font-medium;
+    font-size: clamp(1.125rem, 2vw, 1.5rem);
+    line-height: clamp(1.375rem, 2.5vw, 1.75rem);
+  }
+  
+  .heading-h5 {
+    @apply font-medium;
+    font-size: clamp(1rem, 1.5vw, 1.25rem);
+    line-height: clamp(1.25rem, 2vw, 1.5rem);
+  }
+  
+  .heading-h6 {
+    @apply font-medium;
+    font-size: clamp(0.875rem, 1.25vw, 1.125rem);
+    line-height: clamp(1.125rem, 1.75vw, 1.375rem);
+  }
+  
+  /* Responsive body text classes */
+  .text-body-large {
+    @apply leading-relaxed;
+    font-size: clamp(1.125rem, 1.5vw, 1.25rem);
+    line-height: clamp(1.75rem, 2.25vw, 2rem);
+  }
+  
+  .text-body {
+    @apply leading-relaxed;
+    font-size: clamp(1rem, 1.25vw, 1.125rem);
+    line-height: clamp(1.5rem, 2vw, 1.75rem);
+  }
+  
+  .text-body-small {
+    @apply leading-normal;
+    font-size: clamp(0.875rem, 1vw, 1rem);
+    line-height: clamp(1.25rem, 1.5vw, 1.5rem);
+  }
+  
+  .text-caption {
+    @apply leading-normal;
+    font-size: clamp(0.75rem, 0.875vw, 0.875rem);
+    line-height: clamp(1rem, 1.25vw, 1.25rem);
+  }
+  
+  /* Responsive letter spacing */
+  .tracking-display {
+    letter-spacing: clamp(-0.05em, -0.025vw, -0.025em);
+  }
+  
+  .tracking-heading {
+    letter-spacing: clamp(-0.025em, -0.0125vw, -0.0125em);
+  }
+  
+  .tracking-body {
+    letter-spacing: clamp(0em, 0.005vw, 0.01em);
+  }
+  
+  /* Touch-friendly text sizing for interactive elements */
+  .text-interactive {
+    @apply leading-normal;
+    font-size: clamp(1rem, 1.125vw, 1.125rem);
+    line-height: clamp(1.5rem, 1.75vw, 1.75rem);
+    min-height: 44px; /* Ensure touch target compliance */
+  }
+  
+  /* Responsive link styling */
+  .link-responsive {
+    @apply text-interactive underline-offset-2 hover:underline focus:underline;
+    text-decoration-thickness: clamp(1px, 0.125vw, 2px);
+  }
+}
+
+/* Responsive typography utility classes */
+@layer utilities {
+  /* Mobile-first responsive text sizes */
+  .text-responsive-xs {
+    font-size: clamp(0.75rem, 0.875vw, 0.875rem);
+  }
+  
+  .text-responsive-sm {
+    font-size: clamp(0.875rem, 1vw, 1rem);
+  }
+  
+  .text-responsive-base {
+    font-size: clamp(1rem, 1.125vw, 1.125rem);
+  }
+  
+  .text-responsive-lg {
+    font-size: clamp(1.125rem, 1.25vw, 1.25rem);
+  }
+  
+  .text-responsive-xl {
+    font-size: clamp(1.25rem, 1.5vw, 1.5rem);
+  }
+  
+  .text-responsive-2xl {
+    font-size: clamp(1.5rem, 2vw, 2rem);
+  }
+  
+  .text-responsive-3xl {
+    font-size: clamp(1.875rem, 2.5vw, 2.5rem);
+  }
+  
+  .text-responsive-4xl {
+    font-size: clamp(2.25rem, 3vw, 3rem);
+  }
+  
+  /* Responsive line heights */
+  .leading-responsive-tight {
+    line-height: clamp(1.1, 1.2, 1.25);
+  }
+  
+  .leading-responsive-normal {
+    line-height: clamp(1.4, 1.5, 1.6);
+  }
+  
+  .leading-responsive-relaxed {
+    line-height: clamp(1.6, 1.75, 1.8);
+  }
+  
+  /* Responsive letter spacing utilities */
+  .tracking-responsive-tight {
+    letter-spacing: clamp(-0.05em, -0.025vw, -0.01em);
+  }
+  
+  .tracking-responsive-normal {
+    letter-spacing: clamp(0em, 0.005vw, 0.01em);
+  }
+  
+  .tracking-responsive-wide {
+    letter-spacing: clamp(0.025em, 0.05vw, 0.1em);
+  }
+  
+  /* Accessibility-focused responsive text */
+  .text-accessible {
+    font-size: clamp(1rem, 1.125vw, 1.125rem);
+    line-height: clamp(1.5, 1.6, 1.75);
+    letter-spacing: 0.01em;
+  }
+  
+  /* High contrast text for better readability */
+  .text-high-contrast {
+    color: var(--foreground);
+    font-weight: 500;
+  }
+  
+  /* Responsive text truncation */
+  .text-truncate-responsive {
+    @apply truncate;
+  }
+  
+  @media (max-width: 640px) {
+    .text-truncate-responsive {
+      @apply line-clamp-2;
+    }
+  }
+  
+  @media (min-width: 641px) {
+    .text-truncate-responsive {
+      @apply line-clamp-3;
+    }
+  }
+}
+
+/* Responsive typography for specific breakpoints */
+@media (max-width: 640px) {
+  /* Mobile-specific typography adjustments */
+  .mobile-text-compact {
+    line-height: 1.4;
+    letter-spacing: 0.005em;
+  }
+  
+  /* Ensure minimum touch target sizes for mobile text */
+  .mobile-touch-text {
+    min-height: 44px;
+    display: flex;
+    align-items: center;
+    padding: 0.5rem 0;
+  }
+}
+
+@media (min-width: 641px) and (max-width: 1023px) {
+  /* Tablet-specific typography adjustments */
+  .tablet-text-balanced {
+    line-height: 1.5;
+    letter-spacing: 0.01em;
+  }
+}
+
+@media (min-width: 1024px) {
+  /* Desktop-specific typography enhancements */
+  .desktop-text-refined {
+    line-height: 1.6;
+    letter-spacing: 0.015em;
+  }
+  
+  /* Enhanced hover states for desktop */
+  .desktop-hover-text:hover {
+    letter-spacing: 0.02em;
+    transition: letter-spacing 0.2s ease-in-out;
+  }
+}
+
+/* Print-friendly typography */
+@media print {
+  .print-text {
+    font-size: 12pt !important;
+    line-height: 1.4 !important;
+    color: black !important;
+  }
+  
+  .print-heading {
+    font-size: 16pt !important;
+    font-weight: bold !important;
+    color: black !important;
+    page-break-after: avoid;
+  }
+}
+
+/* Reduced motion preferences for typography animations */
+@media (prefers-reduced-motion: reduce) {
+  .text-animated,
+  .heading-animated {
+    transition: none !important;
+    animation: none !important;
+  }
+}
+
+/* High contrast mode support */
+@media (prefers-contrast: high) {
+  .text-high-contrast-mode {
+    font-weight: 600;
+    text-shadow: none;
+  }
+  
+  .heading-high-contrast-mode {
+    font-weight: 700;
+    text-shadow: none;
+  }
+}

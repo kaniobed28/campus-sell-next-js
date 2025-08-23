@@ -1,0 +1,127 @@
+// Firestore Security Rules for Admin Collections
+// These rules should be added to your main firestore.rules file
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Admin collection rules
+    match /admins/{adminEmail} {
+      // Only authenticated users can read their own admin status
+      allow read: if request.auth != null && request.auth.token.email == adminEmail;
+      
+      // Only existing admins can create new admins (except for system initialization)
+      allow create: if request.auth != null && (
+        // System initialization for principal admin
+        (adminEmail == 'kaniobed28@gmail.com' && !exists(/databases/$(database)/documents/admins/kaniobed28@gmail.com)) ||
+        // Existing admin creating new admin
+        (exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) && 
+         get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.isActive == true &&
+         get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.permissions.hasAny(['admin_management']))
+      );
+      
+      // Only principal admin or admin with admin_management permission can update
+      allow update: if request.auth != null && (
+        // Principal admin can update anyone
+        (request.auth.token.email == 'kaniobed28@gmail.com' && 
+         exists(/databases/$(database)/documents/admins/kaniobed28@gmail.com) &&
+         get(/databases/$(database)/documents/admins/kaniobed28@gmail.com).data.isActive == true) ||
+        // Admin with admin_management permission
+        (exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) && 
+         get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.isActive == true &&
+         get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.permissions.hasAny(['admin_management']))
+      );
+      
+      // Only principal admin can delete (except cannot delete themselves)
+      allow delete: if request.auth != null && 
+        request.auth.token.email == 'kaniobed28@gmail.com' && 
+        adminEmail != 'kaniobed28@gmail.com' &&
+        exists(/databases/$(database)/documents/admins/kaniobed28@gmail.com) &&
+        get(/databases/$(database)/documents/admins/kaniobed28@gmail.com).data.isActive == true;
+    }
+    
+    // Audit logs collection rules
+    match /audit_logs/{logId} {
+      // Only admins can read audit logs
+      allow read: if request.auth != null && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) &&
+        get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.isActive == true &&
+        get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.permissions.hasAny(['audit_logs']);
+      
+      // Only system can create audit logs (through server-side functions)
+      allow create: if false; // Will be created server-side
+      
+      // Audit logs are immutable
+      allow update, delete: if false;
+    }
+    
+    // Platform settings collection rules
+    match /platform_settings/{settingId} {
+      // Admins with platform_settings permission can read
+      allow read: if request.auth != null && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) &&
+        get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.isActive == true &&
+        get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.permissions.hasAny(['platform_settings']);
+      
+      // Only admins with platform_settings permission can write
+      allow write: if request.auth != null && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) &&
+        get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.isActive == true &&
+        get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.permissions.hasAny(['platform_settings']);
+    }
+    
+    // Enhanced user collection rules for admin access
+    match /users/{userId} {
+      // Users can read/write their own data
+      allow read, write: if request.auth != null && request.auth.uid == userId;
+      
+      // Admins with user_management permission can read/write user data
+      allow read, write: if request.auth != null && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) &&
+        get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.isActive == true &&
+        get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.permissions.hasAny(['user_management']);
+    }
+    
+    // Enhanced products collection rules for admin access
+    match /products/{productId} {
+      // Anyone can read active products
+      allow read: if resource.data.status == 'active';
+      
+      // Product owners can read/write their own products
+      allow read, write: if request.auth != null && request.auth.uid == resource.data.sellerId;
+      
+      // Admins with product_moderation permission can read/write all products
+      allow read, write: if request.auth != null && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) &&
+        get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.isActive == true &&
+        get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.permissions.hasAny(['product_moderation']);
+    }
+    
+    // Enhanced categories collection rules for admin access
+    match /categories/{categoryId} {
+      // Anyone can read categories
+      allow read: if true;
+      
+      // Only admins with category_management permission can write
+      allow write: if request.auth != null && 
+        exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) &&
+        get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.isActive == true &&
+        get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.permissions.hasAny(['category_management']);
+    }
+  }
+}
+
+// Helper functions (if supported by your Firestore version)
+function isAdmin(email) {
+  return exists(/databases/$(database)/documents/admins/$(email)) &&
+         get(/databases/$(database)/documents/admins/$(email)).data.isActive == true;
+}
+
+function hasPermission(email, permission) {
+  return isAdmin(email) &&
+         get(/databases/$(database)/documents/admins/$(email)).data.permissions.hasAny([permission]);
+}
+
+function isPrincipalAdmin(email) {
+  return email == 'kaniobed28@gmail.com' && isAdmin(email);
+}

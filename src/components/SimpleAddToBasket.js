@@ -1,0 +1,120 @@
+"use client";
+
+import React, { useState } from "react";
+import { useUnifiedBasket } from "@/hooks/useUnifiedBasket";
+import { useViewport } from "@/hooks/useViewport";
+import { useResponsiveTypography } from "@/hooks/useResponsiveTypography";
+
+const SimpleAddToBasket = ({ 
+  product, 
+  className = "",
+  children = "Add to Basket",
+  variant = "primary", // "primary", "secondary", "outline"
+  size = "default" // "small", "default", "large"
+}) => {
+  const { addToBasket, isLoading } = useUnifiedBasket();
+  const [isAdding, setIsAdding] = useState(false);
+  const { isMobile, isTablet, isTouchDevice } = useViewport();
+  const { getResponsiveTextClass } = useResponsiveTypography();
+
+  const handleAddToBasket = async () => {
+    if (!product || isAdding || isLoading) return;
+
+    setIsAdding(true);
+    try {
+      await addToBasket(product, 1);
+      // Could show success message here
+    } catch (error) {
+      console.error("Error adding to basket:", error);
+      // Could show error message here
+    } finally {
+      setIsAdding(false);
+    }
+  };
+
+  const getVariantClasses = () => {
+    switch (variant) {
+      case "secondary":
+        return "bg-secondary text-secondary-foreground hover:opacity-90 focus:ring-ring";
+      case "outline":
+        return "border border-primary text-primary hover:bg-primary hover:text-primary-foreground focus:ring-ring";
+      default:
+        return "bg-primary text-primary-foreground hover:opacity-90 focus:ring-ring";
+    }
+  };
+
+  const getSizeClasses = () => {
+    const baseClasses = isTouchDevice ? 'min-h-[48px]' : 'min-h-[40px]';
+    
+    switch (size) {
+      case "small":
+        return `${baseClasses} ${isMobile ? 'px-3 py-2' : 'px-3 py-1.5'} ${getResponsiveTextClass('body-sm')}`;
+      case "large":
+        return `${baseClasses} ${isMobile ? 'px-8 py-4' : 'px-6 py-3'} ${getResponsiveTextClass('body-lg')}`;
+      default:
+        return `${baseClasses} ${isMobile ? 'px-6 py-3' : 'px-4 py-2'} ${getResponsiveTextClass('body-base')}`;
+    }
+  };
+
+  const getResponsiveText = () => {
+    if (typeof children === 'string') {
+      // Shorten text on mobile for better fit
+      if (isMobile && children === "Add to Basket") {
+        return "Add to Cart";
+      }
+    }
+    return children;
+  };
+
+  const buttonClasses = `
+    ${getSizeClasses()}
+    ${getVariantClasses()}
+    rounded-lg font-medium transition-all duration-200
+    disabled:opacity-50 disabled:cursor-not-allowed
+    focus:outline-none focus:ring-2 focus:ring-offset-2
+    ${isTouchDevice ? 'active:scale-95' : 'hover:shadow-md'}
+    ${isMobile ? 'w-full' : ''}
+    ${className}
+  `;
+
+  return (
+    <button
+      onClick={handleAddToBasket}
+      disabled={isAdding || isLoading}
+      className={buttonClasses}
+      aria-label={`Add ${product?.title || 'product'} to basket`}
+    >
+      {isAdding ? (
+        <div className="flex items-center justify-center gap-2">
+          <div className="animate-spin w-4 h-4 border-2 border-current border-t-transparent rounded-full" />
+          <span className={isMobile ? 'sr-only' : ''}>
+            {isMobile ? '' : 'Adding...'}
+          </span>
+        </div>
+      ) : (
+        <span className="flex items-center justify-center gap-2">
+          {/* Add cart icon for mobile */}
+          {isMobile && (
+            <svg 
+              className="w-4 h-4" 
+              fill="none" 
+              stroke="currentColor" 
+              viewBox="0 0 24 24"
+              aria-hidden="true"
+            >
+              <path 
+                strokeLinecap="round" 
+                strokeLinejoin="round" 
+                strokeWidth={2} 
+                d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0h7M9.5 18a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm7 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" 
+              />
+            </svg>
+          )}
+          {getResponsiveText()}
+        </span>
+      )}
+    </button>
+  );
+};
+
+export default SimpleAddToBasket;
