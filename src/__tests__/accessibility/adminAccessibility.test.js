@@ -3,7 +3,7 @@
  * Tests WCAG 2.1 AA compliance for admin components
  */
 
-import { render, screen, fireEvent, waitFor } from '@testing-library/react';
+import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { axe, toHaveNoViolations } from 'jest-axe';
 import AdminLayout from '@/components/admin/AdminLayout';
@@ -48,7 +48,7 @@ beforeEach(() => {
     adminData: mockAdminData,
     signOut: jest.fn()
   });
-  
+
   useAdminResponsive.mockReturnValue(mockResponsiveData);
 });
 
@@ -59,7 +59,7 @@ describe('Admin Layout Accessibility', () => {
         <div>Test content</div>
       </AdminLayout>
     );
-    
+
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
@@ -70,7 +70,7 @@ describe('Admin Layout Accessibility', () => {
         <div>Test content</div>
       </AdminLayout>
     );
-    
+
     const mainHeading = screen.getByRole('heading', { level: 1 });
     expect(mainHeading).toHaveTextContent('Test Dashboard');
   });
@@ -81,7 +81,7 @@ describe('Admin Layout Accessibility', () => {
         <div>Test content</div>
       </AdminLayout>
     );
-    
+
     const skipLink = screen.getByText('Skip to main content');
     expect(skipLink).toBeInTheDocument();
     expect(skipLink).toHaveAttribute('href', '#main-content');
@@ -93,7 +93,7 @@ describe('Admin Layout Accessibility', () => {
         <div>Test content</div>
       </AdminLayout>
     );
-    
+
     expect(screen.getByRole('banner')).toBeInTheDocument(); // header
     expect(screen.getByRole('navigation')).toBeInTheDocument(); // nav
     expect(screen.getByRole('main')).toBeInTheDocument(); // main
@@ -138,7 +138,7 @@ describe('Responsive Admin Table Accessibility', () => {
         columns={mockColumns}
       />
     );
-    
+
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
@@ -150,7 +150,7 @@ describe('Responsive Admin Table Accessibility', () => {
         columns={mockColumns}
       />
     );
-    
+
     expect(screen.getByRole('table')).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Name' })).toBeInTheDocument();
     expect(screen.getByRole('columnheader', { name: 'Email' })).toBeInTheDocument();
@@ -165,13 +165,13 @@ describe('Responsive Admin Table Accessibility', () => {
         columns={mockColumns}
       />
     );
-    
+
     const nameHeader = screen.getByRole('button', { name: /name/i });
     expect(nameHeader).toHaveAttribute('tabindex', '0');
-    
+
     await user.tab();
     expect(nameHeader).toHaveFocus();
-    
+
     await user.keyboard('{Enter}');
     expect(nameHeader).toHaveAttribute('aria-sort');
   });
@@ -186,7 +186,7 @@ describe('Responsive Admin Table Accessibility', () => {
         onRowSelect={jest.fn()}
       />
     );
-    
+
     expect(screen.getByLabelText('Select all rows')).toBeInTheDocument();
     expect(screen.getByLabelText('Select row 1')).toBeInTheDocument();
     expect(screen.getByLabelText('Select row 2')).toBeInTheDocument();
@@ -205,10 +205,10 @@ describe('Responsive Admin Table Accessibility', () => {
         columns={mockColumns}
       />
     );
-    
+
     // Should not render table in mobile view
     expect(screen.queryByRole('table')).not.toBeInTheDocument();
-    
+
     // Should render cards with proper structure
     const cards = container.querySelectorAll('[role="button"]');
     expect(cards).toHaveLength(mockData.length);
@@ -226,7 +226,7 @@ describe('Responsive Admin Modal Accessibility', () => {
         <div>Modal content</div>
       </ResponsiveAdminModal>
     );
-    
+
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
@@ -241,11 +241,11 @@ describe('Responsive Admin Modal Accessibility', () => {
         <div>Modal content</div>
       </ResponsiveAdminModal>
     );
-    
+
     const modal = screen.getByRole('dialog');
     expect(modal).toHaveAttribute('aria-modal', 'true');
     expect(modal).toHaveAttribute('aria-labelledby', 'modal-title');
-    
+
     const title = screen.getByText('Test Modal');
     expect(title).toHaveAttribute('id', 'modal-title');
   });
@@ -253,7 +253,7 @@ describe('Responsive Admin Modal Accessibility', () => {
   test('should trap focus within modal', async () => {
     const user = userEvent.setup();
     const onClose = jest.fn();
-    
+
     render(
       <ResponsiveAdminModal
         isOpen={true}
@@ -266,22 +266,22 @@ describe('Responsive Admin Modal Accessibility', () => {
         <input placeholder="Test input" />
       </ResponsiveAdminModal>
     );
-    
+
     const closeButton = screen.getByLabelText('Close modal');
     const input = screen.getByPlaceholderText('Test input');
     const actionButton = screen.getByText('Action Button');
-    
+
     // Focus should start on close button
     expect(closeButton).toHaveFocus();
-    
+
     // Tab should move to input
     await user.tab();
     expect(input).toHaveFocus();
-    
+
     // Tab should move to action button
     await user.tab();
     expect(actionButton).toHaveFocus();
-    
+
     // Tab should wrap back to close button
     await user.tab();
     expect(closeButton).toHaveFocus();
@@ -290,7 +290,7 @@ describe('Responsive Admin Modal Accessibility', () => {
   test('should close on Escape key', async () => {
     const user = userEvent.setup();
     const onClose = jest.fn();
-    
+
     render(
       <ResponsiveAdminModal
         isOpen={true}
@@ -300,7 +300,7 @@ describe('Responsive Admin Modal Accessibility', () => {
         <div>Modal content</div>
       </ResponsiveAdminModal>
     );
-    
+
     await user.keyboard('{Escape}');
     expect(onClose).toHaveBeenCalled();
   });
@@ -315,7 +315,7 @@ describe('Responsive Admin Form Accessibility', () => {
         </ResponsiveAdminForm.Field>
       </ResponsiveAdminForm>
     );
-    
+
     const results = await axe(container);
     expect(results).toHaveNoViolations();
   });
@@ -323,8 +323,8 @@ describe('Responsive Admin Form Accessibility', () => {
   test('should have proper form field associations', () => {
     render(
       <ResponsiveAdminForm onSubmit={jest.fn()}>
-        <ResponsiveAdminForm.Field 
-          label="Test Field" 
+        <ResponsiveAdminForm.Field
+          label="Test Field"
           required
           error="This field is required"
         >
@@ -332,15 +332,15 @@ describe('Responsive Admin Form Accessibility', () => {
         </ResponsiveAdminForm.Field>
       </ResponsiveAdminForm>
     );
-    
+
     const label = screen.getByText('Test Field');
     const input = screen.getByPlaceholderText('Test input');
     const error = screen.getByText('This field is required');
-    
+
     expect(label).toBeInTheDocument();
     expect(input).toBeInTheDocument();
     expect(error).toHaveAttribute('role', 'alert');
-    
+
     // Check required indicator
     expect(screen.getByLabelText('required')).toBeInTheDocument();
   });
@@ -364,10 +364,10 @@ describe('Responsive Admin Form Accessibility', () => {
         </ResponsiveAdminForm.Actions>
       </ResponsiveAdminForm>
     );
-    
+
     const input = screen.getByPlaceholderText('Test input');
     const button = screen.getByText('Submit');
-    
+
     expect(input).toHaveStyle('min-height: 48px');
     expect(button).toHaveStyle('min-height: 48px');
     expect(button).toHaveStyle('min-width: 48px');
@@ -376,7 +376,7 @@ describe('Responsive Admin Form Accessibility', () => {
   test('should support keyboard navigation', async () => {
     const user = userEvent.setup();
     const onSubmit = jest.fn();
-    
+
     render(
       <ResponsiveAdminForm onSubmit={onSubmit}>
         <ResponsiveAdminForm.Field label="Field 1">
@@ -392,21 +392,21 @@ describe('Responsive Admin Form Accessibility', () => {
         </ResponsiveAdminForm.Actions>
       </ResponsiveAdminForm>
     );
-    
+
     const input1 = screen.getByPlaceholderText('Input 1');
     const input2 = screen.getByPlaceholderText('Input 2');
     const submitButton = screen.getByText('Submit');
-    
+
     // Tab through form elements
     await user.tab();
     expect(input1).toHaveFocus();
-    
+
     await user.tab();
     expect(input2).toHaveFocus();
-    
+
     await user.tab();
     expect(submitButton).toHaveFocus();
-    
+
     // Enter should submit form when button is focused
     await user.keyboard('{Enter}');
     expect(onSubmit).toHaveBeenCalled();
@@ -417,14 +417,14 @@ describe('Color Contrast and Visual Accessibility', () => {
   test('should meet WCAG AA contrast requirements', () => {
     // This would typically use a real color contrast checking library
     // For now, we'll test that the CSS custom properties are properly set
-    
+
     render(
       <div className="bg-background text-foreground">
         <div className="bg-primary text-primary-foreground">Primary text</div>
         <div className="bg-secondary text-secondary-foreground">Secondary text</div>
       </div>
     );
-    
+
     // In a real test, you would check computed styles and contrast ratios
     expect(screen.getByText('Primary text')).toBeInTheDocument();
     expect(screen.getByText('Secondary text')).toBeInTheDocument();
@@ -451,7 +451,7 @@ describe('Color Contrast and Visual Accessibility', () => {
         Animated content
       </div>
     );
-    
+
     // Check that animations are disabled when reduced motion is preferred
     expect(container.firstChild).toBeInTheDocument();
   });
@@ -460,7 +460,7 @@ describe('Color Contrast and Visual Accessibility', () => {
 describe('Screen Reader Support', () => {
   test('should announce important state changes', async () => {
     const mockAnnounce = jest.fn();
-    
+
     // Mock screen reader announcement
     global.speechSynthesis = {
       speak: mockAnnounce,
@@ -477,7 +477,7 @@ describe('Screen Reader Support', () => {
         loading={true}
       />
     );
-    
+
     expect(screen.getByText('Loading...')).toBeInTheDocument();
   });
 
@@ -491,10 +491,10 @@ describe('Screen Reader Support', () => {
         <p>Are you sure you want to delete this item?</p>
       </ResponsiveAdminModal>
     );
-    
+
     const closeButton = screen.getByLabelText('Close modal');
     expect(closeButton).toBeInTheDocument();
-    
+
     const modal = screen.getByRole('dialog');
     expect(modal).toHaveAttribute('aria-labelledby', 'modal-title');
   });

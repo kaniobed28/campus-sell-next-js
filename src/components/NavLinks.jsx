@@ -111,7 +111,10 @@ const NavLinks = forwardRef(({ user, handleSignOut, onLinkClick, isMobile = fals
   const navigationItems = [
     { href: "/categories", label: "Categories", icon: faList },
     { href: "/listings", label: "Listings", icon: faStore },
-    ...(user ? [{ href: "/orders", label: "My Orders", icon: faClipboardList }] : []),
+    ...(user ? [
+      { href: "/orders", label: "My Orders", icon: faClipboardList },
+      { href: "/store", label: "My Store", icon: faStore }
+    ] : []),
     { href: "/setup", label: "Setup", icon: faCog },
     { href: "/contact", label: "Contact Us", icon: faEnvelope }
   ];
