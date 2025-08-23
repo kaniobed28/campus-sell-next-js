@@ -4,8 +4,7 @@ import Link from 'next/link';
 import { Category, CategoryTreeNode } from '@/types/category';
 import useCategoryStore from '@/stores/useCategoryStore';
 import Loading from '@/components/Loading';
-import InitializeCategoriesButton from '@/components/InitializeCategoriesButton';
-import CategoryDebug from '@/components/CategoryDebug';
+import { useAutoSetup } from '@/contexts/AutoSetupProvider';
 // import { useNotification } from '@/contexts/NotificationContext';
 
 interface CategoryBrowserProps {
@@ -35,17 +34,22 @@ const CategoryBrowser: React.FC<CategoryBrowserProps> = ({
     clearError,
   } = useCategoryStore();
 
+  const { isInitialized, isInitializing } = useAutoSetup();
+
   // const { showSuccess } = useNotification();
-  const showSuccess = (title: string, message: string, actionText?: string, actionHref?: string) => 
-    console.log('Success:', title, message);
+  const showSuccess = (title: string, message: string, actionText?: string, actionHref?: string) => {
+    // Success notification would be handled here when notification system is implemented
+  };
   const [localSearchTerm, setLocalSearchTerm] = useState('');
   const [currentViewMode, setCurrentViewMode] = useState<'grid' | 'list'>(viewMode);
 
   useEffect(() => {
-    // fetchCategoryTree(); // Temporarily disabled for debugging
-    console.log('CategoryBrowser mounted');
+    // Automatically fetch categories when system is initialized
+    if (isInitialized && !loading && categoryTree.length === 0) {
+      fetchCategoryTree();
+    }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []); // fetchCategoryTree intentionally omitted to prevent infinite loop
+  }, [isInitialized]);
 
   const handleSearch = async (term: string) => {
     setLocalSearchTerm(term);
@@ -63,22 +67,23 @@ const CategoryBrowser: React.FC<CategoryBrowserProps> = ({
 
   const categoriesToDisplay = searchTerm ? searchResults : categoryTree;
 
-  if (loading) {
+  // Show loading when categories are loading or system is initializing
+  if (loading || (isInitializing && categoryTree.length === 0)) {
     return <Loading />;
   }
 
   if (error) {
     return (
       <div className="text-center py-12">
-        <div className="bg-red-50 border border-red-200 rounded-lg p-6 max-w-md mx-auto">
-          <h3 className="text-lg font-semibold text-red-800 mb-2">Error Loading Categories</h3>
-          <p className="text-red-600 mb-4">{error}</p>
+        <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-6 max-w-md mx-auto">
+          <h3 className="text-lg font-semibold text-destructive mb-2">Error Loading Categories</h3>
+          <p className="text-destructive/80 mb-4">{error}</p>
           <button
             onClick={() => {
               clearError();
               fetchCategoryTree();
             }}
-            className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 transition-colors"
+            className="bg-destructive text-destructive-foreground px-4 py-2 rounded-lg hover:bg-destructive/90 transition-colors"
           >
             Try Again
           </button>
@@ -174,11 +179,7 @@ const CategoryBrowser: React.FC<CategoryBrowserProps> = ({
         <EmptyState 
           searchTerm={searchTerm} 
           onClearSearch={handleClearSearch}
-          onCategoriesInitialized={() => {
-            // Refresh the category tree after initialization
-            fetchCategoryTree();
-          }}
-          showSuccess={showSuccess}
+          isInitializing={isInitializing}
         />
       ) : (
         <div className={currentViewMode === 'grid' ? 'grid-view' : 'list-view'}>
@@ -395,9 +396,8 @@ const CategoryCard: React.FC<{
 const EmptyState: React.FC<{
   searchTerm: string;
   onClearSearch: () => void;
-  onCategoriesInitialized: () => void;
-  showSuccess: (title: string, message: string, actionText?: string, actionHref?: string) => void;
-}> = ({ searchTerm, onClearSearch, onCategoriesInitialized, showSuccess }) => {
+  isInitializing: boolean;
+}> = ({ searchTerm, onClearSearch, isInitializing }) => {
   if (searchTerm) {
     return (
       <div className="text-center py-12">
@@ -406,7 +406,7 @@ const EmptyState: React.FC<{
           No categories found
         </h3>
         <p className="text-muted-foreground mb-4">
-          No categories match your search for "{searchTerm}"
+          No categories match your search for &quot;{searchTerm}&quot;
         </p>
         <button
           onClick={onClearSearch}
@@ -418,6 +418,24 @@ const EmptyState: React.FC<{
     );
   }
 
+  if (isInitializing) {
+    return (
+      <div className="text-center py-12">
+        <div className="text-6xl mb-4">⚙️</div>
+        <h3 className="text-xl font-semibold text-foreground mb-2">
+          Setting up your marketplace
+        </h3>
+        <p className="text-muted-foreground mb-6">
+          We&apos;re automatically configuring categories and system components...
+        </p>
+        <div className="inline-flex items-center gap-2 text-sm text-muted-foreground">
+          <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full"></div>
+          <span>Please wait a moment</span>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="text-center py-12">
       <div className="text-6xl mb-4">📂</div>
@@ -425,23 +443,15 @@ const EmptyState: React.FC<{
         No categories available
       </h3>
       <p className="text-muted-foreground mb-6">
-        It looks like the category system hasn't been set up yet. Let's get you started!
+        The system is ready, but categories haven&apos;t been loaded yet. Try refreshing the page or check back in a moment.
       </p>
       
-      <InitializeCategoriesButton 
-        onSuccess={onCategoriesInitialized}
-        showNotification={showSuccess}
-        className="mb-4"
-      />
-      
-      <div className="text-sm text-muted-foreground">
-        <p>Or visit the <a href="/admin/init-categories" className="text-primary hover:underline">admin page</a> for more options.</p>
-      </div>
-      
-      {/* Debug info - remove in production */}
-      <div className="mt-6">
-        <CategoryDebug />
-      </div>
+      <button
+        onClick={() => window.location.reload()}
+        className="bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:bg-primary/90 transition-colors"
+      >
+        Refresh Page
+      </button>
     </div>
   );
 };

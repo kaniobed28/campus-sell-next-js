@@ -67,7 +67,7 @@ const InitializeCategoriesButton: React.FC<InitializeCategoriesButtonProps> = ({
       </button>
       
       {error && (
-        <p className="mt-2 text-sm text-red-600">{error}</p>
+        <p className="mt-2 text-sm text-destructive">{error}</p>
       )}
       
       <p className="mt-2 text-sm text-muted-foreground">

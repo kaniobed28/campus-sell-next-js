@@ -3,6 +3,8 @@ import "./globals.css";
 import Header from "../components/Header";
 import { ThemeProvider } from "../components/ThemeProvider";
 import { NotificationProvider } from "../contexts/NotificationContext";
+import { AutoSetupProvider } from "../contexts/AutoSetupProvider";
+import AutoSetupIndicator from "../components/AutoSetupIndicator";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -20,15 +22,17 @@ export default function RootLayout({ children }) {
       <body className={`${inter.variable} antialiased`}>
         <ThemeProvider defaultTheme="light" storageKey="campus-sell-theme">
           <NotificationProvider>
-            {/* Skip link for keyboard navigation */}
-            <a href="#main-content" className="skip-link">
-              Skip to main content
-            </a>
-            <Header />
-            {/* <SystemStatusBanner /> */}
-            <main id="main-content" className="min-h-screen bg-background text-foreground">
-              {children}
-            </main>
+            <AutoSetupProvider>
+              {/* Skip link for keyboard navigation */}
+              <a href="#main-content" className="skip-link">
+                Skip to main content
+              </a>
+              <Header />
+              <main id="main-content" className="min-h-screen bg-background text-foreground">
+                {children}
+              </main>
+              <AutoSetupIndicator />
+            </AutoSetupProvider>
           </NotificationProvider>
         </ThemeProvider>
       </body>

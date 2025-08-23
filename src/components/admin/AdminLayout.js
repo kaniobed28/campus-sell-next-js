@@ -3,6 +3,7 @@ import React, { useState } from 'react';
 import { useAdminAuth } from '@/hooks/useAdminAuth';
 import { useAdminResponsive } from '@/hooks/useAdminResponsive';
 import SessionTimeoutWarning from './SessionTimeoutWarning';
+import DarkModeToggle from '@/components/DarkModeToggle';
 import { useRouter } from 'next/navigation';
 import { ADMIN_ROLES } from '@/types/admin';
 
@@ -57,20 +58,20 @@ const AdminLayout = ({ children, title = "Admin Dashboard", breadcrumbs = [] }) 
       {/* Mobile menu */}
       <div
         className={`
-          fixed top-0 left-0 h-full w-80 bg-white shadow-xl transform transition-transform duration-300 ease-in-out z-50 lg:hidden
+          fixed top-0 left-0 h-full w-80 bg-card shadow-xl transform transition-transform duration-300 ease-in-out z-50 lg:hidden
           ${mobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
         `}
         role="dialog"
         aria-modal="true"
         aria-labelledby="mobile-menu-title"
       >
-        <div className="flex items-center justify-between p-4 border-b">
-          <h2 id="mobile-menu-title" className="text-lg font-semibold text-gray-900">
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <h2 id="mobile-menu-title" className="text-lg font-semibold text-foreground">
             Admin Menu
           </h2>
           <button
             onClick={() => setMobileMenuOpen(false)}
-            className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary"
+            className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring"
             style={{ minHeight: touchConfig.minTouchTarget, minWidth: touchConfig.minTouchTarget }}
             aria-label="Close menu"
           >
@@ -85,7 +86,7 @@ const AdminLayout = ({ children, title = "Admin Dashboard", breadcrumbs = [] }) 
             <a
               key={item.href}
               href={item.href}
-              className="flex items-center space-x-3 px-4 py-3 rounded-lg text-gray-700 hover:bg-gray-100 hover:text-gray-900 transition-colors duration-200"
+              className="flex items-center space-x-3 px-4 py-3 rounded-lg text-foreground hover:bg-muted hover:text-accent transition-colors duration-200"
               style={{ minHeight: touchConfig.minTouchTarget }}
               onClick={() => setMobileMenuOpen(false)}
             >
@@ -96,21 +97,21 @@ const AdminLayout = ({ children, title = "Admin Dashboard", breadcrumbs = [] }) 
         </nav>
 
         {/* Mobile user info */}
-        <div className="absolute bottom-0 left-0 right-0 p-4 border-t bg-gray-50">
+        <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border bg-muted">
           <div className="flex items-center space-x-3 mb-3">
             <div className="w-10 h-10 bg-primary rounded-full flex items-center justify-center">
-              <span className="text-white font-medium text-sm">
+              <span className="text-primary-foreground font-medium text-sm">
                 {adminData?.email?.charAt(0).toUpperCase()}
               </span>
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium text-gray-900 truncate">{adminData?.email}</p>
-              <p className="text-xs text-gray-500 capitalize">{adminData?.role} Admin</p>
+              <p className="text-sm font-medium text-foreground truncate">{adminData?.email}</p>
+              <p className="text-xs text-muted-foreground capitalize">{adminData?.role} Admin</p>
             </div>
           </div>
           <button
             onClick={signOut}
-            className="w-full bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm font-medium transition-colors duration-200"
+            className="w-full bg-destructive text-destructive-foreground px-4 py-2 rounded-lg hover:opacity-90 text-sm font-medium transition-colors duration-200"
             style={{ minHeight: touchConfig.minTouchTarget }}
           >
             Sign Out
@@ -121,14 +122,14 @@ const AdminLayout = ({ children, title = "Admin Dashboard", breadcrumbs = [] }) 
   );
 
   const DesktopNavigation = () => (
-    <nav className="bg-white border-b">
+    <nav className="bg-card border-b border-border">
       <div className={`max-w-7xl mx-auto ${containerClasses}`}>
         <div className="flex space-x-8 overflow-x-auto">
           {navigationItems.map((item) => (
             <a
               key={item.href}
               href={item.href}
-              className="border-b-2 border-transparent hover:border-gray-300 py-4 px-1 text-sm font-medium text-gray-500 hover:text-gray-700 whitespace-nowrap transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
+              className="border-b-2 border-transparent hover:border-muted-foreground py-4 px-1 text-sm font-medium text-muted-foreground hover:text-foreground whitespace-nowrap transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
             >
               {!isMobile && (
                 <span className="mr-2" role="img" aria-hidden="true">{item.icon}</span>
@@ -142,7 +143,7 @@ const AdminLayout = ({ children, title = "Admin Dashboard", breadcrumbs = [] }) 
   );
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Skip link for accessibility */}
       <a
         href="#main-content"
@@ -152,7 +153,7 @@ const AdminLayout = ({ children, title = "Admin Dashboard", breadcrumbs = [] }) 
       </a>
 
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="bg-card shadow-sm border-b border-border">
         <div className={`max-w-7xl mx-auto ${containerClasses}`}>
           <div className="flex justify-between items-center py-4">
             {/* Mobile menu button and title */}
@@ -160,7 +161,7 @@ const AdminLayout = ({ children, title = "Admin Dashboard", breadcrumbs = [] }) 
               {(isMobile || isTablet) && (
                 <button
                   onClick={() => setMobileMenuOpen(true)}
-                  className="p-2 rounded-lg text-gray-400 hover:text-gray-600 hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-primary lg:hidden"
+                  className="p-2 rounded-lg text-muted-foreground hover:text-foreground hover:bg-muted focus:outline-none focus:ring-2 focus:ring-ring lg:hidden"
                   style={{ minHeight: touchConfig.minTouchTarget, minWidth: touchConfig.minTouchTarget }}
                   aria-label="Open menu"
                 >
@@ -171,16 +172,16 @@ const AdminLayout = ({ children, title = "Admin Dashboard", breadcrumbs = [] }) 
               )}
               
               <div>
-                <h1 className={`font-bold text-gray-900 ${isMobile ? 'text-lg' : 'text-2xl'}`}>
+                <h1 className={`font-bold text-foreground ${isMobile ? 'text-lg' : 'text-2xl'}`}>
                   {isMobile && title.length > 20 ? title.substring(0, 20) + '...' : title}
                 </h1>
                 {breadcrumbs.length > 0 && !isMobile && (
                   <nav className="flex mt-1" aria-label="Breadcrumb">
-                    <ol className="flex items-center space-x-2 text-sm text-gray-500">
+                    <ol className="flex items-center space-x-2 text-sm text-muted-foreground">
                       <li>
                         <a 
                           href="/admin" 
-                          className="hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                          className="hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded"
                         >
                           Admin
                         </a>
@@ -193,12 +194,12 @@ const AdminLayout = ({ children, title = "Admin Dashboard", breadcrumbs = [] }) 
                           {crumb.href ? (
                             <a 
                               href={crumb.href} 
-                              className="hover:text-gray-700 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2 rounded"
+                              className="hover:text-foreground focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded"
                             >
                               {crumb.label}
                             </a>
                           ) : (
-                            <span className="text-gray-900">{crumb.label}</span>
+                            <span className="text-foreground">{crumb.label}</span>
                           )}
                         </li>
                       ))}
@@ -211,13 +212,14 @@ const AdminLayout = ({ children, title = "Admin Dashboard", breadcrumbs = [] }) 
             {/* Desktop user menu */}
             {!isMobile && !isTablet && (
               <div className="flex items-center space-x-4">
+                <DarkModeToggle />
                 <div className="text-right">
-                  <p className="text-sm font-medium text-gray-900">{adminData?.email}</p>
-                  <p className="text-xs text-gray-500 capitalize">{adminData?.role} Admin</p>
+                  <p className="text-sm font-medium text-foreground">{adminData?.email}</p>
+                  <p className="text-xs text-muted-foreground capitalize">{adminData?.role} Admin</p>
                 </div>
                 <button
                   onClick={signOut}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                  className="bg-destructive text-destructive-foreground px-4 py-2 rounded-lg hover:opacity-90 text-sm font-medium transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-destructive focus:ring-offset-2"
                   style={{ minHeight: touchConfig.minTouchTarget }}
                 >
                   Sign Out
@@ -227,27 +229,29 @@ const AdminLayout = ({ children, title = "Admin Dashboard", breadcrumbs = [] }) 
 
             {/* Mobile user avatar */}
             {(isMobile || isTablet) && (
-              <div className="relative">
-                <button
-                  onClick={() => setUserMenuOpen(!userMenuOpen)}
-                  className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-white font-medium text-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2"
-                  aria-label="User menu"
-                  aria-expanded={userMenuOpen}
-                  aria-haspopup="true"
-                >
-                  {adminData?.email?.charAt(0).toUpperCase()}
-                </button>
+              <div className="flex items-center space-x-2">
+                <DarkModeToggle />
+                <div className="relative">
+                  <button
+                    onClick={() => setUserMenuOpen(!userMenuOpen)}
+                    className="w-10 h-10 bg-primary rounded-full flex items-center justify-center text-primary-foreground font-medium text-sm hover:bg-primary/90 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2"
+                    aria-label="User menu"
+                    aria-expanded={userMenuOpen}
+                    aria-haspopup="true"
+                  >
+                    {adminData?.email?.charAt(0).toUpperCase()}
+                  </button>
 
                 {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-white rounded-lg shadow-lg border border-gray-200 z-10">
-                    <div className="p-4 border-b">
-                      <p className="text-sm font-medium text-gray-900 truncate">{adminData?.email}</p>
-                      <p className="text-xs text-gray-500 capitalize">{adminData?.role} Admin</p>
+                  <div className="absolute right-0 mt-2 w-64 bg-card rounded-lg shadow-lg border border-border z-10">
+                    <div className="p-4 border-b border-border">
+                      <p className="text-sm font-medium text-foreground truncate">{adminData?.email}</p>
+                      <p className="text-xs text-muted-foreground capitalize">{adminData?.role} Admin</p>
                     </div>
                     <div className="p-2">
                       <button
                         onClick={signOut}
-                        className="w-full text-left px-4 py-2 text-sm text-red-600 hover:bg-red-50 rounded-lg transition-colors duration-200"
+                        className="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg transition-colors duration-200"
                         style={{ minHeight: touchConfig.minTouchTarget }}
                       >
                         Sign Out
@@ -255,6 +259,7 @@ const AdminLayout = ({ children, title = "Admin Dashboard", breadcrumbs = [] }) 
                     </div>
                   </div>
                 )}
+                </div>
               </div>
             )}
           </div>

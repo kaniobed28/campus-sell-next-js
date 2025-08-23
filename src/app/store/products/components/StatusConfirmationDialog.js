@@ -63,14 +63,14 @@ const StatusConfirmationDialog = ({
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg p-6 w-full max-w-md mx-4">
+      <div className="bg-card rounded-lg p-6 w-full max-w-md mx-4">
         <div className="flex items-center mb-4">
           <div className="text-2xl mr-3">{newStatusInfo.icon}</div>
           <div>
-            <h3 className="text-lg font-semibold text-gray-900">
+            <h3 className="text-lg font-semibold text-foreground">
               Change Product Status
             </h3>
-            <p className="text-sm text-gray-600">
+            <p className="text-sm text-muted-foreground">
               Confirm status change for "{productTitle}"
             </p>
           </div>
@@ -78,10 +78,10 @@ const StatusConfirmationDialog = ({
 
         <div className="space-y-4">
           {/* Status Change Summary */}
-          <div className="bg-gray-50 rounded-lg p-4">
+          <div className="bg-muted rounded-lg p-4">
             <div className="flex items-center justify-between text-sm">
               <div>
-                <span className="text-gray-600">From:</span>
+                <span className="text-muted-foreground">From:</span>
                 <span className={`ml-2 font-medium ${currentStatusInfo.color}`}>
                   {currentStatusInfo.label}
                 </span>
@@ -129,7 +129,7 @@ const StatusConfirmationDialog = ({
         <div className="flex space-x-3 mt-6">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2 border border-gray-300 rounded-md text-gray-700 hover:bg-gray-50 disabled:opacity-50"
+            className="flex-1 px-4 py-2 border border-border rounded-md text-muted-foreground hover:bg-muted disabled:opacity-50"
             disabled={isProcessing}
           >
             Cancel
@@ -140,7 +140,7 @@ const StatusConfirmationDialog = ({
               newStatus === PRODUCT_STATUS.ACTIVE ? 'bg-green-600 hover:bg-green-700' :
               newStatus === PRODUCT_STATUS.SOLD ? 'bg-blue-600 hover:bg-blue-700' :
               newStatus === PRODUCT_STATUS.UNAVAILABLE ? 'bg-yellow-600 hover:bg-yellow-700' :
-              'bg-gray-600 hover:bg-gray-700'
+              'bg-muted-foreground hover:opacity-90'
             }`}
             disabled={isProcessing}
           >

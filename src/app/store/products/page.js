@@ -246,15 +246,15 @@ const ProductsPage = () => {
   const getStatusColor = (status) => {
     switch (status) {
       case "active":
-        return "bg-green-100 text-green-800";
+        return "bg-green-100 dark:bg-green-900/20 text-green-800 dark:text-green-200";
       case "sold":
-        return "bg-blue-100 text-blue-800";
+        return "bg-blue-100 dark:bg-blue-900/20 text-blue-800 dark:text-blue-200";
       case "unavailable":
-        return "bg-yellow-100 text-yellow-800";
+        return "bg-yellow-100 dark:bg-yellow-900/20 text-yellow-800 dark:text-yellow-200";
       case "draft":
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
       default:
-        return "bg-gray-100 text-gray-800";
+        return "bg-muted text-muted-foreground";
     }
   };
 
@@ -265,10 +265,10 @@ const ProductsPage = () => {
   if (error) {
     return (
       <div className="text-center py-12">
-        <div className="text-red-600 text-xl mb-4">⚠️ {error}</div>
+        <div className="text-destructive text-xl mb-4">⚠️ {error}</div>
         <button
           onClick={loadProducts}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90"
         >
           Try Again
         </button>
@@ -284,39 +284,39 @@ const ProductsPage = () => {
       {/* Header */}
       <div className="flex justify-between items-center">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">My Products</h2>
-          <p className="text-gray-600">Manage your product listings ({totalProducts} total)</p>
+          <h2 className="text-2xl font-bold text-foreground">My Products</h2>
+          <p className="text-muted-foreground">Manage your product listings ({totalProducts} total)</p>
         </div>
         <a
           href="/sell"
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90"
         >
           Add New Product
         </a>
       </div>
 
       {/* Search and Filters */}
-      <div className="bg-white rounded-lg shadow p-6">
+      <div className="bg-card rounded-lg shadow p-6 border border-border">
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Search Products</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Search Products</label>
             <input
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               placeholder="Search by title, description, or tags..."
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
             />
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Filter by Status</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Filter by Status</label>
             <select
               value={filter}
               onChange={(e) => {
                 setFilter(e.target.value);
                 setCurrentPage(1);
               }}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
             >
               <option value="all">All Products ({totalProducts})</option>
               <option value="active">Active ({products.filter(p => (p.status || 'active') === "active").length})</option>
@@ -326,11 +326,11 @@ const ProductsPage = () => {
             </select>
           </div>
           <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">Sort by</label>
+            <label className="block text-sm font-medium text-foreground mb-1">Sort by</label>
             <select
               value={sortBy}
               onChange={(e) => setSortBy(e.target.value)}
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
             >
               <option value="newest">Newest First</option>
               <option value="oldest">Oldest First</option>
@@ -344,39 +344,39 @@ const ProductsPage = () => {
         
         {/* Bulk Actions */}
         {showBulkActions && (
-          <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+          <div className="bg-primary/10 border border-primary/20 rounded-lg p-4">
             <div className="flex items-center justify-between">
-              <span className="text-blue-800 font-medium">
+              <span className="text-primary font-medium">
                 {selectedProducts.length} product(s) selected
               </span>
               <div className="flex flex-wrap gap-2">
                 <button
                   onClick={() => setShowBulkEditModal(true)}
-                  className="bg-purple-600 text-white px-3 py-1 rounded text-sm hover:bg-purple-700"
+                  className="bg-secondary text-secondary-foreground px-3 py-1 rounded text-sm hover:bg-secondary/90"
                 >
                   Bulk Edit
                 </button>
                 <button
                   onClick={() => handleBulkStatusChange(PRODUCT_STATUS.ACTIVE)}
-                  className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
+                  className="bg-green-600 dark:bg-green-700 text-white px-3 py-1 rounded text-sm hover:bg-green-700 dark:hover:bg-green-800"
                 >
                   Mark Active
                 </button>
                 <button
                   onClick={() => handleBulkStatusChange(PRODUCT_STATUS.SOLD)}
-                  className="bg-blue-600 text-white px-3 py-1 rounded text-sm hover:bg-blue-700"
+                  className="bg-blue-600 dark:bg-blue-700 text-white px-3 py-1 rounded text-sm hover:bg-blue-700 dark:hover:bg-blue-800"
                 >
                   Mark Sold
                 </button>
                 <button
                   onClick={() => handleBulkStatusChange(PRODUCT_STATUS.UNAVAILABLE)}
-                  className="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700"
+                  className="bg-yellow-600 dark:bg-yellow-700 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700 dark:hover:bg-yellow-800"
                 >
                   Mark Unavailable
                 </button>
                 <button
                   onClick={handleBulkDelete}
-                  className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
+                  className="bg-destructive text-destructive-foreground px-3 py-1 rounded text-sm hover:bg-destructive/90"
                 >
                   Delete Selected
                 </button>
@@ -385,7 +385,7 @@ const ProductsPage = () => {
                     setSelectedProducts([]);
                     setShowBulkActions(false);
                   }}
-                  className="bg-gray-600 text-white px-3 py-1 rounded text-sm hover:bg-gray-700"
+                  className="bg-muted text-muted-foreground px-3 py-1 rounded text-sm hover:bg-muted/90"
                 >
                   Cancel
                 </button>
@@ -397,12 +397,12 @@ const ProductsPage = () => {
 
       {/* Products Table */}
       {currentPageProducts.length === 0 ? (
-        <div className="bg-white rounded-lg shadow p-12 text-center">
-          <div className="text-gray-400 text-6xl mb-4">📦</div>
-          <h3 className="text-xl font-medium text-gray-900 mb-2">
+        <div className="bg-card rounded-lg shadow p-12 text-center">
+          <div className="text-muted-foreground text-6xl mb-4">📦</div>
+          <h3 className="text-xl font-medium text-foreground mb-2">
             {filter === "all" ? "No products yet" : `No ${filter} products`}
           </h3>
-          <p className="text-gray-600 mb-6">
+          <p className="text-muted-foreground mb-6">
             {filter === "all" 
               ? "Start by creating your first product listing"
               : `You don't have any ${filter} products at the moment`
@@ -411,7 +411,7 @@ const ProductsPage = () => {
           {filter === "all" && (
             <a
               href="/sell"
-              className="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700"
+              className="bg-primary text-primary-foreground px-6 py-3 rounded-lg hover:opacity-90"
             >
               Create First Product
             </a>
@@ -419,10 +419,10 @@ const ProductsPage = () => {
         </div>
       ) : (
         <>
-          <div className="bg-white rounded-lg shadow overflow-hidden">
+          <div className="bg-card rounded-lg shadow overflow-hidden">
             <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
+              <table className="min-w-full divide-y divide-border">
+                <thead className="bg-muted">
                   <tr>
                     <th className="px-6 py-3 text-left">
                       <input
@@ -432,29 +432,29 @@ const ProductsPage = () => {
                         className="rounded border-gray-300"
                       />
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Product
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Price
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Status
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Performance
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Created
                     </th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
+                    <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
                       Actions
                     </th>
                   </tr>
                 </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
+                <tbody className="bg-card divide-y divide-border">
                   {currentPageProducts.map((product) => (
-                    <tr key={product.id} className="hover:bg-gray-50">
+                    <tr key={product.id} className="hover:bg-muted/50">
                       <td className="px-6 py-4 whitespace-nowrap">
                         <input
                           type="checkbox"
@@ -473,22 +473,22 @@ const ProductsPage = () => {
                                 alt={product.title}
                               />
                             ) : (
-                              <div className="h-12 w-12 rounded-lg bg-gray-200 flex items-center justify-center">
-                                <span className="text-gray-400">📷</span>
+                              <div className="h-12 w-12 rounded-lg bg-muted flex items-center justify-center">
+                                <span className="text-muted-foreground">📷</span>
                               </div>
                             )}
                           </div>
                           <div className="ml-4">
-                            <div className="text-sm font-medium text-gray-900">
+                            <div className="text-sm font-medium text-foreground">
                               {product.title}
                             </div>
-                            <div className="text-sm text-gray-500">
+                            <div className="text-sm text-muted-foreground">
                               {product.category}
                             </div>
                           </div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                         ${product.price}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">
@@ -498,21 +498,21 @@ const ProductsPage = () => {
                           showIcon={true}
                         />
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-foreground">
                         <div className="space-y-1">
                           <div>{product.viewCount || 0} views</div>
                           <div>{product.inquiryCount || 0} inquiries</div>
                           <div>{product.favoriteCount || 0} favorites</div>
                         </div>
                       </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-500">
+                      <td className="px-6 py-4 whitespace-nowrap text-sm text-muted-foreground">
                         {formatDate(product.createdAt)}
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-sm font-medium">
                         <div className="flex flex-col space-y-1">
                           <a
                             href={`/listings/${product.id}`}
-                            className="text-blue-600 hover:text-blue-900"
+                            className="text-primary hover:text-primary/80"
                             target="_blank"
                             rel="noopener noreferrer"
                           >
@@ -520,13 +520,13 @@ const ProductsPage = () => {
                           </a>
                           <a
                             href={`/store/products/edit/${product.id}`}
-                            className="text-indigo-600 hover:text-indigo-900 text-left"
+                            className="text-secondary-foreground hover:text-secondary-foreground/80 text-left"
                           >
                             Edit
                           </a>
                           <button
                             onClick={() => handleDuplicate(product.id)}
-                            className="text-purple-600 hover:text-purple-900 text-left"
+                            className="text-accent-foreground hover:text-accent-foreground/80 text-left"
                           >
                             Duplicate
                           </button>
@@ -538,7 +538,7 @@ const ProductsPage = () => {
                           />
                           <button
                             onClick={() => handleDelete(product.id)}
-                            className="text-red-600 hover:text-red-900 text-left"
+                            className="text-destructive hover:text-destructive/80 text-left"
                           >
                             Delete
                           </button>
@@ -553,16 +553,16 @@ const ProductsPage = () => {
 
           {/* Pagination */}
           {totalPages > 1 && (
-            <div className="bg-white rounded-lg shadow p-4">
+            <div className="bg-card rounded-lg shadow p-4 border border-border">
               <div className="flex items-center justify-between">
-                <div className="text-sm text-gray-700">
+                <div className="text-sm text-muted-foreground">
                   Showing {((currentPage - 1) * productsPerPage) + 1} to {Math.min(currentPage * productsPerPage, totalProducts)} of {totalProducts} products
                 </div>
                 <div className="flex space-x-2">
                   <button
                     onClick={() => handlePageChange(currentPage - 1)}
                     disabled={currentPage === 1}
-                    className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                    className="px-3 py-1 border border-input rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted bg-background text-foreground"
                   >
                     Previous
                   </button>
@@ -576,8 +576,8 @@ const ProductsPage = () => {
                         onClick={() => handlePageChange(pageNum)}
                         className={`px-3 py-1 border rounded-md text-sm ${
                           currentPage === pageNum
-                            ? 'bg-blue-600 text-white border-blue-600'
-                            : 'border-gray-300 hover:bg-gray-50'
+                            ? 'bg-primary text-primary-foreground border-primary'
+                            : 'border-input hover:bg-muted bg-background text-foreground'
                         }`}
                       >
                         {pageNum}
@@ -588,7 +588,7 @@ const ProductsPage = () => {
                   <button
                     onClick={() => handlePageChange(currentPage + 1)}
                     disabled={currentPage === totalPages}
-                    className="px-3 py-1 border border-gray-300 rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-gray-50"
+                    className="px-3 py-1 border border-input rounded-md text-sm disabled:opacity-50 disabled:cursor-not-allowed hover:bg-muted bg-background text-foreground"
                   >
                     Next
                   </button>

@@ -9,7 +9,7 @@ import TrendingProductsSection from "@/components/TrendingProductsSection";
 
 const Home = () => {
   return (
-    <div className="bg-gray-50">
+    <div className="bg-muted">
       <HeroSection />
       <CategoriesSection />
       <FeaturedListingsSection />

@@ -83,7 +83,7 @@ const BasketPage = () => {
 
   // Responsive classes
   const containerClasses = `
-    min-h-screen bg-gray-50
+    min-h-screen bg-background
     ${isMobile ? 'pb-20' : 'pb-8'}
   `;
 
@@ -94,25 +94,25 @@ const BasketPage = () => {
   `;
 
   const summaryCardClasses = `
-    bg-white border border-gray-200 rounded-lg 
+    bg-card border border-border rounded-lg 
     ${isMobile ? 'p-4' : 'p-6'} mb-6
   `;
 
   const checkoutButtonClasses = `
     ${isMobile ? 'w-full px-6 py-4' : 'px-8 py-3'} 
-    bg-blue-600 text-white font-semibold rounded-lg 
-    hover:bg-blue-700 transition-colors 
+    bg-primary text-primary-foreground font-semibold rounded-lg 
+    hover:opacity-90 transition-colors 
     disabled:opacity-50 disabled:cursor-not-allowed
     ${isTouchDevice ? 'min-h-[48px] active:scale-95' : 'min-h-[44px]'}
-    focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+    focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
   `;
 
   const clearButtonClasses = `
     ${isMobile ? 'px-4 py-2' : 'px-3 py-1'} 
-    ${getResponsiveTextClass('body-sm')} text-red-600 
-    hover:text-red-700 hover:bg-red-50 rounded-md transition-colors
+    ${getResponsiveTextClass('body-sm')} text-destructive 
+    hover:text-destructive-foreground hover:bg-destructive/10 rounded-md transition-colors
     ${isTouchDevice ? 'min-h-[44px] active:scale-95' : ''}
-    focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+    focus:outline-none focus:ring-2 focus:ring-destructive focus:ring-offset-2
   `;
 
   return (
@@ -120,7 +120,7 @@ const BasketPage = () => {
       <div className={mainContainerClasses}>
         {/* Header */}
         <div className={`mb-6 ${isMobile ? 'text-center' : ''}`}>
-          <h1 className={`${getResponsiveHeadingClass(1, 'display')} text-gray-900 mb-4`}>
+          <h1 className={`${getResponsiveHeadingClass(1, 'display')} text-foreground mb-4`}>
             Your Basket
           </h1>
           
@@ -129,11 +129,11 @@ const BasketPage = () => {
             <div className={summaryCardClasses}>
               <div className={`flex items-center ${isMobile ? 'flex-col gap-4' : 'justify-between'}`}>
                 <div className={isMobile ? 'text-center' : ''}>
-                  <p className={`${getResponsiveTextClass('body-base')} text-gray-600`}>
+                  <p className={`${getResponsiveTextClass('body-base')} text-muted-foreground`}>
                     {basketStore.itemCount} items • Total: ${basketStore.totalPrice.toFixed(2)}
                   </p>
                   {!isAuthenticated && (
-                    <p className={`${getResponsiveTextClass('body-sm')} text-blue-600 mt-1`}>
+                    <p className={`${getResponsiveTextClass('body-sm')} text-accent mt-1`}>
                       Sign in to save your basket and checkout
                     </p>
                   )}
@@ -171,10 +171,10 @@ const BasketPage = () => {
             <div className={summaryCardClasses}>
               <div className={`flex items-center ${isMobile ? 'flex-col gap-4' : 'justify-between'}`}>
                 <div className={isMobile ? 'text-center' : ''}>
-                  <div className={`${getResponsiveTextClass('heading-2')} font-bold text-gray-900`}>
+                  <div className={`${getResponsiveTextClass('heading-2')} font-bold text-foreground`}>
                     Total: ${basketStore.totalPrice.toFixed(2)}
                   </div>
-                  <div className={`${getResponsiveTextClass('body-base')} text-gray-600`}>
+                  <div className={`${getResponsiveTextClass('body-base')} text-muted-foreground`}>
                     {basketStore.itemCount} items
                   </div>
                 </div>
@@ -191,25 +191,25 @@ const BasketPage = () => {
         ) : (
           /* Empty Basket State */
           <div className={`text-center ${isMobile ? 'py-12' : 'py-16'}`}>
-            <div className={`${isMobile ? 'w-16 h-16' : 'w-24 h-24'} mx-auto mb-6 text-gray-400`}>
+            <div className={`${isMobile ? 'w-16 h-16' : 'w-24 h-24'} mx-auto mb-6 text-muted-foreground`}>
               <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-full h-full">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0h7M9.5 18a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm7 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
               </svg>
             </div>
-            <h2 className={`${getResponsiveHeadingClass(2)} text-gray-900 mb-2`}>
+            <h2 className={`${getResponsiveHeadingClass(2)} text-foreground mb-2`}>
               Your basket is empty
             </h2>
-            <p className={`${getResponsiveTextClass('body-base')} text-gray-600 mb-6`}>
+            <p className={`${getResponsiveTextClass('body-base')} text-muted-foreground mb-6`}>
               Discover amazing products from fellow students
             </p>
             <button
               onClick={() => router.push("/")}
               className={`
                 ${isMobile ? 'w-full px-6 py-4' : 'px-6 py-3'} 
-                bg-blue-600 text-white font-semibold rounded-lg 
-                hover:bg-blue-700 transition-colors
+                bg-primary text-primary-foreground font-semibold rounded-lg 
+                hover:opacity-90 transition-colors
                 ${isTouchDevice ? 'min-h-[48px] active:scale-95' : 'min-h-[44px]'}
-                focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+                focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
               `}
             >
               Start Shopping
@@ -221,26 +221,26 @@ const BasketPage = () => {
         {basketStore.error && (
           <div className={`
             fixed ${isMobile ? 'bottom-4 left-4 right-4' : 'bottom-4 right-4'} 
-            bg-red-50 border border-red-200 rounded-lg p-4 shadow-lg 
+            bg-destructive/10 border border-destructive/20 rounded-lg p-4 shadow-lg 
             ${isMobile ? 'max-w-none' : 'max-w-sm'}
           `}>
             <div className="flex items-start gap-3">
-              <div className="text-red-600 flex-shrink-0">
+              <div className="text-destructive flex-shrink-0">
                 <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
                 </svg>
               </div>
               <div className="flex-1">
-                <p className={`${getResponsiveTextClass('body-sm')} text-red-800`}>
+                <p className={`${getResponsiveTextClass('body-sm')} text-destructive-foreground`}>
                   {basketStore.error}
                 </p>
                 <button
                   onClick={() => basketStore.clearError()}
                   className={`
-                    ${getResponsiveTextClass('body-xs')} text-red-600 
-                    hover:text-red-800 mt-1 underline
+                    ${getResponsiveTextClass('body-xs')} text-destructive 
+                    hover:text-destructive-foreground mt-1 underline
                     ${isTouchDevice ? 'min-h-[44px] py-2' : ''}
-                    focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2 rounded
+                    focus:outline-none focus:ring-2 focus:ring-destructive focus:ring-offset-2 rounded
                   `}
                 >
                   Dismiss

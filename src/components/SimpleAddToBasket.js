@@ -35,11 +35,11 @@ const SimpleAddToBasket = ({
   const getVariantClasses = () => {
     switch (variant) {
       case "secondary":
-        return "bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500";
+        return "bg-secondary text-secondary-foreground hover:opacity-90 focus:ring-ring";
       case "outline":
-        return "border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white focus:ring-blue-500";
+        return "border border-primary text-primary hover:bg-primary hover:text-primary-foreground focus:ring-ring";
       default:
-        return "bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500";
+        return "bg-primary text-primary-foreground hover:opacity-90 focus:ring-ring";
     }
   };
 

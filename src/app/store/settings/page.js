@@ -67,10 +67,10 @@ const SettingsPage = () => {
   if (error) {
     return (
       <div className="text-center py-12">
-        <div className="text-red-600 text-xl mb-4">⚠️ {error}</div>
+        <div className="text-destructive text-xl mb-4">⚠️ {error}</div>
         <button
           onClick={loadSettings}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:opacity-90 focus:outline-none focus:ring-2 focus:ring-ring"
         >
           Try Again
         </button>
@@ -88,12 +88,12 @@ const SettingsPage = () => {
 
       {/* Header */}
       <div>
-        <h1 className="text-2xl font-bold text-gray-900">Store Settings</h1>
-        <p className="text-gray-600">Manage your store policies, auto-responses, and preferences</p>
+        <h1 className="text-2xl font-bold text-foreground">Store Settings</h1>
+        <p className="text-muted-foreground">Manage your store policies, auto-responses, and preferences</p>
       </div>
 
       {/* Main Content */}
-      <div className="bg-white rounded-lg shadow">
+      <div className="bg-card rounded-lg shadow">
         <SettingsTabs activeTab={activeTab} onTabChange={setActiveTab} />
 
         {/* Tab Content */}

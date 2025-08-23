@@ -97,10 +97,12 @@ const useCategoryStore = create<CategoryState>((set, get) => {
         });
       } catch (error) {
         console.error('Error fetching categories:', error);
-        set({ 
-          error: error instanceof Error ? error.message : 'Failed to fetch categories',
-          loading: false 
-        });
+        // Don't set error state if it's just empty/missing categories during auto setup
+        const errorMessage = error instanceof Error ? error.message : 'Failed to fetch categories';
+        if (!errorMessage.includes('No categories found') && !errorMessage.includes('empty')) {
+          set({ error: errorMessage });
+        }
+        set({ loading: false });
       }
     },
 
@@ -111,10 +113,13 @@ const useCategoryStore = create<CategoryState>((set, get) => {
         set({ categoryTree, loading: false });
       } catch (error) {
         console.error('Error fetching category tree:', error);
-        set({ 
-          error: error instanceof Error ? error.message : 'Failed to fetch category tree',
-          loading: false 
-        });
+        // Don't set error state if it's just empty/missing categories during auto setup
+        // This allows the system to work gracefully while auto setup is running
+        const errorMessage = error instanceof Error ? error.message : 'Failed to fetch category tree';
+        if (!errorMessage.includes('No categories found') && !errorMessage.includes('empty')) {
+          set({ error: errorMessage });
+        }
+        set({ loading: false });
       }
     },
 

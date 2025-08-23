@@ -11,17 +11,15 @@ const BasketCounter = ({ className = "" }) => {
   const { isMobile, isTablet, isTouchDevice } = useViewport();
   const { getResponsiveTextClass } = useResponsiveTypography();
 
-  // Don't show counter if count is 0 and not loading
-  if (!isLoading && itemCount === 0) {
-    return null;
-  }
+  // Always show the basket counter for better UX
+  // Users can access the basket even when it's empty
 
   // Responsive classes
   const containerClasses = `
     relative inline-flex items-center gap-2 rounded-md transition-all duration-200
     ${isMobile ? 'p-2' : 'px-3 py-2'}
     ${isTouchDevice ? 'min-h-[48px] min-w-[48px] active:scale-95' : 'min-h-[40px]'}
-    hover:bg-gray-100 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2
+    hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background theme-transition
     ${className}
   `;
 
@@ -30,15 +28,15 @@ const BasketCounter = ({ className = "" }) => {
   const badgeClasses = `
     absolute ${isMobile ? '-top-1 -right-1' : '-top-1 -right-1'} 
     ${isMobile ? 'min-w-[18px] h-[18px]' : 'min-w-[20px] h-[20px]'}
-    bg-blue-600 text-white rounded-full flex items-center justify-center 
+    bg-primary text-primary-foreground rounded-full flex items-center justify-center 
     ${getResponsiveTextClass('body-xs')} font-bold
-    border-2 border-white shadow-sm
+    border-2 border-background shadow-sm
   `;
 
   const loadingClasses = `
     absolute ${isMobile ? '-top-1 -right-1' : '-top-1 -right-1'}
     ${isMobile ? 'w-4 h-4' : 'w-4 h-4'}
-    border-2 border-blue-600 border-t-transparent rounded-full animate-spin
+    border-2 border-primary border-t-transparent rounded-full animate-spin
   `;
 
   return (

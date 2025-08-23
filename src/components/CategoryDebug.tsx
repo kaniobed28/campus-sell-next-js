@@ -41,9 +41,9 @@ const CategoryDebug: React.FC = () => {
   }
 
   return (
-    <div className="bg-gray-100 p-4 rounded-lg text-sm">
-      <h3 className="font-semibold mb-2">Debug Info:</h3>
-      <pre className="whitespace-pre-wrap">
+    <div className="bg-muted p-4 rounded-lg text-sm border border-border">
+      <h3 className="font-semibold mb-2 text-foreground">Debug Info:</h3>
+      <pre className="whitespace-pre-wrap text-muted-foreground">
         {JSON.stringify(debugInfo, null, 2)}
       </pre>
     </div>

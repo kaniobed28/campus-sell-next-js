@@ -74,11 +74,11 @@ const SessionTimeoutWarning = ({ onExtend, onSignOut }) => {
 
   return (
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50">
-      <div className="bg-white rounded-lg shadow-xl p-6 max-w-md w-full mx-4">
+      <div className="bg-card rounded-lg shadow-xl p-6 max-w-md w-full mx-4 border border-border">
         <div className="flex items-center mb-4">
           <div className="flex-shrink-0">
             <svg 
-              className="h-6 w-6 text-yellow-600" 
+              className="h-6 w-6 text-destructive" 
               fill="none" 
               viewBox="0 0 24 24" 
               stroke="currentColor"
@@ -92,41 +92,41 @@ const SessionTimeoutWarning = ({ onExtend, onSignOut }) => {
             </svg>
           </div>
           <div className="ml-3">
-            <h3 className="text-lg font-medium text-gray-900">
+            <h3 className="text-lg font-medium text-foreground">
               Session Expiring Soon
             </h3>
           </div>
         </div>
         
         <div className="mb-4">
-          <p className="text-sm text-gray-600 mb-2">
+          <p className="text-sm text-muted-foreground mb-2">
             Your admin session will expire in:
           </p>
-          <div className="text-2xl font-bold text-red-600 text-center">
+          <div className="text-2xl font-bold text-destructive text-center">
             {formatTime(countdown)}
           </div>
         </div>
         
-        <p className="text-sm text-gray-600 mb-6">
+        <p className="text-sm text-muted-foreground mb-6">
           Would you like to extend your session or sign out now?
         </p>
         
         <div className="flex space-x-3">
           <button
             onClick={handleExtendSession}
-            className="flex-1 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium"
+            className="flex-1 bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:bg-primary/90 font-medium transition-colors"
           >
             Extend Session
           </button>
           <button
             onClick={handleSignOut}
-            className="flex-1 bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 font-medium"
+            className="flex-1 bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/90 font-medium transition-colors"
           >
             Sign Out
           </button>
         </div>
         
-        <div className="mt-4 text-xs text-gray-500 text-center">
+        <div className="mt-4 text-xs text-muted-foreground text-center">
           Session will automatically end when timer reaches zero
         </div>
       </div>

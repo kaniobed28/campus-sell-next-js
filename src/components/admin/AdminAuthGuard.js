@@ -1,5 +1,6 @@
 "use client";
 import React, { useState, useEffect } from 'react';
+import Link from 'next/link';
 import { useAuthState } from 'react-firebase-hooks/auth';
 import { auth } from '@/lib/firebase';
 import { adminAuthService } from '@/services/adminAuthService';
@@ -83,11 +84,11 @@ const AdminAuthGuard = ({
     return (
       <div className="min-h-screen flex items-center justify-center">
         <div className="text-center max-w-md">
-          <h1 className="text-2xl font-bold mb-4 text-red-600">Authentication Error</h1>
+          <h1 className="text-2xl font-bold mb-4 text-destructive">Authentication Error</h1>
           <p className="text-muted-foreground mb-6">{errorMessage}</p>
           <button 
             onClick={() => window.location.reload()} 
-            className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90"
+            className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors"
           >
             Retry
           </button>
@@ -111,7 +112,7 @@ const AdminAuthGuard = ({
           </p>
           <a 
             href={redirectTo} 
-            className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90"
+            className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors"
           >
             Sign In
           </a>
@@ -131,17 +132,17 @@ const AdminAuthGuard = ({
         <div className="text-center max-w-md">
           <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
           <p className="text-muted-foreground mb-6">
-            You don't have admin privileges. Contact the system administrator if you believe this is an error.
+            You don&apos;t have admin privileges. Contact the system administrator if you believe this is an error.
           </p>
           <div className="text-sm text-muted-foreground mb-4">
             <p>Signed in as: {user.email}</p>
           </div>
-          <a 
+          <Link 
             href="/" 
-            className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90"
+            className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors"
           >
             Return to Home
-          </a>
+          </Link>
         </div>
       </div>
     );
@@ -162,12 +163,12 @@ const AdminAuthGuard = ({
         <div className="text-center max-w-md">
           <h1 className="text-2xl font-bold mb-4">Insufficient Permissions</h1>
           <p className="text-muted-foreground mb-4">
-            You don't have the required permissions to access this area.
+            You don&apos;t have the required permissions to access this area.
           </p>
           {missingPermissions.length > 0 && (
-            <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-              <p className="text-sm font-medium text-red-800 mb-2">Required permissions:</p>
-              <ul className="text-sm text-red-700">
+            <div className="bg-destructive/10 border border-destructive/20 rounded-lg p-4 mb-6">
+              <p className="text-sm font-medium text-destructive mb-2">Required permissions:</p>
+              <ul className="text-sm text-destructive/80">
                 {missingPermissions.map(permission => (
                   <li key={permission} className="capitalize">
                     • {permission.replace('_', ' ')}
@@ -181,7 +182,7 @@ const AdminAuthGuard = ({
           </div>
           <a 
             href="/admin" 
-            className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90"
+            className="bg-primary text-primary-foreground px-6 py-2 rounded-lg hover:bg-primary/90 transition-colors"
           >
             Return to Admin Dashboard
           </a>

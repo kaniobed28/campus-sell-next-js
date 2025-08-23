@@ -31,15 +31,15 @@ const ResponsiveBasketButton = ({
     
     switch (variant) {
       case "secondary":
-        return `${baseClasses} bg-gray-600 text-white hover:bg-gray-700 focus:ring-gray-500`;
+        return `${baseClasses} bg-secondary text-secondary-foreground hover:opacity-90 focus:ring-ring`;
       case "outline":
-        return `${baseClasses} border border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white focus:ring-blue-500`;
+        return `${baseClasses} border border-primary text-primary hover:bg-primary hover:text-primary-foreground focus:ring-ring`;
       case "ghost":
-        return `${baseClasses} text-gray-600 hover:text-gray-900 hover:bg-gray-100 focus:ring-gray-500`;
+        return `${baseClasses} text-muted-foreground hover:text-foreground hover:bg-muted focus:ring-ring`;
       case "danger":
-        return `${baseClasses} bg-red-600 text-white hover:bg-red-700 focus:ring-red-500`;
+        return `${baseClasses} bg-destructive text-destructive-foreground hover:opacity-90 focus:ring-destructive`;
       default:
-        return `${baseClasses} bg-blue-600 text-white hover:bg-blue-700 focus:ring-blue-500`;
+        return `${baseClasses} bg-primary text-primary-foreground hover:opacity-90 focus:ring-ring`;
     }
   };
 

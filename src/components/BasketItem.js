@@ -48,8 +48,8 @@ const BasketItem = ({
 
   // Responsive classes
   const containerClasses = `
-    p-3 sm:p-4 lg:p-6 bg-white rounded-lg border border-gray-200 
-    transition-all duration-200 hover:shadow-md
+    p-3 sm:p-4 lg:p-6 bg-card border border-border 
+    transition-all duration-200 hover:shadow-md theme-transition rounded-lg
     ${isUpdating ? 'opacity-75' : ''}
   `;
 
@@ -59,14 +59,14 @@ const BasketItem = ({
   const touchButtonClasses = `
     ${isTouchDevice ? 'min-h-[48px] min-w-[48px]' : 'min-h-[40px] min-w-[40px]'}
     flex items-center justify-center
-    hover:bg-gray-100 disabled:opacity-50 disabled:cursor-not-allowed
-    transition-colors duration-200
+    hover:bg-accent hover:text-accent-foreground disabled:opacity-50 disabled:cursor-not-allowed
+    transition-colors duration-200 theme-transition
     ${isTouchDevice ? 'active:scale-95' : ''}
   `;
 
   const quantityInputClasses = `
-    ${isMobile ? 'w-12' : 'w-16'} text-center border-0 
-    focus:outline-none focus:ring-2 focus:ring-blue-500 py-2
+    ${isMobile ? 'w-12' : 'w-16'} text-center border-0 bg-background text-foreground
+    focus:outline-none focus:ring-2 focus:ring-ring py-2
     ${getResponsiveTextClass('body-base')}
   `;
 
@@ -91,12 +91,12 @@ const BasketItem = ({
             <div>
               <h3 className={`
                 ${getResponsiveHeadingClass(3, 'card')} 
-                font-medium text-gray-900 line-clamp-2
+                font-medium text-foreground line-clamp-2
                 ${isMobile ? 'text-center' : ''}
               `}>
                 <Link 
                   href={`/listings/${item.productId}`}
-                  className="hover:text-blue-600 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-500 focus:ring-offset-2 rounded"
+                  className="hover:text-primary transition-colors focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 rounded"
                 >
                   {productTitle}
                 </Link>
@@ -105,11 +105,11 @@ const BasketItem = ({
 
             {/* Price Information */}
             <div className={`flex items-center gap-2 ${isMobile ? 'justify-center' : ''}`}>
-              <span className={`${getResponsiveTextClass('body-lg')} font-semibold text-blue-600`}>
+              <span className={`${getResponsiveTextClass('body-lg')} font-semibold text-primary`}>
                 ${numericPrice.toFixed(2)}
               </span>
               {localQuantity > 1 && (
-                <span className={`${getResponsiveTextClass('body-sm')} text-gray-500`}>
+                <span className={`${getResponsiveTextClass('body-sm')} text-muted-foreground`}>
                   × {localQuantity} = ${totalPrice.toFixed(2)}
                 </span>
               )}
@@ -123,7 +123,7 @@ const BasketItem = ({
               >
                 {isMobile ? 'Qty' : 'Quantity'}:
               </label>
-              <div className="flex items-center border border-gray-300 rounded-md overflow-hidden">
+              <div className="flex items-center border border-border rounded-md overflow-hidden bg-background">
                 <button
                   onClick={() => handleQuantityChange(localQuantity - 1)}
                   disabled={localQuantity <= 1 || isUpdating}
@@ -154,8 +154,8 @@ const BasketItem = ({
               </div>
               {isUpdating && (
                 <div className="flex items-center gap-2">
-                  <div className="animate-spin w-4 h-4 border-2 border-blue-600 border-t-transparent rounded-full"></div>
-                  <span className={`${getResponsiveTextClass('body-sm')} text-gray-500 ${isMobile ? 'sr-only' : ''}`}>
+                  <div className="animate-spin w-4 h-4 border-2 border-primary border-t-transparent rounded-full"></div>
+                  <span className={`${getResponsiveTextClass('body-sm')} text-muted-foreground ${isMobile ? 'sr-only' : ''}`}>
                     Updating...
                   </span>
                 </div>
@@ -169,10 +169,10 @@ const BasketItem = ({
                 disabled={isUpdating}
                 className={`
                   px-4 py-2 ${getResponsiveTextClass('body-sm')} font-medium 
-                  text-red-600 hover:text-red-700 hover:bg-red-50 
-                  rounded-md transition-colors disabled:opacity-50
+                  text-destructive hover:text-destructive-foreground hover:bg-destructive/10 
+                  rounded-md transition-colors disabled:opacity-50 theme-transition
                   ${isTouchDevice ? 'min-h-[48px] active:scale-95' : 'min-h-[40px]'}
-                  focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2
+                  focus:outline-none focus:ring-2 focus:ring-destructive focus:ring-offset-2
                 `}
               >
                 Remove
@@ -184,7 +184,7 @@ const BasketItem = ({
         {/* Total Price (Desktop/Tablet) */}
         {!isMobile && (
           <div className="flex-shrink-0 text-right">
-            <div className={`${getResponsiveTextClass('body-lg')} font-bold text-gray-900`}>
+            <div className={`${getResponsiveTextClass('body-lg')} font-bold text-foreground`}>
               ${totalPrice.toFixed(2)}
             </div>
           </div>
@@ -193,9 +193,9 @@ const BasketItem = ({
 
       {/* Mobile Total Price */}
       {isMobile && (
-        <div className="mt-3 pt-3 border-t border-gray-200 flex justify-between items-center">
-          <span className={`${getResponsiveTextClass('body-sm')} font-medium`}>Total:</span>
-          <span className={`${getResponsiveTextClass('body-lg')} font-bold text-gray-900`}>
+        <div className="mt-3 pt-3 border-t border-border flex justify-between items-center">
+          <span className={`${getResponsiveTextClass('body-sm')} font-medium text-foreground`}>Total:</span>
+          <span className={`${getResponsiveTextClass('body-lg')} font-bold text-foreground`}>
             ${totalPrice.toFixed(2)}
           </span>
         </div>
