@@ -52,20 +52,25 @@ const Header = () => {
   return (
     <>
       <header className="bg-card border-b border-border sticky top-0 z-50 shadow-sm theme-transition">
-        <div className="container mx-auto px-4 md:px-6 py-3 md:py-4 flex items-center justify-between">
-          {/* Logo - Responsive sizing */}
-          <Link
-            href="/"
-            className={`font-bold tracking-wide text-primary hover:text-accent theme-transition focus-ring rounded-md px-2 py-1 ${
-              isMobile ? 'text-lg' : isTablet ? 'text-xl' : 'text-2xl'
-            }`}
-          >
-            {isMobile ? 'CS' : 'Campus Sell'}
-          </Link>
+        <div className="w-full max-w-none px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 md:py-4">
+          <div className="flex items-center justify-between gap-2 sm:gap-3 md:gap-4 min-h-[56px] sm:min-h-[60px]">
+          {/* Logo - Enhanced responsive sizing with overflow protection */}
+          <div className="flex-shrink-0">
+            <Link
+              href="/"
+              className={`font-bold tracking-wide text-primary hover:text-accent theme-transition focus-ring rounded-md px-2 py-1 transition-all duration-200 ${
+                isMobile ? 'text-base sm:text-lg' : isTablet ? 'text-lg md:text-xl' : 'text-xl lg:text-2xl'
+              }`}
+            >
+              <span className="whitespace-nowrap">
+                {isMobile ? 'CS' : isTablet ? 'Campus' : 'Campus Sell'}
+              </span>
+            </Link>
+          </div>
 
-          {/* Search Bar - Responsive display */}
+          {/* Search Bar - Enhanced responsive display with better max-width handling */}
           {!isMobile && (
-            <div className="flex-1 max-w-md mx-4 lg:mx-8">
+            <div className="flex-1 max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl mx-2 sm:mx-3 md:mx-4 lg:mx-6 xl:mx-8 overflow-hidden">
               <SearchBar
                 searchQuery={searchQuery}
                 setSearchQuery={setSearchQuery}
@@ -77,33 +82,35 @@ const Header = () => {
             </div>
           )}
 
-          {/* Right side controls */}
-          <div className="flex items-center space-x-2 md:space-x-4">
-            {/* Search Icon - Mobile only */}
+          {/* Right side controls - Enhanced spacing and overflow handling */}
+          <div className="flex items-center gap-1 sm:gap-2 md:gap-3 lg:gap-4 flex-shrink-0">
+            {/* Search Icon - Mobile only with enhanced touch target */}
             {isMobile && (
               <button
-                className="p-3 rounded-md text-foreground hover:bg-accent hover:text-accent-foreground focus-ring theme-transition min-w-[44px] min-h-[44px] flex items-center justify-center"
+                className="p-2 sm:p-3 rounded-md text-foreground hover:bg-accent hover:text-accent-foreground focus-ring theme-transition min-w-[44px] min-h-[44px] flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
                 onClick={() => setIsSearchModalOpen(true)}
                 aria-label="Open Search"
               >
-                <FontAwesomeIcon icon={faMagnifyingGlass} className="w-5 h-5" />
+                <FontAwesomeIcon icon={faMagnifyingGlass} className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
             )}
 
-            {/* Basket Counter */}
+            {/* Basket Counter - Always visible */}
             <BasketCounter className="theme-transition" />
 
-            {/* Enhanced Navigation Links (Desktop) with better spacing and hover effects */}
-            <nav className="hidden lg:flex items-center space-x-2" role="navigation" aria-label="Main navigation">
+            {/* Desktop Navigation - Hidden on smaller screens */}
+            <nav className="hidden lg:flex items-center gap-1 xl:gap-2" role="navigation" aria-label="Main navigation">
               <NavLinks user={user} handleSignOut={handleSignOut} onLinkClick={() => {}} />
             </nav>
 
-            {/* Dark Mode Toggle */}
-            <DarkModeToggle />
+            {/* Dark Mode Toggle - Responsive sizing */}
+            <div className="flex-shrink-0">
+              <DarkModeToggle />
+            </div>
 
-            {/* Enhanced Hamburger Menu - Touch-friendly with animations */}
+            {/* Enhanced Hamburger Menu - Better responsive behavior */}
             <button
-              className="lg:hidden p-3 rounded-lg text-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background transition-all duration-200 min-w-[48px] min-h-[48px] flex items-center justify-center hover:scale-105 active:scale-95"
+              className="lg:hidden p-2 sm:p-3 rounded-lg text-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center hover:scale-105 active:scale-95 flex-shrink-0"
               onClick={() => setIsMenuOpen(!isMenuOpen)}
               aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
               aria-expanded={isMenuOpen}
@@ -111,10 +118,13 @@ const Header = () => {
             >
               <FontAwesomeIcon 
                 icon={isMenuOpen ? faTimes : faBars} 
-                className={`w-6 h-6 transition-transform duration-200 ${isMenuOpen ? 'rotate-90' : 'rotate-0'}`} 
+                className={`w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 transition-transform duration-200 ${
+                  isMenuOpen ? 'rotate-90' : 'rotate-0'
+                }`} 
               />
             </button>
           </div>
+        </div>
         </div>
       </header>
 

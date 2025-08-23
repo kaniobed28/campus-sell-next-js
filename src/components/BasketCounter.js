@@ -4,12 +4,10 @@ import React from "react";
 import Link from "next/link";
 import { useBasketStore } from "@/app/stores/useBasketStore";
 import { useViewport } from "@/hooks/useViewport";
-import { useResponsiveTypography } from "@/hooks/useResponsiveTypography";
 
 const BasketCounter = ({ className = "" }) => {
   const { itemCount, isLoading } = useBasketStore();
   const { isMobile, isTablet, isTouchDevice } = useViewport();
-  const { getResponsiveTextClass } = useResponsiveTypography();
 
   // Always show the basket counter for better UX
   // Users can access the basket even when it's empty
@@ -29,7 +27,7 @@ const BasketCounter = ({ className = "" }) => {
     absolute ${isMobile ? '-top-1 -right-1' : '-top-1 -right-1'} 
     ${isMobile ? 'min-w-[18px] h-[18px]' : 'min-w-[20px] h-[20px]'}
     bg-primary text-primary-foreground rounded-full flex items-center justify-center 
-    ${getResponsiveTextClass('body-xs')} font-bold
+    ${isMobile ? 'text-xs' : 'text-xs'} font-bold
     border-2 border-background shadow-sm
   `;
 
@@ -64,7 +62,7 @@ const BasketCounter = ({ className = "" }) => {
       {/* Text - Hidden on mobile, visible on tablet and up */}
       <span className={`
         ${isMobile ? 'sr-only' : isTablet ? 'hidden lg:inline' : 'hidden sm:inline'} 
-        ${getResponsiveTextClass('body-sm')} font-medium
+        ${isMobile ? 'text-sm' : 'text-sm'} font-medium
       `}>
         Basket
       </span>
