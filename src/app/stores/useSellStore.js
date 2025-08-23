@@ -216,10 +216,11 @@ const useSellStore = create((set, get) => ({
         condition: productData.condition || 'good',
         location: productData.location || 'campus',
 
-        // Analytics
-        views: productData.views || 0,
-        likes: productData.likes || 0,
-        inquiries: productData.inquiries || 0,
+        // Analytics (using new field names for consistency)
+        viewCount: productData.viewCount || 0,
+        inquiryCount: productData.inquiryCount || 0,
+        favoriteCount: productData.favoriteCount || 0,
+        shareCount: productData.shareCount || 0,
 
         // Timestamps
         createdAt: productData.createdAt || new Date(),

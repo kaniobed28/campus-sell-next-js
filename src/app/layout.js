@@ -2,7 +2,6 @@ import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "../components/Header";
 import { ThemeProvider } from "../components/ThemeProvider";
-import SystemStatusBanner from "../components/SystemStatusBanner";
 import { NotificationProvider } from "../contexts/NotificationContext";
 
 const inter = Inter({
