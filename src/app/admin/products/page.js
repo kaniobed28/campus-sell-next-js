@@ -5,6 +5,7 @@ import AdminLayout from '@/components/admin/AdminLayout';
 import ResponsiveAdminTable from '@/components/admin/ResponsiveAdminTable';
 import ResponsiveAdminModal from '@/components/admin/ResponsiveAdminModal';
 import { productModerationService } from '@/services/productModerationService';
+import { realtimeProductService } from '@/services/realtimeProductService';
 import { useAuditLog } from '@/hooks/useAuditLog';
 import { ADMIN_PERMISSIONS, PRODUCT_STATUS, AUDIT_ACTION_TYPES } from '@/types/admin';
 
@@ -28,8 +29,53 @@ const ProductModerationContent = () => {
   const { logProductAction } = useAuditLog();
 
   useEffect(() => {
+    // Subscribe to real-time updates for all products in admin view
+    const unsubscribe = realtimeProductService.subscribeToAllProducts((productsData) => {
+      setProducts(productsData);
+      
+      // Update stats when products change
+      updateModerationStats(productsData);
+      
+      // If we're on the reported tab, also update reported products
+      if (activeTab === 'reported') {
+        loadReportedProducts();
+      }
+    });
+    
+    // Load initial data
     loadData();
+    
+    // Cleanup subscription on unmount
+    return () => {
+      unsubscribe();
+    };
   }, [activeTab]);
+
+  const updateModerationStats = (productsData) => {
+    if (!productsData) return;
+    
+    const stats = {
+      totalProducts: productsData.length,
+      activeProducts: productsData.filter(p => p.status === PRODUCT_STATUS.ACTIVE || !p.status).length,
+      blockedProducts: productsData.filter(p => p.status === PRODUCT_STATUS.BLOCKED).length,
+      removedProducts: productsData.filter(p => p.status === PRODUCT_STATUS.REMOVED).length,
+      recentProducts: productsData.filter(p => {
+        if (!p.createdAt) return false;
+        const weekAgo = new Date();
+        weekAgo.setDate(weekAgo.getDate() - 7);
+        return p.createdAt > weekAgo;
+      }).length,
+      statusDistribution: {}
+    };
+
+    // Calculate status distribution
+    productsData.forEach(product => {
+      const status = product.status || PRODUCT_STATUS.ACTIVE;
+      stats.statusDistribution[status] = (stats.statusDistribution[status] || 0) + 1;
+    });
+
+    setStats(stats);
+  };
 
   const loadData = async () => {
     try {
@@ -37,7 +83,6 @@ const ProductModerationContent = () => {
       setError(null);
       
       await Promise.all([
-        loadProducts(),
         loadReportedProducts(),
         loadModerationStats()
       ]);
@@ -45,27 +90,6 @@ const ProductModerationContent = () => {
       setError(err.message);
     } finally {
       setLoading(false);
-    }
-  };
-
-  const loadProducts = async () => {
-    try {
-      let products;
-      
-      if (activeTab === 'blocked') {
-        products = await productModerationService.getProductsByStatus(PRODUCT_STATUS.BLOCKED, filters.limit);
-      } else if (activeTab === 'removed') {
-        products = await productModerationService.getProductsByStatus(PRODUCT_STATUS.REMOVED, filters.limit);
-      } else if (filters.search && filters.search.trim().length >= 2) {
-        products = await productModerationService.searchProducts(filters.search, filters.limit);
-      } else {
-        const productFilters = { ...filters, includeAll: true };
-        products = await productModerationService.getActiveProducts(productFilters);
-      }
-      
-      setProducts(products);
-    } catch (err) {
-      console.error('Failed to load products:', err);
     }
   };
 
@@ -97,7 +121,8 @@ const ProductModerationContent = () => {
   };
 
   const applyFilters = () => {
-    loadProducts();
+    // Filters are now applied in real-time through the subscription
+    // This function can be used for additional client-side filtering if needed
   };
 
   const clearFilters = () => {
@@ -107,7 +132,6 @@ const ProductModerationContent = () => {
       category: '',
       limit: 50
     });
-    setTimeout(loadProducts, 100);
   };
 
   const handleProductSelect = (productId, checked) => {
@@ -153,9 +177,7 @@ const ProductModerationContent = () => {
           throw new Error('Invalid action');
       }
       
-      // Refresh data
-      await loadData();
-      
+      // The UI will automatically update due to real-time subscription
       setShowProductModal(false);
       setSelectedProduct(null);
     } catch (err) {
@@ -188,7 +210,7 @@ const ProductModerationContent = () => {
       });
       
       setSelectedProducts([]);
-      await loadData();
+      // The UI will automatically update due to real-time subscription
     } catch (err) {
       setError(err.message);
     } finally {
@@ -201,124 +223,165 @@ const ProductModerationContent = () => {
     setShowProductModal(true);
   };
 
-  const getStatusColor = (status) => {
-    switch (status) {
-      case PRODUCT_STATUS.ACTIVE:
-        return 'text-green-600 bg-green-100';
-      case PRODUCT_STATUS.BLOCKED:
-        return 'text-yellow-600 bg-yellow-100';
-      case PRODUCT_STATUS.REMOVED:
-        return 'text-red-600 bg-red-100';
-      default:
-        return 'text-gray-600 bg-gray-100';
+  const closeProductModal = () => {
+    setShowProductModal(false);
+    setSelectedProduct(null);
+  };
+
+  const getFilteredProducts = () => {
+    let filtered = products;
+    
+    if (activeTab === 'blocked') {
+      filtered = products.filter(p => p.status === PRODUCT_STATUS.BLOCKED);
+    } else if (activeTab === 'removed') {
+      filtered = products.filter(p => p.status === PRODUCT_STATUS.REMOVED);
+    } else if (filters.search && filters.search.trim().length >= 2) {
+      const searchTerm = filters.search.toLowerCase().trim();
+      filtered = products.filter(p => 
+        (p.title && p.title.toLowerCase().includes(searchTerm)) ||
+        (p.description && p.description.toLowerCase().includes(searchTerm))
+      );
+    } else if (filters.status) {
+      filtered = products.filter(p => p.status === filters.status);
     }
+    
+    return filtered.slice(0, filters.limit);
   };
 
-  const formatDate = (date) => {
-    if (!date) return 'N/A';
-    return new Date(date).toLocaleDateString();
+  const currentProducts = getFilteredProducts();
+
+  // Safely get the first image URL from a product
+  const getProductImageUrl = (product) => {
+    // Handle case where product is undefined or null
+    if (!product) {
+      return '/default-image.jpg';
+    }
+    
+    // Handle case where product.imageUrls is undefined or not an array
+    if (Array.isArray(product.imageUrls) && product.imageUrls.length > 0) {
+      return product.imageUrls[0];
+    }
+    
+    // Fallback to product.image if available
+    if (product.image) {
+      return product.image;
+    }
+    
+    // Default fallback image
+    return '/default-image.jpg';
   };
-
-  const formatPrice = (price) => {
-    if (!price) return 'N/A';
-    return `$${parseFloat(price).toFixed(2)}`;
-  };
-
-  const breadcrumbs = [
-    { label: 'Product Moderation' }
-  ];
-
-  const currentProducts = activeTab === 'reported' ? reportedProducts : products;
 
   return (
-    <AdminLayout title="Product Moderation" breadcrumbs={breadcrumbs}>
-      {/* Statistics */}
-      {stats && (
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-sm font-medium text-gray-500">Total Products</h3>
-            <p className="text-2xl font-bold text-gray-900">{stats.totalProducts}</p>
+    <AdminLayout 
+      title="Product Moderation" 
+      permissions={[ADMIN_PERMISSIONS.PRODUCT_MODERATION]}
+      loading={loading}
+      error={error}
+    >
+      <div className="space-y-6">
+        {/* Stats Cards */}
+        {stats && (
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
+            <div className="bg-card rounded-lg p-4 border border-border">
+              <div className="text-2xl font-bold text-primary">{stats.totalProducts}</div>
+              <div className="text-muted-foreground">Total Products</div>
+            </div>
+            <div className="bg-card rounded-lg p-4 border border-border">
+              <div className="text-2xl font-bold text-green-500">{stats.activeProducts}</div>
+              <div className="text-muted-foreground">Active Products</div>
+            </div>
+            <div className="bg-card rounded-lg p-4 border border-border">
+              <div className="text-2xl font-bold text-yellow-500">{stats.blockedProducts}</div>
+              <div className="text-muted-foreground">Blocked Products</div>
+            </div>
+            <div className="bg-card rounded-lg p-4 border border-border">
+              <div className="text-2xl font-bold text-red-500">{stats.removedProducts}</div>
+              <div className="text-muted-foreground">Removed Products</div>
+            </div>
           </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-sm font-medium text-gray-500">Active Products</h3>
-            <p className="text-2xl font-bold text-green-600">{stats.activeProducts}</p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-sm font-medium text-gray-500">Blocked</h3>
-            <p className="text-2xl font-bold text-yellow-600">{stats.blockedProducts}</p>
-          </div>
-          <div className="bg-white p-4 rounded-lg shadow">
-            <h3 className="text-sm font-medium text-gray-500">Removed</h3>
-            <p className="text-2xl font-bold text-red-600">{stats.removedProducts}</p>
-          </div>
-        </div>
-      )}
+        )}
 
-      {/* Tabs */}
-      <div className="bg-white rounded-lg shadow mb-6">
-        <div className="border-b border-gray-200">
-          <nav className="-mb-px flex space-x-8 px-6">
-            {[
-              { key: 'all', label: 'All Products', count: stats?.totalProducts },
-              { key: 'reported', label: 'Reported', count: stats?.totalReports },
-              { key: 'blocked', label: 'Blocked', count: stats?.blockedProducts },
-              { key: 'removed', label: 'Removed', count: stats?.removedProducts }
-            ].map((tab) => (
-              <button
-                key={tab.key}
-                onClick={() => setActiveTab(tab.key)}
-                className={`py-4 px-1 border-b-2 font-medium text-sm ${
-                  activeTab === tab.key
-                    ? 'border-primary text-primary'
-                    : 'border-transparent text-gray-500 hover:text-gray-700 hover:border-gray-300'
-                }`}
-              >
-                {tab.label}
-                {tab.count !== undefined && (
-                  <span className="ml-2 bg-gray-100 text-gray-900 py-0.5 px-2.5 rounded-full text-xs">
-                    {tab.count}
-                  </span>
-                )}
-              </button>
-            ))}
+        {/* Tabs */}
+        <div className="border-b border-border">
+          <nav className="flex space-x-8">
+            <button
+              onClick={() => setActiveTab('all')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'all'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted'
+              }`}
+            >
+              All Products
+            </button>
+            <button
+              onClick={() => setActiveTab('reported')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'reported'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted'
+              }`}
+            >
+              Reported ({reportedProducts.length})
+            </button>
+            <button
+              onClick={() => setActiveTab('blocked')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'blocked'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted'
+              }`}
+            >
+              Blocked
+            </button>
+            <button
+              onClick={() => setActiveTab('removed')}
+              className={`py-4 px-1 border-b-2 font-medium text-sm ${
+                activeTab === 'removed'
+                  ? 'border-primary text-primary'
+                  : 'border-transparent text-muted-foreground hover:text-foreground hover:border-muted'
+              }`}
+            >
+              Removed
+            </button>
           </nav>
         </div>
 
         {/* Filters */}
-        <div className="p-6">
+        <div className="bg-card rounded-lg p-4 border border-border">
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4 mb-4">
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
-                Search Products
+              <label className="block text-sm font-medium text-muted-foreground mb-1">
+                Search
               </label>
               <input
                 type="text"
                 value={filters.search}
                 onChange={(e) => handleFilterChange('search', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
-                placeholder="Search by title or description"
+                placeholder="Search products..."
+                className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-muted-foreground mb-1">
                 Category
               </label>
               <input
                 type="text"
                 value={filters.category}
                 onChange={(e) => handleFilterChange('category', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
                 placeholder="Filter by category"
+                className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
               />
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-muted-foreground mb-1">
                 Status
               </label>
               <select
                 value={filters.status}
                 onChange={(e) => handleFilterChange('status', e.target.value)}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
               >
                 <option value="">All Statuses</option>
                 <option value={PRODUCT_STATUS.ACTIVE}>Active</option>
@@ -327,13 +390,13 @@ const ProductModerationContent = () => {
               </select>
             </div>
             <div>
-              <label className="block text-sm font-medium text-gray-700 mb-1">
+              <label className="block text-sm font-medium text-muted-foreground mb-1">
                 Limit
               </label>
               <select
                 value={filters.limit}
                 onChange={(e) => handleFilterChange('limit', parseInt(e.target.value))}
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 border border-input rounded-md focus:outline-none focus:ring-2 focus:ring-ring bg-background text-foreground"
               >
                 <option value={25}>25 products</option>
                 <option value={50}>50 products</option>
@@ -353,339 +416,359 @@ const ProductModerationContent = () => {
             <button
               onClick={clearFilters}
               disabled={loading}
-              className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 disabled:opacity-50"
+              className="bg-secondary text-secondary-foreground px-4 py-2 rounded-lg hover:bg-secondary/90 disabled:opacity-50"
             >
               Clear Filters
             </button>
           </div>
         </div>
-      </div>
 
-      {/* Bulk Actions */}
-      {selectedProducts.length > 0 && (
-        <div className="bg-blue-50 border border-blue-200 rounded-lg p-4 mb-6">
-          <div className="flex items-center justify-between">
-            <span className="text-blue-800 font-medium">
-              {selectedProducts.length} product(s) selected
-            </span>
-            <div className="space-x-2">
-              <button
-                onClick={() => handleBulkAction('unblock')}
-                className="bg-green-600 text-white px-3 py-1 rounded text-sm hover:bg-green-700"
-              >
-                Unblock Selected
-              </button>
-              <button
-                onClick={() => handleBulkAction('block', 'Bulk block')}
-                className="bg-yellow-600 text-white px-3 py-1 rounded text-sm hover:bg-yellow-700"
-              >
-                Block Selected
-              </button>
-              <button
-                onClick={() => handleBulkAction('remove', 'Bulk removal')}
-                className="bg-red-600 text-white px-3 py-1 rounded text-sm hover:bg-red-700"
-              >
-                Remove Selected
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* Error Display */}
-      {error && (
-        <div className="bg-red-50 border border-red-200 rounded-lg p-4 mb-6">
-          <p className="text-red-800">{error}</p>
-        </div>
-      )}
-
-      {/* Products Table */}
-      <ResponsiveAdminTable
-        data={currentProducts}
-        columns={[
-          {
-            key: 'main',
-            label: 'Product',
-            render: (_, product) => (
-              <div className="flex items-center">
-                <div className="flex-shrink-0 h-10 w-10 mr-4">
-                  {product.images && product.images[0] ? (
-                    <img 
-                      className="h-10 w-10 rounded object-cover" 
-                      src={product.images[0]} 
-                      alt={product.title}
-                    />
-                  ) : (
-                    <div className="h-10 w-10 rounded bg-gray-200 flex items-center justify-center">
-                      <span className="text-gray-400 text-xs">No Image</span>
+        {/* Product Table */}
+        <div className="bg-card rounded-lg border border-border overflow-hidden">
+          <ResponsiveAdminTable
+            data={activeTab === 'reported' ? reportedProducts : currentProducts}
+            columns={[
+              { 
+                header: 'Product', 
+                accessor: 'title',
+                render: (title, product) => (
+                  <div className="flex items-center">
+                    <div className="flex-shrink-0 h-10 w-10">
+                      <img 
+                        className="h-10 w-10 rounded-md object-cover" 
+                        src={getProductImageUrl(product)} 
+                        alt={product.title || 'Product image'}
+                      />
                     </div>
-                  )}
-                </div>
-                <div>
-                  <div className="text-sm font-medium text-gray-900">
-                    {product.title || 'Untitled'}
-                  </div>
-                  <div className="text-sm text-gray-500">
-                    {product.category || 'No Category'}
-                  </div>
-                </div>
-              </div>
-            )
-          },
-          {
-            key: 'status',
-            label: 'Status',
-            render: (_, product) => (
-              <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(product.status || PRODUCT_STATUS.ACTIVE)}`}>
-                {(product.status || PRODUCT_STATUS.ACTIVE).toUpperCase()}
-              </span>
-            )
-          },
-          {
-            key: 'price',
-            label: 'Price',
-            render: (_, product) => formatPrice(product.price)
-          },
-          {
-            key: 'date',
-            label: 'Created',
-            render: (_, product) => formatDate(product.createdAt)
-          },
-          ...(activeTab === 'reported' ? [{
-            key: 'reports',
-            label: 'Reports',
-            render: (_, product) => (
-              <span className="inline-flex px-2 py-1 text-xs font-semibold rounded-full bg-red-100 text-red-800">
-                {product.reportCount || 0} reports
-              </span>
-            )
-          }] : []),
-          {
-            key: 'actions',
-            label: 'Actions',
-            render: (_, product) => (
-              <div className="flex flex-col space-y-1 sm:flex-row sm:space-y-0 sm:space-x-2">
-                <button
-                  onClick={() => openProductModal(product)}
-                  className="text-blue-600 hover:text-blue-900 text-sm font-medium"
-                >
-                  View Details
-                </button>
-                {product.status === PRODUCT_STATUS.BLOCKED && (
-                  <button
-                    onClick={() => handleProductAction('unblock', product.id)}
-                    className="text-green-600 hover:text-green-900 text-sm font-medium"
-                  >
-                    Unblock
-                  </button>
-                )}
-                {(product.status === PRODUCT_STATUS.ACTIVE || !product.status) && (
-                  <button
-                    onClick={() => handleProductAction('block', product.id, 'Admin action')}
-                    className="text-yellow-600 hover:text-yellow-900 text-sm font-medium"
-                  >
-                    Block
-                  </button>
-                )}
-                {product.status !== PRODUCT_STATUS.REMOVED && (
-                  <button
-                    onClick={() => handleProductAction('remove', product.id, 'Admin action')}
-                    className="text-red-600 hover:text-red-900 text-sm font-medium"
-                  >
-                    Remove
-                  </button>
-                )}
-                {product.status === PRODUCT_STATUS.REMOVED && (
-                  <button
-                    onClick={() => handleProductAction('restore', product.id)}
-                    className="text-green-600 hover:text-green-900 text-sm font-medium"
-                  >
-                    Restore
-                  </button>
-                )}
-              </div>
-            )
-          }
-        ]}
-        loading={loading}
-        onRowClick={openProductModal}
-        onRowSelect={(selectedIds) => setSelectedProducts(selectedIds)}
-        selectedRows={selectedProducts}
-        showSelection={true}
-        emptyMessage="No products found matching the current filters."
-      />
-
-      {/* Product Details Modal */}
-      <ResponsiveAdminModal
-        isOpen={showProductModal}
-        onClose={() => setShowProductModal(false)}
-        title="Product Details"
-        size="xl"
-        actions={
-          <button
-            onClick={() => setShowProductModal(false)}
-            className="bg-gray-600 text-white px-4 py-2 rounded-lg hover:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-gray-500 focus:ring-offset-2"
-          >
-            Close
-          </button>
-        }
-      >
-        {selectedProduct && (
-          <div className="space-y-6">
-            {/* Product Images */}
-            {selectedProduct.images && selectedProduct.images.length > 0 && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Product Images</label>
-                <div className="flex space-x-2 overflow-x-auto pb-2">
-                  {selectedProduct.images.map((image, index) => (
-                    <img
-                      key={index}
-                      src={image}
-                      alt={`Product image ${index + 1}`}
-                      className="h-20 w-20 object-cover rounded-lg flex-shrink-0"
-                    />
-                  ))}
-                </div>
-              </div>
-            )}
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Title</label>
-                  <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">{selectedProduct.title || 'N/A'}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Description</label>
-                  <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded max-h-32 overflow-y-auto">{selectedProduct.description || 'N/A'}</p>
-                </div>
-                <div className="grid grid-cols-2 gap-4">
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Price</label>
-                    <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">{formatPrice(selectedProduct.price)}</p>
-                  </div>
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Category</label>
-                    <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">{selectedProduct.category || 'N/A'}</p>
-                  </div>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Status</label>
-                  <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${getStatusColor(selectedProduct.status || PRODUCT_STATUS.ACTIVE)}`}>
-                    {(selectedProduct.status || PRODUCT_STATUS.ACTIVE).toUpperCase()}
-                  </span>
-                </div>
-              </div>
-              
-              <div className="space-y-4">
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Product ID</label>
-                  <p className="text-sm text-gray-900 font-mono p-2 bg-gray-50 rounded break-all">{selectedProduct.id}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Seller ID</label>
-                  <p className="text-sm text-gray-900 font-mono p-2 bg-gray-50 rounded break-all">{selectedProduct.sellerId || 'N/A'}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Created</label>
-                  <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">{formatDate(selectedProduct.createdAt)}</p>
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1">Last Updated</label>
-                  <p className="text-sm text-gray-900 p-2 bg-gray-50 rounded">{formatDate(selectedProduct.updatedAt)}</p>
-                </div>
-                
-                {selectedProduct.blockReason && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Block Reason</label>
-                    <p className="text-sm text-gray-900 p-3 bg-yellow-50 border border-yellow-200 rounded">{selectedProduct.blockReason}</p>
-                  </div>
-                )}
-                
-                {selectedProduct.removeReason && (
-                  <div>
-                    <label className="block text-sm font-medium text-gray-700 mb-1">Removal Reason</label>
-                    <p className="text-sm text-gray-900 p-3 bg-red-50 border border-red-200 rounded">{selectedProduct.removeReason}</p>
-                  </div>
-                )}
-              </div>
-            </div>
-
-            {selectedProduct.reports && selectedProduct.reports.length > 0 && (
-              <div>
-                <label className="block text-sm font-medium text-gray-700 mb-2">Reports ({selectedProduct.reports.length})</label>
-                <div className="space-y-2 max-h-40 overflow-y-auto">
-                  {selectedProduct.reports.map((report, index) => (
-                    <div key={index} className="bg-red-50 p-3 rounded border border-red-200">
-                      <p className="text-sm font-medium text-red-800">Reason: {report.reason || 'No reason provided'}</p>
-                      <p className="text-xs text-red-600 mt-1">Reported: {formatDate(report.createdAt)}</p>
+                    <div className="ml-4">
+                      <div className="text-sm font-medium text-foreground">{product.title || 'Untitled Product'}</div>
+                      <div className="text-sm text-muted-foreground">
+                        {product.category || 'Uncategorized'} • ${product.price || 0}
+                      </div>
                     </div>
-                  ))}
-                </div>
-              </div>
-            )}
+                  </div>
+                )
+              },
+              { 
+                header: 'Status', 
+                accessor: 'status',
+                render: (status, product) => {
+                  let statusClass = 'bg-gray-100 text-gray-800';
+                  let statusText = 'Active';
+                  
+                  switch (product.status) {
+                    case PRODUCT_STATUS.BLOCKED:
+                      statusClass = 'bg-yellow-100 text-yellow-800';
+                      statusText = 'Blocked';
+                      break;
+                    case PRODUCT_STATUS.REMOVED:
+                      statusClass = 'bg-red-100 text-red-800';
+                      statusText = 'Removed';
+                      break;
+                    default:
+                      statusClass = 'bg-green-100 text-green-800';
+                      statusText = 'Active';
+                  }
+                  
+                  return (
+                    <span className={`inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-medium ${statusClass}`}>
+                      {statusText}
+                    </span>
+                  );
+                }
+              },
+              { 
+                header: 'Seller', 
+                accessor: 'sellerId',
+                render: (sellerId, product) => (
+                  <div className="text-sm text-foreground">
+                    {product.sellerName || product.sellerId || 'Unknown'}
+                  </div>
+                )
+              },
+              { 
+                header: 'Views', 
+                accessor: 'views',
+                render: (views, product) => (
+                  <div className="text-sm text-foreground">
+                    {product.views || 0}
+                  </div>
+                )
+              },
+              { 
+                header: 'Likes', 
+                accessor: 'likes',
+                render: (likes, product) => (
+                  <div className="text-sm text-foreground">
+                    {product.likes || 0}
+                  </div>
+                )
+              },
+              { 
+                header: 'Price', 
+                accessor: 'price',
+                render: (price, product) => (
+                  <div className="text-sm font-medium text-foreground">
+                    ${product.price || 0}
+                  </div>
+                )
+              },
+              { 
+                header: 'Created', 
+                accessor: 'createdAt',
+                render: (createdAt, product) => (
+                  <div className="text-sm text-foreground">
+                    {product.createdAt ? new Date(product.createdAt).toLocaleDateString() : 'N/A'}
+                  </div>
+                )
+              },
+              {
+                header: 'Actions',
+                accessor: 'actions',
+                render: (actions, product) => (
+                  <div className="flex space-x-2">
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        openProductModal(product);
+                      }}
+                      className="text-primary hover:text-primary/80"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                        <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleProductAction('block', product.id);
+                      }}
+                      className="text-yellow-600 hover:text-yellow-800"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M12.395 2.553a1 1 0 00-1.45-.385c-.345.23-.614.558-.822.88-.214.33-.403.713-.57 1.116-.334.804-.614 1.768-.84 2.734a31.365 31.365 0 00-.613 3.58 2.64 2.64 0 01-.945-1.067c-.328-.68-.398-1.534-.398-2.654A1 1 0 005.05 6.05 6.981 6.981 0 003 11a7 7 0 1011.95-4.95c-.592-.591-.98-.985-1.348-1.467-.363-.476-.724-1.063-1.207-2.03zM12.12 15.12A3 3 0 017 13s.879.5 2.5.5c0-1 .5-4 1.25-4.5.5 1 .786 1.293 1.371 1.879A2.99 2.99 0 0113 13a2.99 2.99 0 01-.879 2.121z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                    <button
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleProductAction('remove', product.id);
+                      }}
+                      className="text-red-600 hover:text-red-800"
+                    >
+                      <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </button>
+                  </div>
+                )
+              }
+            ]}
+            onRowClick={openProductModal}
+            onRowSelect={handleProductSelect}
+            selectedRows={selectedProducts}
+            showSelection={true}
+          />
+        </div>
 
-            {/* Action buttons for mobile */}
-            <div className="flex flex-col space-y-2 sm:flex-row sm:space-y-0 sm:space-x-3 pt-4 border-t">
-              {selectedProduct.status === PRODUCT_STATUS.BLOCKED && (
+        {/* Bulk Actions */}
+        {selectedProducts.length > 0 && (
+          <div className="bg-card rounded-lg p-4 border border-border">
+            <div className="flex items-center justify-between">
+              <div className="text-sm text-foreground">
+                {selectedProducts.length} product(s) selected
+              </div>
+              <div className="flex space-x-2">
                 <button
-                  onClick={() => {
-                    handleProductAction('unblock', selectedProduct.id);
-                    setShowProductModal(false);
-                  }}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                  onClick={() => handleBulkAction('unblock')}
+                  className="bg-green-600 text-white px-3 py-1.5 rounded text-sm hover:bg-green-700"
                 >
-                  Unblock Product
+                  Unblock
                 </button>
-              )}
-              {(selectedProduct.status === PRODUCT_STATUS.ACTIVE || !selectedProduct.status) && (
                 <button
-                  onClick={() => {
-                    handleProductAction('block', selectedProduct.id, 'Admin action');
-                    setShowProductModal(false);
-                  }}
-                  className="bg-yellow-600 text-white px-4 py-2 rounded-lg hover:bg-yellow-700 focus:outline-none focus:ring-2 focus:ring-yellow-500 focus:ring-offset-2"
+                  onClick={() => handleBulkAction('block')}
+                  className="bg-yellow-600 text-white px-3 py-1.5 rounded text-sm hover:bg-yellow-700"
                 >
-                  Block Product
+                  Block
                 </button>
-              )}
-              {selectedProduct.status !== PRODUCT_STATUS.REMOVED && (
                 <button
-                  onClick={() => {
-                    handleProductAction('remove', selectedProduct.id, 'Admin action');
-                    setShowProductModal(false);
-                  }}
-                  className="bg-red-600 text-white px-4 py-2 rounded-lg hover:bg-red-700 focus:outline-none focus:ring-2 focus:ring-red-500 focus:ring-offset-2"
+                  onClick={() => handleBulkAction('restore')}
+                  className="bg-blue-600 text-white px-3 py-1.5 rounded text-sm hover:bg-blue-700"
                 >
-                  Remove Product
+                  Restore
                 </button>
-              )}
-              {selectedProduct.status === PRODUCT_STATUS.REMOVED && (
                 <button
-                  onClick={() => {
-                    handleProductAction('restore', selectedProduct.id);
-                    setShowProductModal(false);
-                  }}
-                  className="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 focus:outline-none focus:ring-2 focus:ring-green-500 focus:ring-offset-2"
+                  onClick={() => handleBulkAction('remove')}
+                  className="bg-red-600 text-white px-3 py-1.5 rounded text-sm hover:bg-red-700"
                 >
-                  Restore Product
+                  Remove
                 </button>
-              )}
+              </div>
             </div>
           </div>
         )}
-      </ResponsiveAdminModal>
+
+        {/* Product Modal */}
+        {showProductModal && selectedProduct && (
+          <ResponsiveAdminModal
+            title="Product Details"
+            onClose={closeProductModal}
+            size="lg"
+          >
+            <div className="space-y-6">
+              <div className="flex flex-col md:flex-row gap-6">
+                <div className="md:w-1/3">
+                  <img
+                    src={getProductImageUrl(selectedProduct)}
+                    alt={selectedProduct.title || 'Product image'}
+                    className="w-full h-64 object-cover rounded-lg"
+                  />
+                </div>
+                <div className="md:w-2/3 space-y-4">
+                  <div>
+                    <h3 className="text-xl font-bold text-foreground">{selectedProduct.title || 'Untitled Product'}</h3>
+                    <p className="text-muted-foreground mt-1">${selectedProduct.price || 0}</p>
+                  </div>
+                  
+                  <div>
+                    <p className="text-sm text-muted-foreground">
+                      {selectedProduct.description || 'No description provided'}
+                    </p>
+                  </div>
+                  
+                  <div className="grid grid-cols-2 gap-4">
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Category</p>
+                      <p className="text-sm text-muted-foreground">{selectedProduct.category || 'Uncategorized'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Status</p>
+                      <p className="text-sm text-muted-foreground capitalize">{selectedProduct.status || 'active'}</p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Seller</p>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedProduct.sellerName || selectedProduct.sellerId || 'Unknown'}
+                      </p>
+                    </div>
+                    <div>
+                      <p className="text-sm font-medium text-foreground">Created</p>
+                      <p className="text-sm text-muted-foreground">
+                        {selectedProduct.createdAt ? new Date(selectedProduct.createdAt).toLocaleDateString() : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+              
+              {selectedProduct.status === PRODUCT_STATUS.BLOCKED && (
+                <div className="bg-yellow-50 border-l-4 border-yellow-400 p-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-yellow-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-yellow-700">
+                        <strong>Blocked:</strong> {selectedProduct.blockReason || 'No reason provided'}
+                      </p>
+                      <p className="text-xs text-yellow-600 mt-1">
+                        Blocked by {selectedProduct.blockedBy || 'Unknown'} on{' '}
+                        {selectedProduct.blockedAt ? new Date(selectedProduct.blockedAt).toLocaleString() : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              {selectedProduct.status === PRODUCT_STATUS.REMOVED && (
+                <div className="bg-red-50 border-l-4 border-red-400 p-4">
+                  <div className="flex">
+                    <div className="flex-shrink-0">
+                      <svg className="h-5 w-5 text-red-400" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 20 20" fill="currentColor">
+                        <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                      </svg>
+                    </div>
+                    <div className="ml-3">
+                      <p className="text-sm text-red-700">
+                        <strong>Removed:</strong> {selectedProduct.removeReason || 'No reason provided'}
+                      </p>
+                      <p className="text-xs text-red-600 mt-1">
+                        Removed by {selectedProduct.removedBy || 'Unknown'} on{' '}
+                        {selectedProduct.removedAt ? new Date(selectedProduct.removedAt).toLocaleString() : 'N/A'}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )}
+              
+              <div className="flex justify-end space-x-3">
+                {selectedProduct.status === PRODUCT_STATUS.ACTIVE && (
+                  <>
+                    <button
+                      onClick={() => handleProductAction('block', selectedProduct.id)}
+                      className="bg-yellow-600 text-white px-4 py-2 rounded hover:bg-yellow-700"
+                    >
+                      Block Product
+                    </button>
+                    <button
+                      onClick={() => handleProductAction('remove', selectedProduct.id)}
+                      className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                    >
+                      Remove Product
+                    </button>
+                  </>
+                )}
+                
+                {selectedProduct.status === PRODUCT_STATUS.BLOCKED && (
+                  <>
+                    <button
+                      onClick={() => handleProductAction('unblock', selectedProduct.id)}
+                      className="bg-green-600 text-white px-4 py-2 rounded hover:bg-green-700"
+                    >
+                      Unblock Product
+                    </button>
+                    <button
+                      onClick={() => handleProductAction('remove', selectedProduct.id)}
+                      className="bg-red-600 text-white px-4 py-2 rounded hover:bg-red-700"
+                    >
+                      Remove Product
+                    </button>
+                  </>
+                )}
+                
+                {selectedProduct.status === PRODUCT_STATUS.REMOVED && (
+                  <button
+                    onClick={() => handleProductAction('restore', selectedProduct.id)}
+                    className="bg-blue-600 text-white px-4 py-2 rounded hover:bg-blue-700"
+                  >
+                    Restore Product
+                  </button>
+                )}
+                
+                <button
+                  onClick={closeProductModal}
+                  className="bg-secondary text-secondary-foreground px-4 py-2 rounded hover:bg-secondary/90"
+                >
+                  Close
+                </button>
+              </div>
+            </div>
+          </ResponsiveAdminModal>
+        )}
+      </div>
     </AdminLayout>
   );
 };
 
 const ProductModerationPage = () => {
   return (
-    <AdminAuthGuard requiredPermission={ADMIN_PERMISSIONS.PRODUCT_MODERATION}>
+    <AdminAuthGuard permissions={[ADMIN_PERMISSIONS.PRODUCT_MODERATION]}>
       <ProductModerationContent />
     </AdminAuthGuard>
   );
 };
 
 export default ProductModerationPage;
-

@@ -429,7 +429,7 @@ const ProductsPage = () => {
                         type="checkbox"
                         checked={currentPageProducts.length > 0 && currentPageProducts.every(product => selectedProducts.includes(product.id))}
                         onChange={handleSelectAll}
-                        className="rounded border-gray-300"
+                        className="rounded border-input"
                       />
                     </th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider">
@@ -460,7 +460,7 @@ const ProductsPage = () => {
                           type="checkbox"
                           checked={selectedProducts.includes(product.id)}
                           onChange={() => handleProductSelect(product.id)}
-                          className="rounded border-gray-300"
+                          className="rounded border-input"
                         />
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap">

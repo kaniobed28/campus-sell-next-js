@@ -103,8 +103,8 @@ const StoreDashboard = () => {
         <div className="bg-card rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-blue-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">📦</span>
+              <div className="w-8 h-8 bg-primary rounded-full flex items-center justify-center">
+                <span className="text-primary-foreground font-bold text-sm">📦</span>
               </div>
             </div>
             <div className="ml-4">
@@ -117,8 +117,8 @@ const StoreDashboard = () => {
         <div className="bg-card rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-green-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">✅</span>
+              <div className="w-8 h-8 bg-success rounded-full flex items-center justify-center">
+                <span className="text-success-foreground font-bold text-sm">✅</span>
               </div>
             </div>
             <div className="ml-4">
@@ -131,8 +131,8 @@ const StoreDashboard = () => {
         <div className="bg-card rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-purple-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">💰</span>
+              <div className="w-8 h-8 bg-accent rounded-full flex items-center justify-center">
+                <span className="text-accent-foreground font-bold text-sm">💰</span>
               </div>
             </div>
             <div className="ml-4">
@@ -145,8 +145,8 @@ const StoreDashboard = () => {
         <div className="bg-card rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-orange-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">👁️</span>
+              <div className="w-8 h-8 bg-warning rounded-full flex items-center justify-center">
+                <span className="text-warning-foreground font-bold text-sm">👁️</span>
               </div>
             </div>
             <div className="ml-4">
@@ -159,8 +159,8 @@ const StoreDashboard = () => {
         <div className="bg-card rounded-lg shadow p-6">
           <div className="flex items-center">
             <div className="flex-shrink-0">
-              <div className="w-8 h-8 bg-red-500 rounded-full flex items-center justify-center">
-                <span className="text-white font-bold text-sm">💬</span>
+              <div className="w-8 h-8 bg-destructive rounded-full flex items-center justify-center">
+                <span className="text-destructive-foreground font-bold text-sm">💬</span>
               </div>
             </div>
             <div className="ml-4">

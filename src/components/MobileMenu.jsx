@@ -5,7 +5,7 @@ import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { faTimes } from "@fortawesome/free-solid-svg-icons";
 import NavLinks from "./NavLinks";
 
-const MobileMenu = ({ isMenuOpen, setIsMenuOpen, user, handleSignOut }) => {
+const MobileMenu = ({ isMenuOpen, setIsMenuOpen, user, isAdmin, handleSignOut }) => {
   const menuRef = useRef(null);
   const closeButtonRef = useRef(null);
   const firstFocusableRef = useRef(null);
@@ -137,6 +137,7 @@ const MobileMenu = ({ isMenuOpen, setIsMenuOpen, user, handleSignOut }) => {
         <div className="flex flex-col p-6 space-y-2 overflow-y-auto flex-1">
           <NavLinks
             user={user}
+            isAdmin={isAdmin}
             handleSignOut={handleSignOut}
             onLinkClick={() => setIsMenuOpen(false)}
             isMobile={true}

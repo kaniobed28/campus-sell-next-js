@@ -4,7 +4,6 @@ import Header from "../components/Header";
 import { ThemeProvider } from "../components/ThemeProvider";
 import { NotificationProvider } from "../contexts/NotificationContext";
 import { AutoSetupProvider } from "../contexts/AutoSetupProvider";
-import AutoSetupIndicator from "../components/AutoSetupIndicator";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -31,7 +30,7 @@ export default function RootLayout({ children }) {
               <main id="main-content" className="min-h-screen bg-background text-foreground">
                 {children}
               </main>
-              <AutoSetupIndicator />
+              {/* AutoSetupIndicator removed as per request since we have auto setup */}
             </AutoSetupProvider>
           </NotificationProvider>
         </ThemeProvider>

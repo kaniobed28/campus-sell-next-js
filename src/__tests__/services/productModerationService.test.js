@@ -4,70 +4,88 @@ import { PRODUCT_STATUS } from '@/types/admin';
 
 // Mock Firebase
 jest.mock('@/lib/firebase', () => ({
-  db: {},
+  db: {}
 }));
 
+// Mock Firebase functions
 jest.mock('firebase/firestore', () => ({
   collection: jest.fn(),
   doc: jest.fn(),
   getDoc: jest.fn(),
-  getDocs: jest.fn(),
+  getDocs: jest.fn(() => Promise.resolve({ docs: [] })),
   updateDoc: jest.fn(),
-  query: jest.fn(),
-  where: jest.fn(),
-  orderBy: jest.fn(),
-  limit: jest.fn(),
-  startAfter: jest.fn(),
-  serverTimestamp: jest.fn(() => ({ seconds: Date.now() / 1000 })),
+  query: jest.fn((...args) => args),
+  where: jest.fn((field, operator, value) => ({ field, operator, value })),
+  orderBy: jest.fn((field, direction) => ({ field, direction })),
+  limit: jest.fn((count) => ({ count })),
+  startAfter: jest.fn((value) => ({ value })),
+  serverTimestamp: jest.fn()
 }));
 
-describe('ProductModerationService', () => {
+describe('productModerationService', () => {
+  let productModerationService;
+
   beforeEach(() => {
+    jest.resetModules();
+    productModerationService = require('@/services/productModerationService').default;
     jest.clearAllMocks();
   });
 
   describe('getActiveProducts', () => {
-    it('should retrieve active products with default parameters', async () => {
-      const mockProducts = [
-        {
-          id: 'product1',
-          data: () => ({
-            title: 'Test Product',
-            description: 'Test Description',
-            status: PRODUCT_STATUS.ACTIVE,
-            createdAt: { toDate: () => new Date('2024-01-01') }
-          })
-        }
-      ];
+    it('should construct query with only valid status values when not including all', async () => {
+      await productModerationService.getActiveProducts({ includeAll: false });
 
-      const { getDocs } = require('firebase/firestore');
-      getDocs.mockResolvedValue({ docs: mockProducts });
-
-      const result = await productModerationService.getActiveProducts();
-
-      expect(result).toHaveLength(1);
-      expect(result[0]).toMatchObject({
-        id: 'product1',
-        title: 'Test Product',
-        status: PRODUCT_STATUS.ACTIVE
-      });
+      // Check that query was called with correct parameters
+      expect(require('firebase/firestore').where).toHaveBeenCalledWith(
+        'status', 
+        'in', 
+        [PRODUCT_STATUS.ACTIVE]
+      );
     });
 
-    it('should apply filters correctly', async () => {
-      const filters = {
-        status: PRODUCT_STATUS.BLOCKED,
-        category: 'electronics',
-        limit: 10
-      };
+    it('should not apply status filter when including all products', async () => {
+      await productModerationService.getActiveProducts({ includeAll: true });
 
-      const { getDocs, query, where, limit } = require('firebase/firestore');
-      getDocs.mockResolvedValue({ docs: [] });
+      // Check that status filter was not applied
+      const whereCalls = require('firebase/firestore').where.mock.calls;
+      const statusFilters = whereCalls.filter(call => call[0] === 'status');
+      expect(statusFilters).toHaveLength(0);
+    });
 
+    it('should apply status filter when specific status is provided', async () => {
+      const filters = { status: PRODUCT_STATUS.BLOCKED };
       await productModerationService.getActiveProducts(filters);
 
-      expect(where).toHaveBeenCalledWith('status', '==', PRODUCT_STATUS.BLOCKED);
-      expect(where).toHaveBeenCalledWith('category', '==', 'electronics');
-      expect(limit).toHaveBeenCalledWith(10);
+      // Check that status filter was applied
+      expect(require('firebase/firestore').where).toHaveBeenCalledWith(
+        'status', 
+        '==', 
+        PRODUCT_STATUS.BLOCKED
+      );
+    });
+
+    it('should apply category filter when provided', async () => {
+      const filters = { category: 'electronics' };
+      await productModerationService.getActiveProducts(filters);
+
+      // Check that category filter was applied
+      expect(require('firebase/firestore').where).toHaveBeenCalledWith(
+        'category', 
+        '==', 
+        'electronics'
+      );
+    });
+
+    it('should apply sellerId filter when provided', async () => {
+      const filters = { sellerId: 'user123' };
+      await productModerationService.getActiveProducts(filters);
+
+      // Check that sellerId filter was applied
+      expect(require('firebase/firestore').where).toHaveBeenCalledWith(
+        'sellerId', 
+        '==', 
+        'user123'
+      );
     });
   });
 

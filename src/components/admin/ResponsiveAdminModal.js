@@ -147,15 +147,15 @@ const ResponsiveAdminModal = ({
         <div
           ref={modalRef}
           className={`
-            bg-white shadow-xl ${getSizeClasses()} ${getAnimationClasses()} ${className}
+            bg-background shadow-xl ${getSizeClasses()} ${getAnimationClasses()} ${className}
             ${modalConfig.fullScreen ? '' : 'mx-4'}
           `}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-6 border-b border-gray-200">
+          <div className="flex items-center justify-between p-6 border-b border-border">
             <h2
               id="modal-title"
-              className="text-lg font-semibold text-gray-900 flex-1 mr-4"
+              className="text-lg font-semibold text-foreground flex-1 mr-4"
             >
               {title}
             </h2>
@@ -163,7 +163,7 @@ const ResponsiveAdminModal = ({
               ref={closeButtonRef}
               onClick={onClose}
               className={`
-                text-gray-400 hover:text-gray-600 focus:outline-none focus:ring-2 
+                text-muted-foreground hover:text-foreground focus:outline-none focus:ring-2 
                 focus:ring-primary focus:ring-offset-2 rounded-lg p-2
                 transition-colors duration-200
               `}
@@ -190,7 +190,7 @@ const ResponsiveAdminModal = ({
           {/* Actions */}
           {actions && (
             <div className={`
-              flex justify-end space-x-3 p-6 border-t border-gray-200 bg-gray-50
+              flex justify-end space-x-3 p-6 border-t border-border bg-muted
               ${modalConfig.fullScreen ? 'sticky bottom-0' : ''}
             `}>
               {actions}

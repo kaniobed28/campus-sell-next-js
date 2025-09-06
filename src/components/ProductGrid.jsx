@@ -1,6 +1,7 @@
 import React from "react";
 import ItemCard from "./ItemCard";
 import { useResponsiveGrid, useResponsiveSpacing, useViewport } from "@/hooks/useViewport";
+import { PRODUCT_STATUS } from "@/types/admin";
 
 /**
  * Enhanced Responsive ProductGrid component that adapts layout based on screen size
@@ -19,6 +20,14 @@ const ProductGrid = ({
 }) => {
   const { isMobile, isTablet, isDesktop } = useViewport();
   const spacing = useResponsiveSpacing();
+  
+  // Filter out inactive products (blocked or removed)
+  const activeProducts = products.filter(product => {
+    // If product has no status, consider it active
+    if (!product.status) return true;
+    // Only show active products
+    return product.status === PRODUCT_STATUS.ACTIVE;
+  });
   
   // Get responsive grid configuration
   const getGridClasses = () => {
@@ -56,7 +65,7 @@ const ProductGrid = ({
   };
   
   // If no products and empty state should be shown
-  if (products.length === 0 && showEmptyState) {
+  if (activeProducts.length === 0 && showEmptyState) {
     return (
       <div className="text-center py-12 sm:py-16 lg:py-20">
         <div className="text-4xl sm:text-5xl md:text-6xl mb-4 sm:mb-6">{emptyStateIcon}</div>
@@ -77,9 +86,9 @@ const ProductGrid = ({
         ${className}
       `}
       role="grid"
-      aria-label={`Product grid with ${products.length} items`}
+      aria-label={`Product grid with ${activeProducts.length} items`}
     >
-      {products.map((product, index) => {
+      {activeProducts.map((product, index) => {
         // Normalize product data to ensure consistent props
         const normalizedProduct = {
           id: product.id,
@@ -91,7 +100,8 @@ const ProductGrid = ({
             : parseFloat(product.price || 0).toFixed(2),
           link: product.link || `/listings/${product.id}`,
           likes: product.likes || 0,
-          views: product.views || 0
+          views: product.views || 0,
+          status: product.status
         };
 
         return (

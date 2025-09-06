@@ -13,11 +13,14 @@ import MobileMenu from "./MobileMenu";
 import DarkModeToggle from "./DarkModeToggle";
 import BasketCounter from "./BasketCounter";
 import { useViewport } from "@/hooks/useViewport";
+import { adminAuthService } from "@/services/adminAuthService";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
   const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [user, setUser] = useState(null);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminLoading, setAdminLoading] = useState(false);
   const [searchQuery, setSearchQuery] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [products, setProducts] = useState([]);
@@ -30,6 +33,28 @@ const Header = () => {
     });
     return () => unsubscribe();
   }, []);
+
+  // Check admin status when user changes
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (user && user.email) {
+        setAdminLoading(true);
+        try {
+          const admin = await adminAuthService.checkAdminStatus(user.email);
+          setIsAdmin(!!admin);
+        } catch (error) {
+          console.error("Error checking admin status:", error.message);
+          setIsAdmin(false);
+        } finally {
+          setAdminLoading(false);
+        }
+      } else {
+        setIsAdmin(false);
+      }
+    };
+
+    checkAdminStatus();
+  }, [user]);
 
   // Mock product data (replace with Firebase fetch later)
   useEffect(() => {
@@ -125,7 +150,7 @@ const Header = () => {
             </button>
           </div>
         </div>
-        </div>
+      </div>
       </header>
 
       {/* Mobile Search Modal */}
@@ -144,6 +169,7 @@ const Header = () => {
         isMenuOpen={isMenuOpen}
         setIsMenuOpen={setIsMenuOpen}
         user={user}
+        isAdmin={isAdmin}
         handleSignOut={handleSignOut}
       />
     </>

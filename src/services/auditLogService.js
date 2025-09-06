@@ -14,6 +14,7 @@ import {
   endBefore
 } from 'firebase/firestore';
 import { AUDIT_ACTION_TYPES } from '@/types/admin';
+import { convertTimestamp } from '@/utils/timestampUtils';
 
 class AuditLogService {
   constructor() {
@@ -100,11 +101,14 @@ class AuditLogService {
 
       const querySnapshot = await getDocs(q);
       
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        timestamp: doc.data().timestamp?.toDate() || null
-      }));
+      return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          timestamp: convertTimestamp(data.timestamp)
+        };
+      });
     } catch (error) {
       console.error('Failed to get audit logs:', error);
       throw new Error('Failed to retrieve audit logs');
@@ -124,11 +128,14 @@ class AuditLogService {
 
       const querySnapshot = await getDocs(q);
       
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        timestamp: doc.data().timestamp?.toDate() || null
-      }));
+      return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          timestamp: convertTimestamp(data.timestamp)
+        };
+      });
     } catch (error) {
       console.error('Failed to get recent audit logs:', error);
       throw new Error('Failed to retrieve recent audit logs');
@@ -149,11 +156,14 @@ class AuditLogService {
 
       const querySnapshot = await getDocs(q);
       
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        timestamp: doc.data().timestamp?.toDate() || null
-      }));
+      return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          timestamp: convertTimestamp(data.timestamp)
+        };
+      });
     } catch (error) {
       console.error('Failed to get admin logs:', error);
       throw new Error('Failed to retrieve admin logs');
@@ -175,11 +185,14 @@ class AuditLogService {
 
       const querySnapshot = await getDocs(q);
       
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        timestamp: doc.data().timestamp?.toDate() || null
-      }));
+      return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          timestamp: convertTimestamp(data.timestamp)
+        };
+      });
     } catch (error) {
       console.error('Failed to get target logs:', error);
       throw new Error('Failed to retrieve target logs');

@@ -14,6 +14,8 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 import { PRODUCT_STATUS } from '@/types/admin';
+import { convertTimestamp } from '@/utils/timestampUtils';
+import { cleanQueryArray } from '@/utils/firebaseUtils';
 
 class ProductModerationService {
   constructor() {
@@ -29,8 +31,9 @@ class ProductModerationService {
       let q = query(this.productsCollection);
 
       // Filter for active products by default
+      // Fix: Remove undefined and null values from the status array
       if (!filters.includeAll) {
-        q = query(q, where('status', 'in', [PRODUCT_STATUS.ACTIVE, undefined, null]));
+        q = query(q, where('status', 'in', [PRODUCT_STATUS.ACTIVE]));
       }
 
       // Apply additional filters
@@ -64,14 +67,17 @@ class ProductModerationService {
 
       const querySnapshot = await getDocs(q);
       
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || null,
-        updatedAt: doc.data().updatedAt?.toDate() || null,
-        blockedAt: doc.data().blockedAt?.toDate() || null,
-        removedAt: doc.data().removedAt?.toDate() || null
-      }));
+      return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: convertTimestamp(data.createdAt),
+          updatedAt: convertTimestamp(data.updatedAt),
+          blockedAt: convertTimestamp(data.blockedAt),
+          removedAt: convertTimestamp(data.removedAt)
+        };
+      });
     } catch (error) {
       console.error('Failed to get active products:', error);
       throw new Error('Failed to retrieve active products');
@@ -138,10 +144,10 @@ class ProductModerationService {
         return {
           id: productSnapshot.id,
           ...productData,
-          createdAt: productData.createdAt?.toDate() || null,
-          updatedAt: productData.updatedAt?.toDate() || null,
-          blockedAt: productData.blockedAt?.toDate() || null,
-          removedAt: productData.removedAt?.toDate() || null
+          createdAt: convertTimestamp(productData.createdAt),
+          updatedAt: convertTimestamp(productData.updatedAt),
+          blockedAt: convertTimestamp(productData.blockedAt),
+          removedAt: convertTimestamp(productData.removedAt)
         };
       }
       
@@ -290,14 +296,17 @@ class ProductModerationService {
 
       const querySnapshot = await getDocs(q);
       
-      return querySnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data(),
-        createdAt: doc.data().createdAt?.toDate() || null,
-        updatedAt: doc.data().updatedAt?.toDate() || null,
-        blockedAt: doc.data().blockedAt?.toDate() || null,
-        removedAt: doc.data().removedAt?.toDate() || null
-      }));
+      return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          id: doc.id,
+          ...data,
+          createdAt: convertTimestamp(data.createdAt),
+          updatedAt: convertTimestamp(data.updatedAt),
+          blockedAt: convertTimestamp(data.blockedAt),
+          removedAt: convertTimestamp(data.removedAt)
+        };
+      });
     } catch (error) {
       console.error('Failed to get products by status:', error);
       throw new Error('Failed to retrieve products by status');
@@ -340,21 +349,23 @@ class ProductModerationService {
       const productMap = new Map();
       
       titleResults.docs.forEach(doc => {
+        const data = doc.data();
         productMap.set(doc.id, {
           id: doc.id,
-          ...doc.data(),
-          createdAt: doc.data().createdAt?.toDate() || null,
-          updatedAt: doc.data().updatedAt?.toDate() || null
+          ...data,
+          createdAt: convertTimestamp(data.createdAt),
+          updatedAt: convertTimestamp(data.updatedAt)
         });
       });
 
       descResults.docs.forEach(doc => {
         if (!productMap.has(doc.id)) {
+          const data = doc.data();
           productMap.set(doc.id, {
             id: doc.id,
-            ...doc.data(),
-            createdAt: doc.data().createdAt?.toDate() || null,
-            updatedAt: doc.data().updatedAt?.toDate() || null
+            ...data,
+            createdAt: convertTimestamp(data.createdAt),
+            updatedAt: convertTimestamp(data.updatedAt)
           });
         }
       });

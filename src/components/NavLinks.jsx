@@ -16,11 +16,12 @@ import {
   faSignOutAlt,
   faSignInAlt,
   faShoppingCart,
-  faClipboardList
+  faClipboardList,
+  faUserShield
 } from "@fortawesome/free-solid-svg-icons";
 import { useViewport } from "@/hooks/useViewport";
 
-const NavLinks = forwardRef(({ user, handleSignOut, onLinkClick, isMobile = false }, ref) => {
+const NavLinks = forwardRef(({ user, isAdmin, handleSignOut, onLinkClick, isMobile = false }, ref) => {
   const router = useRouter();
   const { isTouchDevice } = useViewport();
   const [modalState, setModalState] = useState({
@@ -108,15 +109,28 @@ const NavLinks = forwardRef(({ user, handleSignOut, onLinkClick, isMobile = fals
     : "px-4 py-2 text-destructive hover:text-destructive/80 hover:bg-destructive/10 transition-all duration-200 rounded-md focus:outline-none focus:ring-2 focus:ring-destructive focus:ring-offset-2 focus:ring-offset-background font-medium";
 
   // Navigation items configuration with icons
-  const navigationItems = [
+  const baseNavigationItems = [
     { href: "/categories", label: "Categories", icon: faList },
     { href: "/listings", label: "Listings", icon: faStore },
-    ...(user ? [
-      { href: "/orders", label: "My Orders", icon: faClipboardList },
-      { href: "/store", label: "My Store", icon: faStore }
-    ] : []),
-    { href: "/setup", label: "Setup", icon: faCog },
     { href: "/contact", label: "Contact Us", icon: faEnvelope }
+  ];
+
+  // Additional items for authenticated users
+  const authenticatedUserItems = [
+    { href: "/orders", label: "My Orders", icon: faClipboardList },
+    { href: "/store", label: "My Store", icon: faStore }
+  ];
+
+  // Admin-specific items
+  const adminItems = [
+    { href: "/admin", label: "Admin Dashboard", icon: faUserShield }
+  ];
+
+  // Construct navigation items based on user role
+  const navigationItems = [
+    ...baseNavigationItems,
+    ...(user ? authenticatedUserItems : []),
+    ...(isAdmin ? adminItems : [])
   ];
 
   // Enhanced link component with hover effects

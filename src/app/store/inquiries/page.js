@@ -116,10 +116,10 @@ const InquiriesPage = () => {
   if (error) {
     return (
       <div className="text-center py-12">
-        <div className="text-red-600 text-xl mb-4">⚠️ {error}</div>
+        <div className="text-destructive text-xl mb-4">⚠️ {error}</div>
         <button
           onClick={loadInquiries}
-          className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700"
+          className="bg-primary text-primary-foreground px-4 py-2 rounded-lg hover:opacity-90"
         >
           Try Again
         </button>
@@ -136,15 +136,15 @@ const InquiriesPage = () => {
       {/* Header */}
       <div className="flex flex-col md:flex-row md:justify-between md:items-center space-y-4 md:space-y-0">
         <div>
-          <h2 className="text-2xl font-bold text-gray-900">
+          <h2 className="text-2xl font-bold text-foreground">
             Inquiries
             {unreadCount > 0 && (
-              <span className="ml-2 bg-red-500 text-white text-sm rounded-full px-2 py-1">
+              <span className="ml-2 bg-destructive text-destructive-foreground text-sm rounded-full px-2 py-1">
                 {unreadCount} unread
               </span>
             )}
           </h2>
-          <p className="text-gray-600">Manage messages from potential buyers</p>
+          <p className="text-muted-foreground">Manage messages from potential buyers</p>
         </div>
         
         <div className="flex space-x-2">
@@ -152,8 +152,8 @@ const InquiriesPage = () => {
             onClick={() => setView("list")}
             className={`px-4 py-2 rounded-md text-sm font-medium ${
               view === "list" 
-                ? "bg-blue-600 text-white" 
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                ? "bg-primary text-primary-foreground" 
+                : "bg-muted text-muted-foreground hover:bg-muted/80"
             }`}
           >
             📋 List View
@@ -162,8 +162,8 @@ const InquiriesPage = () => {
             onClick={() => setView("stats")}
             className={`px-4 py-2 rounded-md text-sm font-medium ${
               view === "stats" 
-                ? "bg-blue-600 text-white" 
-                : "bg-gray-100 text-gray-700 hover:bg-gray-200"
+                ? "bg-primary text-primary-foreground" 
+                : "bg-muted text-muted-foreground hover:bg-muted/80"
             }`}
           >
             📊 Statistics
@@ -213,15 +213,15 @@ const InquiriesPage = () => {
       )}
 
       {/* Demo Notice */}
-      <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
+      <div className="bg-info/10 border border-info rounded-lg p-4">
         <div className="flex items-center">
           <div className="flex-shrink-0">
-            <div className="w-6 h-6 bg-blue-500 rounded-full flex items-center justify-center">
-              <span className="text-white font-bold text-xs">ℹ️</span>
+            <div className="w-6 h-6 bg-info rounded-full flex items-center justify-center">
+              <span className="text-info-foreground font-bold text-xs">ℹ️</span>
             </div>
           </div>
           <div className="ml-3">
-            <p className="text-sm text-blue-800">
+            <p className="text-sm text-info-foreground">
               <strong>Demo Mode:</strong> This is showing mock inquiry data for demonstration. 
               In production, this would display real buyer inquiries and allow actual messaging.
             </p>

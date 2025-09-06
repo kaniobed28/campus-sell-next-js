@@ -54,10 +54,10 @@ const ResponsiveAdminTable = ({
 
   if (loading) {
     return (
-      <div className={`bg-white rounded-lg shadow overflow-hidden ${className}`}>
+      <div className={`bg-card rounded-lg shadow overflow-hidden ${className}`}>
         <div className="p-6 text-center">
           <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto mb-4"></div>
-          <p className="text-gray-600">Loading...</p>
+          <p className="text-muted-foreground">Loading...</p>
         </div>
       </div>
     );
@@ -65,8 +65,8 @@ const ResponsiveAdminTable = ({
 
   if (data.length === 0) {
     return (
-      <div className={`bg-white rounded-lg shadow overflow-hidden ${className}`}>
-        <div className="p-6 text-center text-gray-500">
+      <div className={`bg-card rounded-lg shadow overflow-hidden ${className}`}>
+        <div className="p-6 text-center text-muted-foreground">
           {emptyMessage}
         </div>
       </div>
@@ -80,7 +80,7 @@ const ResponsiveAdminTable = ({
         {data.map((row, index) => (
           <div
             key={row.id || index}
-            className={`bg-white rounded-lg shadow p-4 border border-gray-200 ${
+            className={`bg-card rounded-lg shadow p-4 border border-border ${
               onRowClick ? 'cursor-pointer hover:shadow-md transition-shadow' : ''
             }`}
             onClick={() => onRowClick && onRowClick(row)}
@@ -92,7 +92,7 @@ const ResponsiveAdminTable = ({
                   type="checkbox"
                   checked={selectedRows.includes(row.id)}
                   onChange={(e) => handleRowSelect(row.id, e.target.checked)}
-                  className="rounded border-gray-300 mr-3"
+                  className="rounded border-border text-primary focus:ring-primary"
                   style={{ 
                     minWidth: touchConfig.minTouchTarget,
                     minHeight: touchConfig.minTouchTarget 
@@ -105,10 +105,10 @@ const ResponsiveAdminTable = ({
             <div className="space-y-2">
               {visibleColumns.map((column) => (
                 <div key={column.key} className="flex justify-between items-start">
-                  <span className="text-sm font-medium text-gray-500 min-w-0 flex-shrink-0 mr-3">
+                  <span className="text-sm font-medium text-muted-foreground min-w-0 flex-shrink-0 mr-3">
                     {column.label}:
                   </span>
-                  <div className="text-sm text-gray-900 text-right min-w-0 flex-1">
+                  <div className="text-sm text-foreground text-right min-w-0 flex-1">
                     {column.render ? column.render(row[column.key], row) : row[column.key]}
                   </div>
                 </div>
@@ -122,10 +122,10 @@ const ResponsiveAdminTable = ({
 
   // Desktop/tablet table view
   return (
-    <div className={`bg-white rounded-lg shadow overflow-hidden ${className}`}>
+    <div className={`bg-card rounded-lg shadow overflow-hidden ${className}`}>
       <div className="overflow-x-auto">
-        <table className="min-w-full divide-y divide-gray-200">
-          <thead className="bg-gray-50">
+        <table className="min-w-full divide-y divide-border">
+          <thead className="bg-muted">
             <tr>
               {showSelection && (
                 <th className="px-6 py-3 text-left">
@@ -133,7 +133,7 @@ const ResponsiveAdminTable = ({
                     type="checkbox"
                     checked={selectedRows.length === data.length && data.length > 0}
                     onChange={(e) => handleSelectAll(e.target.checked)}
-                    className="rounded border-gray-300"
+                    className="rounded border-border text-primary focus:ring-primary"
                     aria-label="Select all rows"
                   />
                 </th>
@@ -141,8 +141,8 @@ const ResponsiveAdminTable = ({
               {visibleColumns.map((column) => (
                 <th
                   key={column.key}
-                  className={`px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider ${
-                    column.sortable ? 'cursor-pointer hover:bg-gray-100' : ''
+                  className={`px-6 py-3 text-left text-xs font-medium text-muted-foreground uppercase tracking-wider ${
+                    column.sortable ? 'cursor-pointer hover:bg-muted/80' : ''
                   }`}
                   onClick={() => column.sortable && handleSort(column.key)}
                   role={column.sortable ? 'button' : undefined}
@@ -167,7 +167,7 @@ const ResponsiveAdminTable = ({
                           className={`w-3 h-3 ${
                             sortColumn === column.key && sortDirection === 'asc'
                               ? 'text-primary'
-                              : 'text-gray-300'
+                              : 'text-muted-foreground'
                           }`}
                           fill="currentColor"
                           viewBox="0 0 20 20"
@@ -181,12 +181,12 @@ const ResponsiveAdminTable = ({
               ))}
             </tr>
           </thead>
-          <tbody className="bg-white divide-y divide-gray-200">
+          <tbody className="bg-card divide-y divide-border">
             {data.map((row, index) => (
               <tr
                 key={row.id || index}
                 className={`${
-                  onRowClick ? 'cursor-pointer hover:bg-gray-50' : ''
+                  onRowClick ? 'cursor-pointer hover:bg-muted/50' : ''
                 } transition-colors`}
                 onClick={() => onRowClick && onRowClick(row)}
                 role={onRowClick ? 'button' : undefined}
@@ -204,7 +204,7 @@ const ResponsiveAdminTable = ({
                       type="checkbox"
                       checked={selectedRows.includes(row.id)}
                       onChange={(e) => handleRowSelect(row.id, e.target.checked)}
-                      className="rounded border-gray-300"
+                      className="rounded border-border text-primary focus:ring-primary"
                       aria-label={`Select row ${index + 1}`}
                     />
                   </td>
@@ -212,9 +212,9 @@ const ResponsiveAdminTable = ({
                 {visibleColumns.map((column) => (
                   <td
                     key={column.key}
-                    className={`px-6 py-4 ${
-                      column.nowrap !== false ? 'whitespace-nowrap' : ''
-                    } ${column.className || ''}`}
+                    className={`px-6 py-4 whitespace-nowrap text-sm ${
+                      column.key === 'actions' ? 'text-right' : 'text-foreground'
+                    }`}
                   >
                     {column.render ? column.render(row[column.key], row) : row[column.key]}
                   </td>

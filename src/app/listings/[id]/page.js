@@ -85,7 +85,7 @@ const ListingPage = () => {
   if (profileLoading || sellerLoading) return <Loading message="Loading data..." />;
 
   return (
-    <div className="container mx-auto px-4 py-12 max-w-7xl">
+    <div className="container mx-auto px-4 py-12 max-w-7xl" data-testid="listing-container">
       <Notification type="error" message={cartError} />
       <Notification type="success" message={successMessage} />
       <Notification
@@ -107,7 +107,7 @@ const ListingPage = () => {
         images={Array.isArray(imageProp) ? imageProp : [imageProp]}
       />
 
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 bg-white p-8 rounded-2xl shadow-xl border border-gray-100">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 card-base p-8 rounded-2xl shadow-xl border">
         <div onClick={() => setIsLightboxOpen(true)} style={{ cursor: "pointer" }}>
           <ProductImage image={imageProp} name={product.name} />
         </div>
@@ -124,7 +124,7 @@ const ListingPage = () => {
       <div className="mt-8 text-center">
         <button
           onClick={handleGoToBasket}
-          className="bg-blue-600 text-white px-6 py-3 rounded hover:bg-blue-700 font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
+          className="btn-primary px-6 py-3 rounded font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isLoading}
         >
           Go to Basket
@@ -136,4 +136,3 @@ const ListingPage = () => {
 };
 
 export default ListingPage;
-

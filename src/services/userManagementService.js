@@ -14,6 +14,7 @@ import {
   serverTimestamp
 } from 'firebase/firestore';
 import { USER_STATUS } from '@/types/admin';
+import { convertTimestamp } from '@/utils/timestampUtils';
 
 class UserManagementService {
   constructor() {
@@ -54,13 +55,16 @@ class UserManagementService {
 
       const querySnapshot = await getDocs(q);
       
-      return querySnapshot.docs.map(doc => ({
-        uid: doc.id,
-        ...doc.data(),
-        registrationDate: doc.data().registrationDate?.toDate() || null,
-        lastLogin: doc.data().lastLogin?.toDate() || null,
-        suspendedAt: doc.data().suspendedAt?.toDate() || null
-      }));
+      return querySnapshot.docs.map(doc => {
+        const data = doc.data();
+        return {
+          uid: doc.id,
+          ...data,
+          registrationDate: convertTimestamp(data.registrationDate),
+          lastLogin: convertTimestamp(data.lastLogin),
+          suspendedAt: convertTimestamp(data.suspendedAt)
+        };
+      });
     } catch (error) {
       console.error('Failed to get users:', error);
       throw new Error('Failed to retrieve users');
@@ -80,9 +84,9 @@ class UserManagementService {
         return {
           uid: userSnapshot.id,
           ...userData,
-          registrationDate: userData.registrationDate?.toDate() || null,
-          lastLogin: userData.lastLogin?.toDate() || null,
-          suspendedAt: userData.suspendedAt?.toDate() || null
+          registrationDate: convertTimestamp(userData.registrationDate),
+          lastLogin: convertTimestamp(userData.lastLogin),
+          suspendedAt: convertTimestamp(userData.suspendedAt)
         };
       }
       

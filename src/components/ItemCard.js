@@ -3,6 +3,7 @@ import Link from "next/link";
 import { Button } from "./ui/Button";
 import { useViewport, useResponsiveSpacing } from "@/hooks/useViewport";
 import { ProductImageContainer } from "./ResponsiveImageContainer";
+import { PRODUCT_STATUS } from "@/types/admin";
 // import QuickAddToBasket from "./QuickAddToBasket"; // Temporarily disabled
 
 const ItemCard = ({ 
@@ -14,10 +15,14 @@ const ItemCard = ({
   link, 
   likes, 
   views, 
+  status,
   variant = "default" // "default", "compact", "featured"
 }) => {
   const { isMobile, isTablet, isDesktop, isTouchDevice } = useViewport();
   const spacing = useResponsiveSpacing();
+  
+  // Check if product is active
+  const isProductActive = !status || status === PRODUCT_STATUS.ACTIVE;
   
   // Get variant-specific configurations
   const getVariantConfig = () => {
@@ -76,6 +81,11 @@ const ItemCard = ({
         : "(max-width: 640px) 100vw, (max-width: 768px) 50vw, (max-width: 1024px) 33vw, 25vw"
     };
   };
+  
+  // If product is not active, don't render it
+  if (!isProductActive) {
+    return null;
+  }
   
   return (
     <article 

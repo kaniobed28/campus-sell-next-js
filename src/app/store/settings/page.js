@@ -79,56 +79,58 @@ const SettingsPage = () => {
   }
 
   return (
-    <div className="space-y-6">
-      <SettingsNotification
-        message={notification.message}
-        type={notification.type}
-        onClose={clearNotification}
-      />
+    <React.Fragment>
+      <div className="space-y-6">
+        <SettingsNotification
+          message={notification.message}
+          type={notification.type}
+          onClose={clearNotification}
+        />
 
-      {/* Header */}
-      <div>
-        <h1 className="text-2xl font-bold text-foreground">Store Settings</h1>
-        <p className="text-muted-foreground">Manage your store policies, auto-responses, and preferences</p>
-      </div>
-
-      {/* Main Content */}
-      <div className="bg-card rounded-lg shadow">
-        <SettingsTabs activeTab={activeTab} onTabChange={setActiveTab} />
-
-        {/* Tab Content */}
-        <div className="p-6">
-          {activeTab === "policies" && (
-            <div role="tabpanel" id="policies-panel" aria-labelledby="policies-tab">
-              <PolicySettings
-                policies={settings.policies}
-                onUpdate={handlePolicyUpdate}
-              />
-            </div>
-          )}
-          
-          {activeTab === "autoresponses" && (
-            <div role="tabpanel" id="autoresponses-panel" aria-labelledby="autoresponses-tab">
-              <AutoResponseManager
-                autoResponses={settings.autoResponses}
-                onUpdate={handleAutoResponseUpdate}
-              />
-            </div>
-          )}
-          
-          {activeTab === "notifications" && (
-            <div role="tabpanel" id="notifications-panel" aria-labelledby="notifications-tab">
-              <NotificationSettings
-                notifications={settings.notifications}
-                onUpdate={handleNotificationUpdate}
-              />
-            </div>
-          )}
+        {/* Header */}
+        <div>
+          <h1 className="text-2xl font-bold text-foreground">Store Settings</h1>
+          <p className="text-muted-foreground">Manage your store policies, auto-responses, and preferences</p>
         </div>
-      </div>
 
-      <SettingsHelpSection />
-    </div>
+        {/* Main Content */}
+        <div className="bg-card rounded-lg shadow">
+          <SettingsTabs activeTab={activeTab} onTabChange={setActiveTab} />
+
+          {/* Tab Content */}
+          <div className="p-6">
+            {activeTab === "policies" && (
+              <div role="tabpanel" id="policies-panel" aria-labelledby="policies-tab">
+                <PolicySettings
+                  policies={settings.policies}
+                  onUpdate={handlePolicyUpdate}
+                />
+              </div>
+            )}
+            
+            {activeTab === "autoresponses" && (
+              <div role="tabpanel" id="autoresponses-panel" aria-labelledby="autoresponses-tab">
+                <AutoResponseManager
+                  autoResponses={settings.autoResponses}
+                  onUpdate={handleAutoResponseUpdate}
+                />
+              </div>
+            )}
+            
+            {activeTab === "notifications" && (
+              <div role="tabpanel" id="notifications-panel" aria-labelledby="notifications-tab">
+                <NotificationSettings
+                  notifications={settings.notifications}
+                  onUpdate={handleNotificationUpdate}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+
+        <SettingsHelpSection />
+      </div>
+    </React.Fragment>
   );
 };
 

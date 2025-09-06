@@ -242,23 +242,23 @@ const AdminLayout = ({ children, title = "Admin Dashboard", breadcrumbs = [] }) 
                     {adminData?.email?.charAt(0).toUpperCase()}
                   </button>
 
-                {userMenuOpen && (
-                  <div className="absolute right-0 mt-2 w-64 bg-card rounded-lg shadow-lg border border-border z-10">
-                    <div className="p-4 border-b border-border">
-                      <p className="text-sm font-medium text-foreground truncate">{adminData?.email}</p>
-                      <p className="text-xs text-muted-foreground capitalize">{adminData?.role} Admin</p>
+                  {userMenuOpen && (
+                    <div className="absolute right-0 mt-2 w-64 bg-card rounded-lg shadow-lg border border-border z-10">
+                      <div className="p-4 border-b border-border">
+                        <p className="text-sm font-medium text-foreground truncate">{adminData?.email}</p>
+                        <p className="text-xs text-muted-foreground capitalize">{adminData?.role} Admin</p>
+                      </div>
+                      <div className="p-2">
+                        <button
+                          onClick={signOut}
+                          className="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg transition-colors duration-200"
+                          style={{ minHeight: touchConfig.minTouchTarget }}
+                        >
+                          Sign Out
+                        </button>
+                      </div>
                     </div>
-                    <div className="p-2">
-                      <button
-                        onClick={signOut}
-                        className="w-full text-left px-4 py-2 text-sm text-destructive hover:bg-destructive/10 rounded-lg transition-colors duration-200"
-                        style={{ minHeight: touchConfig.minTouchTarget }}
-                      >
-                        Sign Out
-                      </button>
-                    </div>
-                  </div>
-                )}
+                  )}
                 </div>
               </div>
             )}

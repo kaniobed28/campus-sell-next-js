@@ -29,7 +29,7 @@ const ResponsiveAdminForm = ({
       </div>
       
       {stickyActions && formConfig.stickyActions && (
-        <div className="sticky bottom-0 bg-white border-t border-gray-200 p-4 mt-6 -mx-6 -mb-6">
+        <div className="sticky bottom-0 bg-background border-t border-border p-4 mt-6 -mx-6 -mb-6">
           <div className="flex justify-end space-x-3">
             {stickyActions}
           </div>
@@ -52,21 +52,21 @@ const FormField = ({
   return (
     <div className={`space-y-2 ${className}`}>
       {label && (
-        <label className="block text-sm font-medium text-gray-700">
+        <label className="block text-sm font-medium text-foreground">
           {label}
-          {required && <span className="text-red-500 ml-1" aria-label="required">*</span>}
+          {required && <span className="text-destructive ml-1" aria-label="required">*</span>}
         </label>
       )}
       
       {description && (
-        <p className="text-sm text-gray-500">{description}</p>
+        <p className="text-sm text-muted-foreground">{description}</p>
       )}
       
       <div className="relative">
         {React.cloneElement(children, {
           className: `${children.props.className || ''} ${
-            error ? 'border-red-300 focus:border-red-500 focus:ring-red-500' : 
-            'border-gray-300 focus:border-primary focus:ring-primary'
+            error ? 'border-destructive focus:border-destructive focus:ring-destructive' : 
+            'border-border focus:border-primary focus:ring-primary'
           }`,
           style: {
             minHeight: touchConfig.minTouchTarget,
@@ -76,7 +76,7 @@ const FormField = ({
       </div>
       
       {error && (
-        <p className="text-sm text-red-600" role="alert">
+        <p className="text-sm text-destructive" role="alert">
           {error}
         </p>
       )}
@@ -113,9 +113,9 @@ const FormButton = ({
 
   const variantClasses = {
     primary: 'bg-primary text-primary-foreground hover:bg-primary/90',
-    secondary: 'bg-gray-600 text-white hover:bg-gray-700',
-    outline: 'border border-gray-300 text-gray-700 hover:bg-gray-50',
-    danger: 'bg-red-600 text-white hover:bg-red-700'
+    secondary: 'bg-muted text-foreground hover:bg-muted/80',
+    outline: 'border border-border text-foreground hover:bg-muted',
+    danger: 'bg-destructive text-destructive-foreground hover:bg-destructive/90'
   };
 
   const sizeClasses = {
@@ -167,8 +167,8 @@ const FormInput = React.forwardRef(({
       type={type}
       placeholder={placeholder}
       className={`
-        w-full px-3 py-2 border rounded-md shadow-sm
-        focus:outline-none focus:ring-2 focus:ring-offset-2
+        w-full px-3 py-2 border border-border rounded-md shadow-sm bg-background text-foreground
+        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary
         transition-colors duration-200
         ${className}
       `}
@@ -194,8 +194,8 @@ const FormTextarea = React.forwardRef(({
       rows={rows}
       placeholder={placeholder}
       className={`
-        w-full px-3 py-2 border rounded-md shadow-sm
-        focus:outline-none focus:ring-2 focus:ring-offset-2
+        w-full px-3 py-2 border border-border rounded-md shadow-sm bg-background text-foreground
+        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary
         transition-colors duration-200 resize-vertical
         ${className}
       `}
@@ -211,20 +211,15 @@ const FormSelect = React.forwardRef(({
   className = "",
   ...props
 }, ref) => {
-  const { touchConfig } = useAdminResponsive();
-
   return (
     <select
       ref={ref}
       className={`
-        w-full px-3 py-2 border rounded-md shadow-sm
-        focus:outline-none focus:ring-2 focus:ring-offset-2
-        transition-colors duration-200 bg-white
+        w-full px-3 py-2 border border-border rounded-md shadow-sm bg-background text-foreground
+        focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-primary
+        transition-colors duration-200
         ${className}
       `}
-      style={{
-        minHeight: touchConfig.minTouchTarget
-      }}
       {...props}
     >
       {children}
@@ -234,12 +229,12 @@ const FormSelect = React.forwardRef(({
 
 FormSelect.displayName = 'FormSelect';
 
-// Export all components
-ResponsiveAdminForm.Field = FormField;
-ResponsiveAdminForm.Actions = FormActions;
-ResponsiveAdminForm.Button = FormButton;
-ResponsiveAdminForm.Input = FormInput;
-ResponsiveAdminForm.Textarea = FormTextarea;
-ResponsiveAdminForm.Select = FormSelect;
-
-export default ResponsiveAdminForm;
+export {
+  ResponsiveAdminForm,
+  FormField,
+  FormActions,
+  FormButton,
+  FormInput,
+  FormTextarea,
+  FormSelect
+};

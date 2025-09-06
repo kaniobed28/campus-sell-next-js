@@ -1,11 +1,14 @@
-import React from "react";
+import React, { useState, useEffect } from "react";
 import ProductGrid from "./ProductGrid";
-import products from "@/dummyData/products";
 import { useViewport, useResponsiveSpacing } from "@/hooks/useViewport";
+import { realtimeProductService } from "@/services/realtimeProductService";
+import { PRODUCT_STATUS } from "@/types/admin";
 
 const FeaturedListingsSection = () => {
   const { isMobile, isTablet, isDesktop } = useViewport();
   const spacing = useResponsiveSpacing();
+  const [products, setProducts] = useState([]);
+  const [loading, setLoading] = useState(true);
   
   // Adaptive product count based on screen size
   const getProductCount = () => {
@@ -14,21 +17,34 @@ const FeaturedListingsSection = () => {
     return 8;
   };
   
-  // Sort products by views in descending order and take responsive amount
-  const topLikedProducts = [...products]
-    .sort((a, b) => b.views - a.views)
-    .slice(0, getProductCount())
-    .map((item) => ({
-      ...item,
-      // Normalize image: use first URL from imageUrls if present, otherwise use image
-      image: Array.isArray(item.imageUrls) && item.imageUrls.length > 0
-        ? item.imageUrls[0]
-        : item.image || "/default-image.jpg",
-      description: item.category,
-      link: `/listings/${item.id}`,
-      likes: item.likes || 0,
-      views: item.views || 0
-    }));
+  useEffect(() => {
+    // Subscribe to real-time active products
+    const unsubscribe = realtimeProductService.subscribeToActiveProducts((productsData) => {
+      // Sort products by views in descending order and take responsive amount
+      const topLikedProducts = [...productsData]
+        .sort((a, b) => (b.views || 0) - (a.views || 0))
+        .slice(0, getProductCount())
+        .map((item) => ({
+          ...item,
+          // Normalize image: use first URL from imageUrls if present, otherwise use image
+          image: Array.isArray(item.imageUrls) && item.imageUrls.length > 0
+            ? item.imageUrls[0]
+            : item.image || "/default-image.jpg",
+          description: item.category || item.description || "No category",
+          link: `/listings/${item.id}`,
+          likes: item.likes || 0,
+          views: item.views || 0
+        }));
+      
+      setProducts(topLikedProducts);
+      setLoading(false);
+    });
+    
+    // Cleanup subscription on unmount
+    return () => {
+      unsubscribe();
+    };
+  }, [isMobile, isTablet, isDesktop]);
 
   return (
     <section className="py-12 sm:py-16 lg:py-20 bg-background text-foreground theme-transition">
@@ -45,14 +61,14 @@ const FeaturedListingsSection = () => {
         
         {/* Enhanced responsive product grid */}
         <ProductGrid 
-          products={topLikedProducts}
+          products={products}
           emptyStateMessage="No featured listings available"
           emptyStateIcon="⭐"
           variant="featured"
         />
         
         {/* View more link for mobile users */}
-        {isMobile && topLikedProducts.length >= 4 && (
+        {isMobile && products.length >= 4 && (
           <div className="text-center mt-6">
             <a
               href="/listings"
