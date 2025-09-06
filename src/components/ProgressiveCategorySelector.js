@@ -89,6 +89,7 @@ const ProgressiveCategorySelector = ({
     console.log('ProgressiveCategorySelector - Category selected:', categoryId, category);
     console.log('Available options:', categoryOptions);
     
+    // Pass complete category object instead of just ID
     onCategoryChange(categoryId, category);
     
     // Clear subcategory when category changes
@@ -101,6 +102,7 @@ const ProgressiveCategorySelector = ({
     const subcategoryId = e.target.value;
     const subcategory = subcategoryOptions.find(opt => opt.value === subcategoryId);
     
+    // Pass complete subcategory object instead of just ID
     onSubcategoryChange(subcategoryId, subcategory);
   };
 

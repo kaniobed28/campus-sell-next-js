@@ -12,6 +12,7 @@ const useSellStore = create((set, get) => ({
     subcategoryId: "",
     image: [],
   },
+  // Store complete category objects instead of just IDs
   selectedCategory: null,
   selectedSubcategory: null,
   uploadProgress: 0,
@@ -31,7 +32,7 @@ const useSellStore = create((set, get) => ({
         categoryId,
         subcategoryId: "", // Clear subcategory when category changes
       },
-      selectedCategory: category,
+      selectedCategory: category, // Store complete category object
       selectedSubcategory: null,
       validationErrors: { 
         ...state.validationErrors, 
@@ -43,7 +44,7 @@ const useSellStore = create((set, get) => ({
   setSubcategory: (subcategoryId, subcategory) =>
     set((state) => ({
       formData: { ...state.formData, subcategoryId },
-      selectedSubcategory: subcategory,
+      selectedSubcategory: subcategory, // Store complete subcategory object
       validationErrors: { ...state.validationErrors, subcategoryId: "" },
     })),
 
@@ -182,21 +183,24 @@ const useSellStore = create((set, get) => ({
     try {
       const { selectedCategory, selectedSubcategory } = get();
       
-      // Build category path for breadcrumbs and navigation
+      // Build complete category path for breadcrumbs and navigation
       const categoryPath = [];
       const categoryNames = [];
+      const categorySlugs = [];
       
       if (selectedCategory) {
-        categoryPath.push(selectedCategory.id);
-        categoryNames.push(selectedCategory.name);
+        categoryPath.push(selectedCategory.value || selectedCategory.id);
+        categoryNames.push(selectedCategory.label || selectedCategory.name);
+        categorySlugs.push(selectedCategory.slug);
         
         if (selectedSubcategory) {
-          categoryPath.push(selectedSubcategory.id);
-          categoryNames.push(selectedSubcategory.name);
+          categoryPath.push(selectedSubcategory.value || selectedSubcategory.id);
+          categoryNames.push(selectedSubcategory.label || selectedSubcategory.name);
+          categorySlugs.push(selectedSubcategory.slug);
         }
       }
 
-      // Create clean product data with no undefined values
+      // Create clean product data with complete category information
       const cleanProductData = {
         // Core product information
         title: productData.title || '',
@@ -231,13 +235,14 @@ const useSellStore = create((set, get) => ({
         featured: productData.featured || false,
         sold: productData.sold || false,
         
-        // Category information
+        // Enhanced category information for proper navigation
         categoryPath: categoryPath,
         categoryNames: categoryNames,
+        categorySlugs: categorySlugs,
         categorySlug: selectedCategory?.slug || '',
         subcategorySlug: selectedSubcategory?.slug || '',
         
-        // Search and discovery
+        // Search and discovery enhancement
         searchKeywords: [
           ...(productData.title ? productData.title.toLowerCase().split(' ') : []),
           ...(productData.description ? productData.description.toLowerCase().split(' ') : []),
@@ -322,4 +327,3 @@ const useSellStore = create((set, get) => ({
 }));
 
 export default useSellStore;
-
