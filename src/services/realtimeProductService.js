@@ -1,14 +1,17 @@
 // services/realtimeProductService.js
 import { db } from '@/lib/firebase';
-import { collection, query, where, onSnapshot, orderBy, doc } from 'firebase/firestore';
+import { collection, query, where, onSnapshot, orderBy, doc, getDocs } from 'firebase/firestore';
 import { PRODUCT_STATUS } from '@/types/admin';
 import { convertTimestamp } from '@/utils/timestampUtils';
 import { cleanQueryArray } from '@/utils/firebaseUtils';
+import { CategoryService } from '@/services/CategoryService';
 
 class RealtimeProductService {
   constructor() {
     this.productsCollection = collection(db, 'products');
     this.listeners = new Map(); // Track active listeners
+    this.isCountSyncActive = false;
+    this.productCache = new Map(); // Cache product data to track changes
   }
 
   /**
@@ -179,6 +182,124 @@ class RealtimeProductService {
   }
 
   /**
+   * Subscribe to product count changes for automatic category count updates
+   * @returns {Function} Unsubscribe function
+   */
+  subscribeToProductCountChanges() {
+    // Prevent multiple subscriptions
+    if (this.isCountSyncActive) {
+      console.log('Product count synchronization is already active');
+      return () => {};
+    }
+    
+    this.isCountSyncActive = true;
+    
+    // Listen to product collection changes for count updates
+    const q = query(this.productsCollection);
+    
+    const unsubscribe = onSnapshot(q, async (snapshot) => {
+      // Track categories that need updates
+      const categoriesToUpdate = new Set();
+      
+      // Process each change
+      snapshot.docChanges().forEach(change => {
+        const productId = change.doc.id;
+        const productData = change.doc.data();
+        
+        if (change.type === 'added') {
+          // New product added
+          this.productCache.set(productId, { ...productData });
+          if (productData.categoryId && productData.status === PRODUCT_STATUS.ACTIVE) {
+            categoriesToUpdate.add(productData.categoryId);
+          }
+        } else if (change.type === 'modified') {
+          // Product modified
+          const previousData = this.productCache.get(productId) || {};
+          this.productCache.set(productId, { ...productData });
+          
+          // Check if category or status changed
+          const oldCategory = previousData.categoryId;
+          const newCategory = productData.categoryId;
+          const oldStatus = previousData.status;
+          const newStatus = productData.status;
+          
+          // Update old category if product was previously counted
+          if (oldCategory && oldStatus === PRODUCT_STATUS.ACTIVE) {
+            categoriesToUpdate.add(oldCategory);
+          }
+          
+          // Update new category if product should now be counted
+          if (newCategory && newStatus === PRODUCT_STATUS.ACTIVE) {
+            categoriesToUpdate.add(newCategory);
+          }
+          
+          // Special case: if category changed but status is still active
+          if (oldCategory && newCategory && oldCategory !== newCategory && newStatus === PRODUCT_STATUS.ACTIVE) {
+            categoriesToUpdate.add(oldCategory); // Update old category
+            categoriesToUpdate.add(newCategory); // Update new category
+          }
+        } else if (change.type === 'removed') {
+          // Product deleted
+          const previousData = this.productCache.get(productId) || {};
+          this.productCache.delete(productId);
+          
+          // Update category if product was counted
+          if (previousData.categoryId && previousData.status === PRODUCT_STATUS.ACTIVE) {
+            categoriesToUpdate.add(previousData.categoryId);
+          }
+        }
+      });
+      
+      // Update all affected categories
+      for (const categoryId of categoriesToUpdate) {
+        try {
+          await this.updateCategoryProductCount(categoryId);
+        } catch (error) {
+          console.error(`Error updating product count for category ${categoryId}:`, error);
+        }
+      }
+    }, (error) => {
+      console.error('Product count monitoring error:', error);
+    });
+    
+    console.log('Product count synchronization started');
+    
+    return () => {
+      unsubscribe();
+      this.isCountSyncActive = false;
+      this.productCache.clear();
+      console.log('Product count synchronization stopped');
+    };
+  }
+
+  /**
+   * Update category product count by querying all active products in the category
+   * @param {string} categoryId - The category ID
+   */
+  async updateCategoryProductCount(categoryId) {
+    try {
+      // Query all active products in this category
+      const q = query(
+        this.productsCollection,
+        where('categoryId', '==', categoryId),
+        where('status', '==', PRODUCT_STATUS.ACTIVE)
+      );
+      
+      const querySnapshot = await getDocs(q);
+      const productCount = querySnapshot.size;
+      
+      // Update the category's productCount metadata
+      const categoryService = new CategoryService();
+      await categoryService.updateCategoryProductCount(categoryId, productCount);
+      
+      console.log(`Updated product count for category ${categoryId}: ${productCount}`);
+    } catch (error) {
+      console.error(`Error updating product count for category ${categoryId}:`, error);
+      throw error;
+    }
+  }
+
+  /**
    * Unsubscribe from all active listeners
    */
   unsubscribeAll() {
@@ -190,6 +311,12 @@ class RealtimeProductService {
       }
     });
     this.listeners.clear();
+    
+    // Clean up count sync if active
+    if (this.isCountSyncActive) {
+      this.isCountSyncActive = false;
+      this.productCache.clear();
+    }
   }
 }
 

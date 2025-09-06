@@ -7,7 +7,8 @@
     "build": "next build",
     "start": "next start",
     "lint": "next lint",
-    "test": "jest"
+    "test": "jest",
+    "update-category-counts": "node src/scripts/syncCategoryCounts.js"
   },
   "dependencies": {
     "@faker-js/faker": "^9.3.0",

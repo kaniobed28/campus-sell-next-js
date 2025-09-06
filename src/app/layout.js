@@ -4,6 +4,7 @@ import Header from "../components/Header";
 import { ThemeProvider } from "../components/ThemeProvider";
 import { NotificationProvider } from "../contexts/NotificationContext";
 import { AutoSetupProvider } from "../contexts/AutoSetupProvider";
+import CategoryCountSync from "../components/CategoryCountSync";
 
 const inter = Inter({
   subsets: ["latin"],
@@ -22,6 +23,8 @@ export default function RootLayout({ children }) {
         <ThemeProvider defaultTheme="light" storageKey="campus-sell-theme">
           <NotificationProvider>
             <AutoSetupProvider>
+              {/* Component to sync category product counts */}
+              <CategoryCountSync />
               {/* Skip link for keyboard navigation */}
               <a href="#main-content" className="skip-link">
                 Skip to main content
