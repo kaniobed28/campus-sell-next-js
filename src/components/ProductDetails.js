@@ -3,6 +3,21 @@ import { StarIcon, ShoppingBagIcon, ArrowRightIcon } from "@heroicons/react/24/o
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/Button";
 
+// Create a local version of the slug generator that handles edge cases
+const generateCategorySlug = (name) => {
+  // Handle null, undefined or non-string values
+  if (!name || typeof name !== 'string') {
+    return 'uncategorized';
+  }
+  
+  return name
+    .toLowerCase()
+    .replace(/[^a-z0-9\s-]/g, '')
+    .replace(/\s+/g, '-')
+    .replace(/-+/g, '-')
+    .trim();
+};
+
 const ProductDetails = ({ product, onAddToCart, isLoading, isAuthenticated }) => {
   const router = useRouter();
 
@@ -12,6 +27,19 @@ const ProductDetails = ({ product, onAddToCart, isLoading, isAuthenticated }) =>
       return;
     }
     router.push("/basket");
+  };
+
+  // Generate category slug if not provided
+  const getCategorySlug = () => {
+    if (product.categorySlug) {
+      return product.categorySlug;
+    }
+    // Generate slug from category name if available
+    if (product.category) {
+      return generateCategorySlug(product.category);
+    }
+    // Fallback for missing category data
+    return 'uncategorized';
   };
 
   return (
@@ -26,7 +54,7 @@ const ProductDetails = ({ product, onAddToCart, isLoading, isAuthenticated }) =>
           </li>
           <li>/</li>
           <li>
-            <Link href={`/category/${product.category}`} className="nav-link">
+            <Link href={`/categories/${getCategorySlug()}`} className="nav-link">
               {product.category}
             </Link>
           </li>

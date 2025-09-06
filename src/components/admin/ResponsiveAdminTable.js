@@ -3,6 +3,17 @@
 import React, { useState } from 'react';
 import { useAdminResponsive } from '@/hooks/useAdminResponsive';
 
+// Helper function to normalize column definitions
+const normalizeColumns = (columns) => {
+  return columns.map(column => ({
+    // Support both naming conventions
+    key: column.key || column.accessor,
+    label: column.label || column.header,
+    // Preserve all other properties
+    ...column
+  }));
+};
+
 const ResponsiveAdminTable = ({
   data = [],
   columns = [],
@@ -14,6 +25,9 @@ const ResponsiveAdminTable = ({
   emptyMessage = "No data available",
   className = ""
 }) => {
+  // Normalize columns to support both naming conventions
+  const normalizedColumns = normalizeColumns(columns);
+  
   const { isMobile, isTablet, tableConfig, touchConfig } = useAdminResponsive();
   const [sortColumn, setSortColumn] = useState(null);
   const [sortDirection, setSortDirection] = useState('asc');
@@ -45,9 +59,9 @@ const ResponsiveAdminTable = ({
 
   const getVisibleColumns = () => {
     if (tableConfig.showColumns === 'all') {
-      return columns;
+      return normalizedColumns;
     }
-    return columns.filter(col => tableConfig.showColumns.includes(col.key));
+    return normalizedColumns.filter(col => tableConfig.showColumns.includes(col.key));
   };
 
   const visibleColumns = getVisibleColumns();

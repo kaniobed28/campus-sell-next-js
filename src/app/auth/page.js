@@ -5,12 +5,33 @@ import { signUp, signIn, googleSignIn } from "@/lib/auth";
 import AuthForm from "./components/AuthForm";
 import GoogleSignInButton from "./components/GoogleSignInButton";
 import AuthToggle from "./components/AuthToggle";
+import { adminAuthService } from "@/services/adminAuthService"; // Added import
 
 const AuthPage = () => {
   const [isSignUp, setIsSignUp] = useState(false);
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
   const router = useRouter();
+
+  // Helper function to handle redirect based on user role
+  const handleUserRedirect = async (user) => {
+    try {
+      // Check if user is admin
+      const adminData = await adminAuthService.checkAdminStatus(user.email);
+      
+      if (adminData && adminData.isActive) {
+        // Redirect admin users to admin dashboard
+        router.push('/admin');
+      } else {
+        // Redirect regular users to previous page or home
+        router.back();
+      }
+    } catch (error) {
+      // Log error but don't prevent login
+      console.error('Admin check failed:', error);
+      router.back();
+    }
+  };
 
   const handleAuth = async (email, password) => {
     setLoading(true);
@@ -21,12 +42,15 @@ const AuthPage = () => {
         const user = await signUp(email, password);
         console.log("Signed up:", user);
         alert("Account created successfully!");
+        // For sign up, redirect to home page for both admin and regular users
+        router.push('/');
       } else {
         const user = await signIn(email, password);
         console.log("Signed in:", user);
         alert("Signed in successfully!");
+        // Check admin status and redirect accordingly
+        await handleUserRedirect(user);
       }
-      router.back();
     } catch (err) {
       setError(err.message);
     } finally {
@@ -42,7 +66,8 @@ const AuthPage = () => {
       const user = await googleSignIn();
       console.log("Google signed in:", user);
       alert("Signed in with Google!");
-      router.back();
+      // Check admin status and redirect accordingly
+      await handleUserRedirect(user);
     } catch (err) {
       setError(err.message);
     } finally {
@@ -97,4 +122,3 @@ const AuthPage = () => {
 };
 
 export default AuthPage;
-

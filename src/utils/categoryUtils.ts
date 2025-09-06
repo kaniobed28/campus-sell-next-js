@@ -93,7 +93,13 @@ export function getCategoryBreadcrumbs(categoryId: string, categories: Category[
  * Generate category slug from name
  */
 export function generateCategorySlug(name: string): string {
+  // Handle null, undefined or non-string values
+  if (!name || typeof name !== 'string') {
+    return '';
+  }
+  
   return name
+    .trim() // Trim leading/trailing whitespace first
     .toLowerCase()
     .replace(/[^a-z0-9\s-]/g, '')
     .replace(/\s+/g, '-')

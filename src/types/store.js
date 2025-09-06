@@ -4,7 +4,7 @@
  */
 
 // Product Status Enum
-export const PRODUCT_STATUS = {
+const PRODUCT_STATUS = {
   ACTIVE: 'active',
   SOLD: 'sold',
   UNAVAILABLE: 'unavailable',
@@ -12,7 +12,7 @@ export const PRODUCT_STATUS = {
 };
 
 // Inquiry Status Enum
-export const INQUIRY_STATUS = {
+const INQUIRY_STATUS = {
   OPEN: 'open',
   REPLIED: 'replied',
   COMPLETED: 'completed',
@@ -20,7 +20,7 @@ export const INQUIRY_STATUS = {
 };
 
 // Activity Types for Analytics
-export const ACTIVITY_TYPES = {
+const ACTIVITY_TYPES = {
   PRODUCT_CREATED: 'product_created',
   PRODUCT_UPDATED: 'product_updated',
   PRODUCT_DELETED: 'product_deleted',

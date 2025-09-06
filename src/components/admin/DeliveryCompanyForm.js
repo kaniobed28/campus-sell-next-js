@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import ResponsiveAdminForm from './ResponsiveAdminForm';
+import { ResponsiveAdminForm } from './ResponsiveAdminForm';
 import { useAdminResponsive } from '@/hooks/useAdminResponsive';
 import { 
   VEHICLE_TYPES, 
