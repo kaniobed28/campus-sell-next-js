@@ -3,47 +3,67 @@
 import React, { useState, useEffect } from "react";
 import Link from "next/link";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
-import { faBars, faSun, faMoon } from "@fortawesome/free-solid-svg-icons";
+import { faBars, faMagnifyingGlass, faTimes } from "@fortawesome/free-solid-svg-icons";
 import { auth } from "@/lib/firebase";
 import { onAuthStateChanged, signOut } from "firebase/auth";
+import SearchBar from "./SearchBar";
+import SearchModal from "./SearchModal";
+import NavLinks from "./NavLinks";
+import MobileMenu from "./MobileMenu";
+import DarkModeToggle from "./DarkModeToggle";
+import BasketCounter from "./BasketCounter";
+import { useViewport } from "@/hooks/useViewport";
+import { adminAuthService } from "@/services/adminAuthService";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
+  const [isSearchModalOpen, setIsSearchModalOpen] = useState(false);
   const [user, setUser] = useState(null);
-  const [darkMode, setDarkMode] = useState(false);
-
-  // Check the stored theme preference on load
-  useEffect(() => {
-    const savedTheme = localStorage.getItem("darkMode") === "true";
-    setDarkMode(savedTheme);
-    if (savedTheme) {
-      document.documentElement.classList.add("dark");
-    } else {
-      document.documentElement.classList.remove("dark");
-    }
-  }, []);
+  const [isAdmin, setIsAdmin] = useState(false);
+  const [adminLoading, setAdminLoading] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [isSearching, setIsSearching] = useState(false);
+  const [products, setProducts] = useState([]);
+  const { isMobile, isTablet, isDesktop } = useViewport();
 
   // Listen to auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (currentUser) => {
       setUser(currentUser);
     });
-    return () => unsubscribe(); // Cleanup listener
+    return () => unsubscribe();
   }, []);
 
-  // Toggle dark mode and persist preference
-  const toggleDarkMode = () => {
-    setDarkMode((prev) => {
-      const newMode = !prev;
-      localStorage.setItem("darkMode", newMode); // Save preference
-      if (newMode) {
-        document.documentElement.classList.add("dark");
+  // Check admin status when user changes
+  useEffect(() => {
+    const checkAdminStatus = async () => {
+      if (user && user.email) {
+        setAdminLoading(true);
+        try {
+          const admin = await adminAuthService.checkAdminStatus(user.email);
+          setIsAdmin(!!admin);
+        } catch (error) {
+          console.error("Error checking admin status:", error.message);
+          setIsAdmin(false);
+        } finally {
+          setAdminLoading(false);
+        }
       } else {
-        document.documentElement.classList.remove("dark");
+        setIsAdmin(false);
       }
-      return newMode;
-    });
-  };
+    };
+
+    checkAdminStatus();
+  }, [user]);
+
+  // Mock product data (replace with Firebase fetch later)
+  useEffect(() => {
+    const mockProducts = [
+      { id: "5kztIYBg2MLeVlwIXine", title: "54y4t", price: 45, category: "Home" },
+      { id: "CLvDfuyypdTaIbHU3SZA", title: "Laptop", price: 800, category: "Electronics" },
+    ];
+    setProducts(mockProducts);
+  }, []);
 
   const handleSignOut = async () => {
     try {
@@ -55,170 +75,104 @@ const Header = () => {
   };
 
   return (
-    <header className="bg-background text-foreground sticky top-0 z-50 shadow-md dark:bg-background-dark dark:text-foreground-dark">
-      <div className="container mx-auto px-6 py-4 flex items-center justify-between">
-        {/* Logo */}
-        <Link
-          href="/"
-          className="text-3xl font-bold tracking-wide hover:text-secondary transition dark:hover:text-secondary-dark"
-        >
-          Campus Sell
-        </Link>
-
-        {/* Search Bar */}
-        <div className="hidden md:flex flex-1 mx-6">
-          <input
-            type="text"
-            placeholder="Search for products, categories..."
-            className="w-full px-4 py-2 rounded-l-lg border border-primary focus:outline-none focus:ring-2 focus:ring-secondary shadow-sm dark:border-primary-dark dark:bg-background-dark dark:text-foreground-dark"
-          />
-          <button className="px-6 bg-accent text-foreground rounded-r-lg hover:bg-accent-dark transition-all shadow-md">
-            Search
-          </button>
-        </div>
-
-        {/* Navigation Links */}
-        <nav className="hidden md:flex items-center space-x-8">
-          <Link
-            href="/categories"
-            className="hover:text-secondary transition dark:hover:text-secondary-dark"
-          >
-            Categories
-          </Link>
-          <Link
-            href="/listings"
-            className="hover:text-secondary transition dark:hover:text-secondary-dark"
-          >
-            Listings
-          </Link>
-          <Link
-            href="/contact"
-            className="hover:text-secondary transition dark:hover:text-secondary-dark"
-          >
-            Contact Us
-          </Link>
-          {user ? (
-            <>
-              <Link
-                href="/sell"
-                className="px-4 py-2 bg-accent text-background rounded-lg hover:bg-accent-dark transition shadow-md dark:bg-accent-dark dark:text-background-dark"
-              >
-                Sell
-              </Link>
-              <Link
-                href="/profile"
-                className="hover:underline hover:text-secondary transition dark:hover:text-secondary-dark"
-              >
-                <span>Welcome, {user.email.split("@")[0]}!</span>
-              </Link>
-              <button
-                onClick={handleSignOut}
-                className="text-danger hover:text-danger-dark transition"
-              >
-                Sign Out
-              </button>
-            </>
-          ) : (
+    <>
+      <header className="bg-card border-b border-border sticky top-0 z-50 shadow-sm theme-transition">
+        <div className="w-full max-w-none px-2 sm:px-4 md:px-6 lg:px-8 py-2 sm:py-3 md:py-4">
+          <div className="flex items-center justify-between gap-2 sm:gap-3 md:gap-4 min-h-[56px] sm:min-h-[60px]">
+          {/* Logo - Enhanced responsive sizing with overflow protection */}
+          <div className="flex-shrink-0">
             <Link
-              href="/auth"
-              className="hover:underline hover:text-secondary transition dark:hover:text-secondary-dark"
+              href="/"
+              className={`font-bold tracking-wide text-primary hover:text-accent theme-transition focus-ring rounded-md px-2 py-1 transition-all duration-200 ${
+                isMobile ? 'text-base sm:text-lg' : isTablet ? 'text-lg md:text-xl' : 'text-xl lg:text-2xl'
+              }`}
             >
-              Sign In
+              <span className="whitespace-nowrap">
+                {isMobile ? 'CS' : isTablet ? 'Campus' : 'Campus Sell'}
+              </span>
             </Link>
+          </div>
+
+          {/* Search Bar - Enhanced responsive display with better max-width handling */}
+          {!isMobile && (
+            <div className="flex-1 max-w-sm md:max-w-md lg:max-w-lg xl:max-w-xl mx-2 sm:mx-3 md:mx-4 lg:mx-6 xl:mx-8 overflow-hidden">
+              <SearchBar
+                searchQuery={searchQuery}
+                setSearchQuery={setSearchQuery}
+                isSearching={isSearching}
+                setIsSearching={setIsSearching}
+                products={products}
+                variant={isTablet ? "compact" : "default"}
+              />
+            </div>
           )}
-        </nav>
 
-        {/* Dark Mode Toggle */}
-        <button
-          onClick={toggleDarkMode}
-          className="ml-4 text-3xl focus:outline-none"
-          aria-label="Toggle Dark Mode"
-        >
-          <FontAwesomeIcon icon={darkMode ? faSun : faMoon} />
-        </button>
-
-        {/* Hamburger Menu */}
-        <button
-          className="md:hidden text-3xl focus:outline-none"
-          onClick={() => setIsMenuOpen(!isMenuOpen)}
-          aria-label="Toggle Menu"
-        >
-          <FontAwesomeIcon icon={faBars} />
-        </button>
-      </div>
-
-      {/* Mobile Dropdown Menu */}
-      <div
-        className={`md:hidden fixed top-0 left-0 w-full h-full bg-background text-foreground transform dark:bg-background-dark dark:text-foreground-dark ${
-          isMenuOpen ? "translate-x-0" : "-translate-x-full"
-        } transition-transform duration-300 ease-in-out z-50`}
-      >
-        <div className="flex flex-col items-center space-y-6 py-8">
-          <button
-            className="absolute top-4 right-4 text-foreground text-2xl dark:text-foreground-dark"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            ✕
-          </button>
-          <Link
-            href="/categories"
-            className="text-lg hover:text-secondary transition dark:hover:text-secondary-dark"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Categories
-          </Link>
-          <Link
-            href="/listings"
-            className="text-lg hover:text-secondary transition dark:hover:text-secondary-dark"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Listings
-          </Link>
-          <Link
-            href="/contact"
-            className="text-lg hover:text-secondary transition dark:hover:text-secondary-dark"
-            onClick={() => setIsMenuOpen(false)}
-          >
-            Contact Us
-          </Link>
-          {user ? (
-            <>
-              <Link
-                href="/sell"
-                className="px-6 py-2 bg-accent text-background rounded-lg hover:bg-accent-dark transition dark:bg-accent-dark dark:text-background-dark"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                Sell
-              </Link>
-              <Link
-                href="/profile"
-                className="text-lg hover:text-secondary transition dark:hover:text-secondary-dark"
-                onClick={() => setIsMenuOpen(false)}
-              >
-                <span>Welcome, {user.email.split("@")[0]}!</span>
-              </Link>
+          {/* Right side controls - Enhanced spacing and overflow handling */}
+          <div className="flex items-center gap-1 sm:gap-2 md:gap-3 lg:gap-4 flex-shrink-0">
+            {/* Search Icon - Mobile only with enhanced touch target */}
+            {isMobile && (
               <button
-                onClick={() => {
-                  setIsMenuOpen(false);
-                  handleSignOut();
-                }}
-                className="text-danger hover:text-danger-dark transition"
+                className="p-2 sm:p-3 rounded-md text-foreground hover:bg-accent hover:text-accent-foreground focus-ring theme-transition min-w-[44px] min-h-[44px] flex items-center justify-center transition-all duration-200 hover:scale-105 active:scale-95"
+                onClick={() => setIsSearchModalOpen(true)}
+                aria-label="Open Search"
               >
-                Sign Out
+                <FontAwesomeIcon icon={faMagnifyingGlass} className="w-4 h-4 sm:w-5 sm:h-5" />
               </button>
-            </>
-          ) : (
-            <Link
-              href="/auth"
-              className="text-lg hover:underline hover:text-secondary transition dark:hover:text-secondary-dark"
-              onClick={() => setIsMenuOpen(false)}
+            )}
+
+            {/* Basket Counter - Always visible */}
+            <BasketCounter className="theme-transition" />
+
+            {/* Desktop Navigation - Hidden on smaller screens */}
+            <nav className="hidden lg:flex items-center gap-1 xl:gap-2" role="navigation" aria-label="Main navigation">
+              <NavLinks user={user} handleSignOut={handleSignOut} onLinkClick={() => {}} />
+            </nav>
+
+            {/* Dark Mode Toggle - Responsive sizing */}
+            <div className="flex-shrink-0">
+              <DarkModeToggle />
+            </div>
+
+            {/* Enhanced Hamburger Menu - Better responsive behavior */}
+            <button
+              className="lg:hidden p-2 sm:p-3 rounded-lg text-foreground hover:bg-accent hover:text-accent-foreground focus:outline-none focus:ring-2 focus:ring-accent focus:ring-offset-2 focus:ring-offset-background transition-all duration-200 min-w-[44px] min-h-[44px] flex items-center justify-center hover:scale-105 active:scale-95 flex-shrink-0"
+              onClick={() => setIsMenuOpen(!isMenuOpen)}
+              aria-label={isMenuOpen ? "Close navigation menu" : "Open navigation menu"}
+              aria-expanded={isMenuOpen}
+              aria-controls="mobile-navigation"
             >
-              Sign In
-            </Link>
-          )}
+              <FontAwesomeIcon 
+                icon={isMenuOpen ? faTimes : faBars} 
+                className={`w-4 h-4 sm:w-5 sm:h-5 md:w-6 md:h-6 transition-transform duration-200 ${
+                  isMenuOpen ? 'rotate-90' : 'rotate-0'
+                }`} 
+              />
+            </button>
+          </div>
         </div>
       </div>
-    </header>
+      </header>
+
+      {/* Mobile Search Modal */}
+      <SearchModal
+        isOpen={isMobile && isSearchModalOpen}
+        onClose={() => setIsSearchModalOpen(false)}
+        searchQuery={searchQuery}
+        setSearchQuery={setSearchQuery}
+        isSearching={isSearching}
+        setIsSearching={setIsSearching}
+        products={products}
+      />
+
+      {/* Enhanced Mobile Menu with improved accessibility */}
+      <MobileMenu
+        isMenuOpen={isMenuOpen}
+        setIsMenuOpen={setIsMenuOpen}
+        user={user}
+        isAdmin={isAdmin}
+        handleSignOut={handleSignOut}
+      />
+    </>
   );
 };
 

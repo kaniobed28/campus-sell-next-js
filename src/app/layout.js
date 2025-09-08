@@ -1,15 +1,14 @@
-import { Geist, Geist_Mono } from "next/font/google";
+import { Inter } from "next/font/google";
 import "./globals.css";
 import Header from "../components/Header";
+import { ThemeProvider } from "../components/ThemeProvider";
+import { NotificationProvider } from "../contexts/NotificationContext";
+import { AutoSetupProvider } from "../contexts/AutoSetupProvider";
+import CategoryCountSync from "../components/CategoryCountSync";
 
-const geistSans = Geist({
-  variable: "--font-geist-sans",
+const inter = Inter({
   subsets: ["latin"],
-});
-
-const geistMono = Geist_Mono({
-  variable: "--font-geist-mono",
-  subsets: ["latin"],
+  variable: "--font-inter",
 });
 
 export const metadata = {
@@ -19,12 +18,25 @@ export const metadata = {
 
 export default function RootLayout({ children }) {
   return (
-    <html lang="en">
-      <body
-        className={`${geistSans.variable} ${geistMono.variable} antialiased`}
-      >
-        <Header /> {/* Add Header component here */}
-        {children} {/* Renders the page content */}
+    <html lang="en" suppressHydrationWarning>
+      <body className={`${inter.variable} antialiased`}>
+        <ThemeProvider defaultTheme="light" storageKey="campus-sell-theme">
+          <NotificationProvider>
+            <AutoSetupProvider>
+              {/* Component to sync category product counts */}
+              <CategoryCountSync />
+              {/* Skip link for keyboard navigation */}
+              <a href="#main-content" className="skip-link">
+                Skip to main content
+              </a>
+              <Header />
+              <main id="main-content" className="min-h-screen bg-background text-foreground">
+                {children}
+              </main>
+              {/* AutoSetupIndicator removed as per request since we have auto setup */}
+            </AutoSetupProvider>
+          </NotificationProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

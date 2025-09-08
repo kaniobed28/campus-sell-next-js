@@ -1,3 +1,5 @@
+import { colorTokens, typographyTokens, spacingTokens, borderRadiusTokens, shadowTokens } from './src/styles/themes/tokens.js';
+
 /** @type {import('tailwindcss').Config} */
 export default {
   darkMode: 'class', // Enable dark mode using the 'class' strategy
@@ -9,22 +11,47 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Professional Light Mode Colors
-        background: "var(--background, #f9f9f9)", // Light background (light gray)
-        foreground: "var(--foreground, #1e293b)", // Darker text for readability
-        primary: "#0f172a", // Professional dark navy blue
-        secondary: "#1e40af", // Deep blue for accents
-        accent: "#38bdf8", // Sky blue for highlights
-        danger: "#ef4444", // Alert red
-
-        // Professional Dark Mode Colors
-        "background-dark": "#0f172a", // Dark navy background
-        "foreground-dark": "#e2e8f0", // Light gray for text
-        "primary-dark": "#1e293b", // Dark grayish blue
-        "secondary-dark": "#3b82f6", // Bright blue for contrast
-        "accent-dark": "#67e8f9", // Lighter sky blue
-        "danger-dark": "#f87171", // Softer red for dark mode
+        // Theme-aware colors using CSS custom properties
+        background: "var(--background)",
+        foreground: "var(--foreground)",
+        card: "var(--card)",
+        'card-foreground': "var(--card-foreground)",
+        popover: "var(--popover)",
+        'popover-foreground': "var(--popover-foreground)",
+        primary: "var(--primary)",
+        'primary-foreground': "var(--primary-foreground)",
+        secondary: "var(--secondary)",
+        'secondary-foreground': "var(--secondary-foreground)",
+        muted: "var(--muted)",
+        'muted-foreground': "var(--muted-foreground)",
+        accent: "var(--accent)",
+        'accent-foreground': "var(--accent-foreground)",
+        destructive: "var(--destructive)",
+        'destructive-foreground': "var(--destructive-foreground)",
+        border: "var(--border)",
+        input: "var(--input)",
+        ring: "var(--ring)",
+        
+        // Brand colors (static)
+        'brand-primary': colorTokens.brand.primary,
+        'brand-secondary': colorTokens.brand.secondary,
+        'brand-accent': colorTokens.brand.accent,
+        
+        // Semantic colors (theme-aware)
+        success: "var(--success)",
+        warning: "var(--warning)",
+        error: colorTokens.semantic.error,
+        info: "var(--info)",
+        
+        // Neutral palette (static)
+        neutral: colorTokens.neutral,
       },
+      fontFamily: typographyTokens.fontFamily,
+      fontSize: typographyTokens.fontSize,
+      fontWeight: typographyTokens.fontWeight,
+      spacing: spacingTokens,
+      borderRadius: borderRadiusTokens,
+      boxShadow: shadowTokens,
     },
   },
   plugins: [],

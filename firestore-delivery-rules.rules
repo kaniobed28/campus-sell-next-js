@@ -1,0 +1,242 @@
+// Firebase Security Rules for Delivery Companies Management
+// These rules should be merged with existing firestore.rules
+
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    
+    // Helper functions for delivery companies
+    function isAdmin() {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/admins/$(request.auth.token.email)) &&
+             get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.isActive == true;
+    }
+    
+    function hasAdminPermission(permission) {
+      return isAdmin() && 
+             permission in get(/databases/$(database)/documents/admins/$(request.auth.token.email)).data.permissions;
+    }
+    
+    function isDeliveryCompany(companyId) {
+      return request.auth != null && 
+             exists(/databases/$(database)/documents/deliveryCompanies/$(companyId)) &&
+             get(/databases/$(database)/documents/deliveryCompanies/$(companyId)).data.contactInfo.email == request.auth.token.email;
+    }
+    
+    function isValidCompanyStatus(status) {
+      return status in ['pending', 'active', 'suspended', 'terminated'];
+    }
+    
+    function isValidDeliveryType(type) {
+      return type in ['standard', 'express', 'same-day', 'scheduled'];
+    }
+    
+    function isValidVehicleType(type) {
+      return type in ['bicycle', 'motorcycle', 'car', 'van', 'truck'];
+    }
+    
+    function isValidAreaType(type) {
+      return type in ['campus', 'dormitory', 'off-campus', 'custom'];
+    }
+    
+    // Delivery Companies collection
+    match /deliveryCompanies/{companyId} {
+      // Admins can read all companies, companies can read their own data
+      allow read: if isAdmin() || isDeliveryCompany(companyId);
+      
+      // Only admins with system management permission can create companies
+      allow create: if hasAdminPermission('SYSTEM_MANAGEMENT') &&
+                       isValidCompanyStatus(resource.data.status) &&
+                       resource.data.createdAt is timestamp &&
+                       resource.data.updatedAt is timestamp &&
+                       resource.data.createdBy == request.auth.token.email;
+      
+      // Admins can update companies, companies can update limited fields
+      allow update: if (hasAdminPermission('SYSTEM_MANAGEMENT') ||
+                       (isDeliveryCompany(companyId) && 
+                        onlyUpdatingAllowedFields(['contactInfo', 'operationalInfo', 'updatedAt']))) &&
+                       resource.data.updatedAt is timestamp &&
+                       resource.data.lastModifiedBy == request.auth.token.email;
+      
+      // Only principal admins can delete companies
+      allow delete: if hasAdminPermission('ADMIN_MANAGEMENT');
+      
+      function onlyUpdatingAllowedFields(allowedFields) {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowedFields);
+      }
+    }
+    
+    // Service Areas collection
+    match /serviceAreas/{areaId} {
+      // Admins and related companies can read
+      allow read: if isAdmin() || isDeliveryCompany(resource.data.companyId);
+      
+      // Only admins can create/update/delete service areas
+      allow create, update: if hasAdminPermission('SYSTEM_MANAGEMENT') &&
+                              isValidAreaType(resource.data.type) &&
+                              resource.data.companyId is string &&
+                              resource.data.boundaries.coordinates is list &&
+                              resource.data.boundaries.coordinates.size() >= 3;
+      
+      allow delete: if hasAdminPermission('SYSTEM_MANAGEMENT');
+    }
+    
+    // Pricing Structures collection
+    match /pricingStructures/{companyId} {
+      // Admins and related companies can read
+      allow read: if isAdmin() || isDeliveryCompany(companyId);
+      
+      // Only admins can create/update pricing
+      allow create, update: if hasAdminPermission('SYSTEM_MANAGEMENT') &&
+                              resource.data.companyId == companyId &&
+                              resource.data.baseRates.standard is number &&
+                              resource.data.baseRates.express is number &&
+                              resource.data.baseRates.sameDay is number &&
+                              resource.data.minimumOrder >= 0 &&
+                              resource.data.freeDeliveryThreshold >= 0;
+      
+      allow delete: if hasAdminPermission('SYSTEM_MANAGEMENT');
+    }
+    
+    // Order Assignments collection
+    match /orderAssignments/{assignmentId} {
+      // Admins and related companies can read
+      allow read: if isAdmin() || isDeliveryCompany(resource.data.companyId);
+      
+      // Only admins can create assignments
+      allow create: if hasAdminPermission('SYSTEM_MANAGEMENT') &&
+                       resource.data.orderId is string &&
+                       resource.data.companyId is string &&
+                       resource.data.assignedBy == request.auth.token.email;
+      
+      // Admins and companies can update (companies only status and tracking)
+      allow update: if hasAdminPermission('SYSTEM_MANAGEMENT') ||
+                       (isDeliveryCompany(resource.data.companyId) &&
+                        onlyUpdatingOrderFields(['status', 'trackingInfo', 'performanceData', 'updatedAt']));
+      
+      // Only admins can delete
+      allow delete: if hasAdminPermission('SYSTEM_MANAGEMENT');
+      
+      function onlyUpdatingOrderFields(allowedFields) {
+        return request.resource.data.diff(resource.data).affectedKeys().hasOnly(allowedFields);
+      }
+    }
+    
+    // Performance Metrics collection
+    match /performanceMetrics/{metricId} {
+      // Admins can read all, companies can read their own
+      allow read: if isAdmin() || 
+                     (exists(/databases/$(database)/documents/deliveryCompanies/$(resource.data.companyId)) &&
+                      isDeliveryCompany(resource.data.companyId));
+      
+      // Only system can create/update performance metrics
+      allow create, update: if hasAdminPermission('SYSTEM_MANAGEMENT') &&
+                              resource.data.companyId is string &&
+                              resource.data.period.startDate is timestamp &&
+                              resource.data.period.endDate is timestamp;
+      
+      allow delete: if hasAdminPermission('ADMIN_MANAGEMENT');
+    }
+    
+    // Communications collection
+    match /deliveryCommunications/{communicationId} {
+      // Users can read messages addressed to them
+      allow read: if isAdmin() || 
+                     (request.auth != null && 
+                      request.auth.token.email in resource.data.to);
+      
+      // Admins can create communications
+      allow create: if isAdmin() &&
+                       resource.data.from == request.auth.token.email &&
+                       resource.data.to is list &&
+                       resource.data.content is string &&
+                       resource.data.createdAt is timestamp;
+      
+      // Only sender can update (for read status, etc.)
+      allow update: if request.auth != null &&
+                       (request.auth.token.email == resource.data.from ||
+                        request.auth.token.email in resource.data.to);
+      
+      // Only admins can delete
+      allow delete: if hasAdminPermission('SYSTEM_MANAGEMENT');
+    }
+    
+    // Integration Configurations collection
+    match /deliveryIntegrations/{companyId} {
+      // Only admins and related companies can read
+      allow read: if isAdmin() || isDeliveryCompany(companyId);
+      
+      // Only admins can create/update/delete integrations
+      allow create, update, delete: if hasAdminPermission('SYSTEM_MANAGEMENT');
+    }
+    
+    // Financial Records collection
+    match /deliveryFinancialRecords/{recordId} {
+      // Only admins and related companies can read
+      allow read: if isAdmin() || 
+                     (exists(/databases/$(database)/documents/deliveryCompanies/$(resource.data.companyId)) &&
+                      isDeliveryCompany(resource.data.companyId));
+      
+      // Only admins can create/update financial records
+      allow create, update: if hasAdminPermission('SYSTEM_MANAGEMENT') &&
+                              resource.data.companyId is string &&
+                              resource.data.totalEarnings >= 0 &&
+                              resource.data.currency is string;
+      
+      // Only principal admins can delete financial records
+      allow delete: if hasAdminPermission('ADMIN_MANAGEMENT');
+    }
+    
+    // Audit logs for delivery operations
+    match /deliveryAuditLogs/{logId} {
+      // Only admins can read audit logs
+      allow read: if isAdmin();
+      
+      // System automatically creates audit logs
+      allow create: if hasAdminPermission('SYSTEM_MANAGEMENT') &&
+                       resource.data.action is string &&
+                       resource.data.adminEmail == request.auth.token.email &&
+                       resource.data.timestamp is timestamp;
+      
+      // Audit logs cannot be updated or deleted
+      allow update, delete: if false;
+    }
+  }
+}
+
+// Additional rules for file uploads (Firebase Storage)
+// These should be added to storage.rules
+
+/*
+rules_version = '2';
+service firebase.storage {
+  match /b/{bucket}/o {
+    
+    // Delivery company documents
+    match /delivery-companies/{companyId}/{allPaths=**} {
+      // Admins and related companies can read
+      allow read: if request.auth != null && 
+                     (isAdmin() || isDeliveryCompany(companyId));
+      
+      // Admins and companies can upload documents
+      allow write: if request.auth != null && 
+                      (isAdmin() || isDeliveryCompany(companyId)) &&
+                      request.resource.size < 10 * 1024 * 1024 && // 10MB limit
+                      request.resource.contentType.matches('image/.*|application/pdf|application/msword|application/vnd.openxmlformats-officedocument.wordprocessingml.document');
+    }
+    
+    // Helper functions (same as Firestore rules)
+    function isAdmin() {
+      return request.auth != null && 
+             firestore.exists(/databases/(default)/documents/admins/$(request.auth.token.email)) &&
+             firestore.get(/databases/(default)/documents/admins/$(request.auth.token.email)).data.isActive == true;
+    }
+    
+    function isDeliveryCompany(companyId) {
+      return request.auth != null && 
+             firestore.exists(/databases/(default)/documents/deliveryCompanies/$(companyId)) &&
+             firestore.get(/databases/(default)/documents/deliveryCompanies/$(companyId)).data.contactInfo.email == request.auth.token.email;
+    }
+  }
+}
+*/

@@ -1,6 +1,8 @@
 import React, { useState } from "react";
+import { FormField } from "../../../components/ui/FormField";
+import { Button } from "../../../components/ui/Button";
 
-const AuthForm = ({ isSignUp, onSubmit, error }) => {
+const AuthForm = ({ isSignUp, onSubmit, error, loading = false }) => {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
 
@@ -10,38 +12,47 @@ const AuthForm = ({ isSignUp, onSubmit, error }) => {
   };
 
   return (
-    <form onSubmit={handleSubmit}>
-      <div className="mb-4">
-        <label className="block text-sm font-medium">Email</label>
-        <input
-          type="email"
-          placeholder="Enter your email"
-          className="w-full px-3 py-2 border rounded"
-          value={email}
-          onChange={(e) => setEmail(e.target.value)}
-          required
-        />
-      </div>
-      <div className="mb-4">
-        <label className="block text-sm font-medium">Password</label>
-        <input
-          type="password"
-          placeholder="Enter your password"
-          className="w-full px-3 py-2 border rounded"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-      </div>
-      {error && <p className="text-red-500 text-sm mb-4">{error}</p>}
-      <button
+    <form onSubmit={handleSubmit} className="space-y-4">
+      <FormField
+        label="Email"
+        type="email"
+        placeholder="Enter your email"
+        value={email}
+        onChange={(e) => setEmail(e.target.value)}
+        required
+        error={error && error.includes('email') ? error : undefined}
+      />
+      
+      <FormField
+        label="Password"
+        type="password"
+        placeholder="Enter your password"
+        value={password}
+        onChange={(e) => setPassword(e.target.value)}
+        required
+        helperText={isSignUp ? "Password should be at least 6 characters" : undefined}
+        error={error && error.includes('password') ? error : undefined}
+      />
+      
+      {error && !error.includes('email') && !error.includes('password') && (
+        <div className="text-destructive text-sm p-3 bg-destructive/10 border border-destructive/20 rounded-md">
+          {error}
+        </div>
+      )}
+      
+      <Button
         type="submit"
-        className="w-full bg-blue-600 text-white py-2 rounded hover:bg-blue-700"
+        variant="primary"
+        size="lg"
+        className="w-full"
+        loading={loading}
+        disabled={loading}
       >
-        {isSignUp ? "Sign Up" : "Sign In"}
-      </button>
+        {isSignUp ? "Create Account" : "Sign In"}
+      </Button>
     </form>
   );
 };
 
 export default AuthForm;
+
