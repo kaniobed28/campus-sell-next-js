@@ -138,12 +138,7 @@ export class NotificationService {
       ? `${productName} added to basket`
       : `${quantity} × ${productName} added to basket`;
     
-    return this.success(message, {
-      action: {
-        label: 'View Basket',
-        onClick: () => window.location.href = '/basket'
-      }
-    });
+    return this.success(message);
   }
 
   static basketItemUpdated(productName, newQuantity) {
@@ -158,12 +153,7 @@ export class NotificationService {
 
   static basketItemSaved(productName) {
     const message = `${productName} saved for later`;
-    return this.success(message, {
-      action: {
-        label: 'View Saved',
-        onClick: () => window.location.href = '/basket?view=saved'
-      }
-    });
+    return this.success(message);
   }
 
   static basketItemMoved(productName) {

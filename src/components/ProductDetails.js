@@ -2,6 +2,7 @@ import Link from "next/link";
 import { StarIcon, ShoppingBagIcon, ArrowRightIcon } from "@heroicons/react/24/outline";
 import { useRouter } from "next/navigation";
 import { Button } from "./ui/Button";
+import AddToBasketButton from "./AddToBasketButton";
 
 // Create a local version of the slug generator that handles edge cases
 const generateCategorySlug = (name) => {
@@ -21,12 +22,9 @@ const generateCategorySlug = (name) => {
 const ProductDetails = ({ product, onAddToCart, isLoading, isAuthenticated }) => {
   const router = useRouter();
 
-  const handleGoToBasket = () => {
-    if (!isAuthenticated) {
-      router.push("/auth");
-      return;
-    }
-    router.push("/basket");
+  const handleContactSeller = () => {
+    // TODO: Implement contact seller functionality
+    alert("Contact seller functionality would be implemented here");
   };
 
   // Generate category slug if not provided
@@ -122,37 +120,25 @@ const ProductDetails = ({ product, onAddToCart, isLoading, isAuthenticated }) =>
 
       {/* Action Buttons */}
       <div className="flex flex-col space-y-3">
-        <Button
-          onClick={onAddToCart}
-          disabled={isLoading || !isAuthenticated}
-          loading={isLoading}
+        <AddToBasketButton
+          product={product}
           variant="primary"
           size="lg"
           className="w-full"
         >
           <ShoppingBagIcon className="w-5 h-5 mr-2" />
-          {isLoading ? "Adding..." : "Add to Basket"}
-        </Button>
+          Add to Basket
+        </AddToBasketButton>
         
         <Button
-          onClick={handleGoToBasket}
+          onClick={handleContactSeller}
           variant="secondary"
           size="lg"
           className="w-full"
         >
           <ArrowRightIcon className="w-5 h-5 mr-2" />
-          Go to Basket
+          Contact Seller
         </Button>
-        
-        {!isAuthenticated && (
-          <p className="text-sm text-muted-foreground text-center">
-            Please{" "}
-            <Link href="/auth" className="text-primary hover:text-accent theme-transition">
-              sign in
-            </Link>{" "}
-            to add items to your basket
-          </p>
-        )}
       </div>
     </div>
   );

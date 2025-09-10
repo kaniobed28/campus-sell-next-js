@@ -1,258 +1,160 @@
 "use client";
 
-import React, { useEffect } from "react";
-import { useRouter } from "next/navigation";
-import { useBasketStore } from "../stores/useBasketStore";
-import { useAuth } from "../stores/useAuth";
-import { useViewport } from "@/hooks/useViewport";
-import { useResponsiveTypography } from "@/hooks/useResponsiveTypography";
-import BasketItem from "@/components/BasketItem";
-import Loading from "@/components/Loading";
+import React, { useState } from 'react';
+import Link from 'next/link';
+import { useBasketStore } from '@/stores/useBasketStore';
+import { Button } from '@/components/ui/Button';
+import { useRouter } from 'next/navigation';
 
 const BasketPage = () => {
+  const { items, totalItems, totalPrice, removeFromBasket, updateQuantity } = useBasketStore();
+  const [isCheckingOut, setIsCheckingOut] = useState(false);
   const router = useRouter();
-  const { user, loading: authLoading } = useAuth();
-  const basketStore = useBasketStore();
-  const { isMobile, isTablet, isTouchDevice } = useViewport();
-  const { getResponsiveTextClass, getResponsiveHeadingClass } = useResponsiveTypography();
-
-  // Initialize basket when component mounts
-  useEffect(() => {
-    if (!authLoading) {
-      basketStore.initializeBasket().catch(error => {
-        console.error("Failed to initialize basket:", error);
-      });
-    }
-  }, [authLoading]);
-
-  // Handle authentication redirect for authenticated-only features
-  // Note: Guest users can still use the basket
-  const isAuthenticated = !!user;
-  const basketItems = basketStore.getAllItems();
-
-  // Handle quantity change
-  const handleQuantityChange = async (itemId, newQuantity) => {
-    try {
-      await basketStore.updateQuantity(itemId, newQuantity);
-    } catch (error) {
-      console.error("Error updating quantity:", error);
+  
+  const handleQuantityChange = (itemId, newQuantity) => {
+    if (newQuantity < 1) {
+      removeFromBasket(itemId);
+    } else {
+      updateQuantity(itemId, parseInt(newQuantity));
     }
   };
-
-  // Handle remove item
-  const handleRemoveItem = async (itemId) => {
-    try {
-      await basketStore.removeFromBasket(itemId);
-    } catch (error) {
-      console.error("Error removing item:", error);
-    }
-  };
-
-  // Handle checkout
+  
   const handleCheckout = () => {
-    if (basketItems.length === 0) {
-      alert("Your basket is empty. Add items before checking out.");
-      return;
-    }
-    
-    // Redirect to auth if not authenticated
-    if (!isAuthenticated) {
-      router.push("/auth?redirect=/basket/checkout");
-      return;
-    }
-    
-    router.push("/basket/checkout");
+    setIsCheckingOut(true);
+    // Redirect to checkout page
+    router.push('/checkout');
   };
-
-  // Handle clear basket
-  const handleClearBasket = async () => {
-    const confirmed = window.confirm("Are you sure you want to clear your entire basket?");
-    if (!confirmed) return;
-
-    try {
-      await basketStore.clearBasket();
-    } catch (error) {
-      console.error("Error clearing basket:", error);
-    }
-  };
-
-  // Loading state
-  if (authLoading || (basketStore.isLoading && basketItems.length === 0)) {
-    return <Loading />;
+  
+  if (items.length === 0) {
+    return (
+      <div className="container mx-auto px-4 py-8">
+        <div className="max-w-4xl mx-auto">
+          <h1 className="text-2xl md:text-3xl font-bold mb-6">Your Basket</h1>
+          <div className="bg-card rounded-lg p-8 text-center">
+            <div className="text-5xl mb-4">🛒</div>
+            <h2 className="text-xl font-semibold mb-2">Your basket is empty</h2>
+            <p className="text-muted-foreground mb-6">
+              Start adding some products to your basket
+            </p>
+            <Button asChild variant="primary">
+              <Link href="/">Continue Shopping</Link>
+            </Button>
+          </div>
+        </div>
+      </div>
+    );
   }
-
-  // Responsive classes
-  const containerClasses = `
-    min-h-screen bg-background
-    ${isMobile ? 'pb-20' : 'pb-8'}
-  `;
-
-  const mainContainerClasses = `
-    container mx-auto 
-    ${isMobile ? 'px-4' : isTablet ? 'px-6' : 'px-8'}
-    ${isMobile ? 'py-4' : 'py-8'}
-  `;
-
-  const summaryCardClasses = `
-    bg-card border border-border rounded-lg 
-    ${isMobile ? 'p-4' : 'p-6'} mb-6
-  `;
-
-  const checkoutButtonClasses = `
-    ${isMobile ? 'w-full px-6 py-4' : 'px-8 py-3'} 
-    bg-primary text-primary-foreground font-semibold rounded-lg 
-    hover:opacity-90 transition-colors 
-    disabled:opacity-50 disabled:cursor-not-allowed
-    ${isTouchDevice ? 'min-h-[48px] active:scale-95' : 'min-h-[44px]'}
-    focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
-  `;
-
-  const clearButtonClasses = `
-    ${isMobile ? 'px-4 py-2' : 'px-3 py-1'} 
-    ${getResponsiveTextClass('body-sm')} text-destructive 
-    hover:text-destructive-foreground hover:bg-destructive/10 rounded-md transition-colors
-    ${isTouchDevice ? 'min-h-[44px] active:scale-95' : ''}
-    focus:outline-none focus:ring-2 focus:ring-destructive focus:ring-offset-2
-  `;
-
+  
   return (
-    <div className={containerClasses}>
-      <div className={mainContainerClasses}>
-        {/* Header */}
-        <div className={`mb-6 ${isMobile ? 'text-center' : ''}`}>
-          <h1 className={`${getResponsiveHeadingClass(1, 'display')} text-foreground mb-4`}>
-            Your Basket
-          </h1>
-          
-          {/* Basket Summary */}
-          {basketItems.length > 0 && (
-            <div className={summaryCardClasses}>
-              <div className={`flex items-center ${isMobile ? 'flex-col gap-4' : 'justify-between'}`}>
-                <div className={isMobile ? 'text-center' : ''}>
-                  <p className={`${getResponsiveTextClass('body-base')} text-muted-foreground`}>
-                    {basketStore.itemCount} items • Total: ${basketStore.totalPrice.toFixed(2)}
-                  </p>
-                  {!isAuthenticated && (
-                    <p className={`${getResponsiveTextClass('body-sm')} text-accent mt-1`}>
-                      Sign in to save your basket and checkout
-                    </p>
-                  )}
-                </div>
-                <div className="flex items-center gap-2">
+    <div className="container mx-auto px-4 py-8">
+      <div className="max-w-4xl mx-auto">
+        <h1 className="text-2xl md:text-3xl font-bold mb-6">Your Basket</h1>
+        
+        <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          {/* Basket Items */}
+          <div className="lg:col-span-2">
+            <div className="bg-card rounded-lg border border-border">
+              {items.map((item) => (
+                <div 
+                  key={item.id} 
+                  className="flex items-center p-4 border-b border-border last:border-b-0"
+                >
+                  {/* Product Image */}
+                  <div className="flex-shrink-0 w-16 h-16 rounded-md overflow-hidden">
+                    <img 
+                      src={item.image} 
+                      alt={item.title} 
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.src = '/images/placeholder-product.jpg';
+                      }}
+                    />
+                  </div>
+                  
+                  {/* Product Info */}
+                  <div className="ml-4 flex-1">
+                    <h3 className="font-medium text-card-foreground">{item.title}</h3>
+                    <p className="text-primary font-semibold">${item.price.toFixed(2)}</p>
+                  </div>
+                  
+                  {/* Quantity Controls */}
+                  <div className="flex items-center space-x-2">
+                    <button
+                      onClick={() => handleQuantityChange(item.id, item.quantity - 1)}
+                      className="w-8 h-8 flex items-center justify-center rounded-md border border-border text-sm font-medium hover:bg-accent"
+                      aria-label="Decrease quantity"
+                    >
+                      -
+                    </button>
+                    <span className="w-10 text-center">{item.quantity}</span>
+                    <button
+                      onClick={() => handleQuantityChange(item.id, item.quantity + 1)}
+                      className="w-8 h-8 flex items-center justify-center rounded-md border border-border text-sm font-medium hover:bg-accent"
+                      aria-label="Increase quantity"
+                    >
+                      +
+                    </button>
+                  </div>
+                  
+                  {/* Item Total */}
+                  <div className="ml-4 w-20 text-right font-semibold">
+                    ${(item.price * item.quantity).toFixed(2)}
+                  </div>
+                  
+                  {/* Remove Button */}
                   <button
-                    onClick={handleClearBasket}
-                    className={clearButtonClasses}
+                    onClick={() => removeFromBasket(item.id)}
+                    className="ml-4 text-muted-foreground hover:text-destructive"
+                    aria-label="Remove item"
                   >
-                    Clear Basket
+                    <svg xmlns="http://www.w3.org/2000/svg" className="h-5 w-5" viewBox="0 0 20 20" fill="currentColor">
+                      <path fillRule="evenodd" d="M9 2a1 1 0 00-.894.553L7.382 4H4a1 1 0 000 2v10a2 2 0 002 2h8a2 2 0 002-2V6a1 1 0 100-2h-3.382l-.724-1.447A1 1 0 0011 2H9zM7 8a1 1 0 012 0v6a1 1 0 11-2 0V8zm5-1a1 1 0 00-1 1v6a1 1 0 102 0V8a1 1 0 00-1-1z" clipRule="evenodd" />
+                    </svg>
                   </button>
                 </div>
-              </div>
-            </div>
-          )}
-        </div>
-
-        {/* Content */}
-        {basketItems.length > 0 ? (
-          <>
-            {/* Basket Items */}
-            <div className={`space-y-4 mb-8 ${isMobile ? 'space-y-3' : ''}`}>
-              {basketItems.map((item) => (
-                <BasketItem
-                  key={item.id}
-                  item={item}
-                  onQuantityChange={handleQuantityChange}
-                  onRemove={handleRemoveItem}
-                  isUpdating={basketStore.isLoading}
-                />
               ))}
             </div>
-
-            {/* Checkout Section */}
-            <div className={summaryCardClasses}>
-              <div className={`flex items-center ${isMobile ? 'flex-col gap-4' : 'justify-between'}`}>
-                <div className={isMobile ? 'text-center' : ''}>
-                  <div className={`${getResponsiveTextClass('heading-2')} font-bold text-foreground`}>
-                    Total: ${basketStore.totalPrice.toFixed(2)}
-                  </div>
-                  <div className={`${getResponsiveTextClass('body-base')} text-muted-foreground`}>
-                    {basketStore.itemCount} items
-                  </div>
+          </div>
+          
+          {/* Order Summary */}
+          <div className="lg:col-span-1">
+            <div className="bg-card rounded-lg border border-border p-6 sticky top-24">
+              <h2 className="text-lg font-semibold mb-4">Order Summary</h2>
+              
+              <div className="space-y-2 mb-4">
+                <div className="flex justify-between">
+                  <span>Subtotal ({totalItems} items)</span>
+                  <span className="font-semibold">${totalPrice.toFixed(2)}</span>
                 </div>
-                <button
-                  onClick={handleCheckout}
-                  disabled={basketStore.isLoading}
-                  className={checkoutButtonClasses}
-                >
-                  {basketStore.isLoading ? "Processing..." : "Proceed to Checkout"}
-                </button>
+                <div className="flex justify-between">
+                  <span>Delivery</span>
+                  <span className="font-semibold">Free</span>
+                </div>
+                <div className="flex justify-between pt-2 border-t border-border">
+                  <span className="font-semibold">Total</span>
+                  <span className="font-bold text-lg text-primary">${totalPrice.toFixed(2)}</span>
+                </div>
               </div>
-            </div>
-          </>
-        ) : (
-          /* Empty Basket State */
-          <div className={`text-center ${isMobile ? 'py-12' : 'py-16'}`}>
-            <div className={`${isMobile ? 'w-16 h-16' : 'w-24 h-24'} mx-auto mb-6 text-muted-foreground`}>
-              <svg fill="none" stroke="currentColor" viewBox="0 0 24 24" className="w-full h-full">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1} d="M3 3h2l.4 2M7 13h10l4-8H5.4m0 0L7 13m0 0l-2.5 5M7 13l2.5 5m0 0h7M9.5 18a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0zm7 0a1.5 1.5 0 11-3 0 1.5 1.5 0 013 0z" />
-              </svg>
-            </div>
-            <h2 className={`${getResponsiveHeadingClass(2)} text-foreground mb-2`}>
-              Your basket is empty
-            </h2>
-            <p className={`${getResponsiveTextClass('body-base')} text-muted-foreground mb-6`}>
-              Discover amazing products from fellow students
-            </p>
-            <button
-              onClick={() => router.push("/")}
-              className={`
-                ${isMobile ? 'w-full px-6 py-4' : 'px-6 py-3'} 
-                bg-primary text-primary-foreground font-semibold rounded-lg 
-                hover:opacity-90 transition-colors
-                ${isTouchDevice ? 'min-h-[48px] active:scale-95' : 'min-h-[44px]'}
-                focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2
-              `}
-            >
-              Start Shopping
-            </button>
-          </div>
-        )}
-
-        {/* Error Display */}
-        {basketStore.error && (
-          <div className={`
-            fixed ${isMobile ? 'bottom-4 left-4 right-4' : 'bottom-4 right-4'} 
-            bg-destructive/10 border border-destructive/20 rounded-lg p-4 shadow-lg 
-            ${isMobile ? 'max-w-none' : 'max-w-sm'}
-          `}>
-            <div className="flex items-start gap-3">
-              <div className="text-destructive flex-shrink-0">
-                <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-                </svg>
-              </div>
-              <div className="flex-1">
-                <p className={`${getResponsiveTextClass('body-sm')} text-destructive-foreground`}>
-                  {basketStore.error}
-                </p>
-                <button
-                  onClick={() => basketStore.clearError()}
-                  className={`
-                    ${getResponsiveTextClass('body-xs')} text-destructive 
-                    hover:text-destructive-foreground mt-1 underline
-                    ${isTouchDevice ? 'min-h-[44px] py-2' : ''}
-                    focus:outline-none focus:ring-2 focus:ring-destructive focus:ring-offset-2 rounded
-                  `}
-                >
-                  Dismiss
-                </button>
-              </div>
+              
+              <Button
+                onClick={handleCheckout}
+                disabled={isCheckingOut}
+                loading={isCheckingOut}
+                variant="primary"
+                className="w-full"
+              >
+                Proceed to Checkout
+              </Button>
+              
+              <Button asChild variant="outline" className="w-full mt-2">
+                <Link href="/">Continue Shopping</Link>
+              </Button>
             </div>
           </div>
-        )}
+        </div>
       </div>
     </div>
   );
 };
 
 export default BasketPage;
-

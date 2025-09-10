@@ -1,192 +1,214 @@
-"use client";
+import { doc, setDoc, getDoc, updateDoc, deleteDoc, collection, query, where, getDocs } from 'firebase/firestore';
+import { db } from '@/lib/firebase';
 
-import { 
-  collection, 
-  addDoc, 
-  updateDoc, 
-  deleteDoc, 
-  doc, 
-  query, 
-  where, 
-  getDocs,
-  getDoc,
-  writeBatch 
-} from "firebase/firestore";
-import { db } from "@/lib/firebase";
-
-/**
- * Service class for basket operations with Firebase
- */
-export class BasketService {
-  /**
-   * Add item to user's basket
-   */
-  static async addItem(userId, productId, quantity) {
-    if (!userId || !productId || !quantity || quantity < 1) {
-      throw new Error("Invalid parameters for adding item to basket");
-    }
-
+class BasketService {
+  // Get user basket from Firestore
+  async getUserBasket(userId) {
     try {
-      const cartItem = {
-        userId,
-        productId,
-        quantity: parseInt(quantity),
-        timestamp: new Date().toISOString(),
-      };
-
-      const docRef = await addDoc(collection(db, "cart"), cartItem);
-      return docRef.id;
-    } catch (error) {
-      console.error("Error adding item to basket:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Update item quantity in basket
-   */
-  static async updateItem(itemId, quantity) {
-    if (!itemId || quantity < 1) {
-      throw new Error("Invalid parameters for updating item");
-    }
-
-    try {
-      await updateDoc(doc(db, "cart", itemId), {
-        quantity: parseInt(quantity),
-      });
-    } catch (error) {
-      console.error("Error updating item:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Remove item from basket
-   */
-  static async removeItem(itemId) {
-    if (!itemId) {
-      throw new Error("Item ID is required for removal");
-    }
-
-    try {
-      await deleteDoc(doc(db, "cart", itemId));
-    } catch (error) {
-      console.error("Error removing item:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get user's basket items
-   */
-  static async getUserBasket(userId) {
-    if (!userId) {
-      throw new Error("User ID is required to fetch basket");
-    }
-
-    try {
-      const cartQuery = query(collection(db, "cart"), where("userId", "==", userId));
-      const cartSnapshot = await getDocs(cartQuery);
+      const basketRef = doc(db, 'baskets', userId);
+      const basketSnap = await getDoc(basketRef);
       
-      return cartSnapshot.docs.map(doc => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-    } catch (error) {
-      console.error("Error fetching basket:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Clear user's entire basket
-   */
-  static async clearUserBasket(userId) {
-    if (!userId) {
-      throw new Error("User ID is required to clear basket");
-    }
-
-    try {
-      const cartQuery = query(collection(db, "cart"), where("userId", "==", userId));
-      const cartSnapshot = await getDocs(cartQuery);
-      
-      if (cartSnapshot.empty) {
-        return;
+      if (basketSnap.exists()) {
+        return { id: basketSnap.id, ...basketSnap.data() };
       }
-
-      const batch = writeBatch(db);
-      cartSnapshot.docs.forEach(doc => {
-        batch.delete(doc.ref);
-      });
-      
-      await batch.commit();
-    } catch (error) {
-      console.error("Error clearing basket:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Get product details for basket items
-   */
-  static async getProductDetails(productIds) {
-    if (!productIds || productIds.length === 0) {
-      return {};
-    }
-
-    try {
-      const productPromises = productIds.map(async (productId) => {
-        try {
-          const productDoc = await getDoc(doc(db, "products", productId));
-          return productDoc.exists() ? { id: productId, ...productDoc.data() } : null;
-        } catch (error) {
-          console.error(`Error fetching product ${productId}:`, error);
-          return null;
-        }
-      });
-
-      const products = await Promise.all(productPromises);
-      
-      return products.filter(Boolean).reduce((map, product) => {
-        map[product.id] = product;
-        return map;
-      }, {});
-    } catch (error) {
-      console.error("Error fetching product details:", error);
-      throw error;
-    }
-  }
-
-  /**
-   * Check if item exists in user's basket
-   */
-  static async findExistingItem(userId, productId) {
-    if (!userId || !productId) {
       return null;
+    } catch (error) {
+      console.error('Error getting user basket:', error);
+      throw error;
     }
-
+  }
+  
+  // Create or update user basket in Firestore
+  async saveUserBasket(userId, basketData) {
     try {
-      const cartQuery = query(
-        collection(db, "cart"), 
-        where("userId", "==", userId),
-        where("productId", "==", productId)
-      );
-      const cartSnapshot = await getDocs(cartQuery);
+      const basketRef = doc(db, 'baskets', userId);
+      await setDoc(basketRef, basketData, { merge: true });
+      return true;
+    } catch (error) {
+      console.error('Error saving user basket:', error);
+      throw error;
+    }
+  }
+  
+  // Add item to user basket
+  async addItemToBasket(userId, item) {
+    try {
+      const basketRef = doc(db, 'baskets', userId);
+      const basketSnap = await getDoc(basketRef);
       
-      if (cartSnapshot.empty) {
+      let basketData;
+      if (basketSnap.exists()) {
+        basketData = basketSnap.data();
+        // Check if item already exists
+        const existingItemIndex = basketData.items.findIndex(
+          basketItem => basketItem.productId === item.productId
+        );
+        
+        if (existingItemIndex >= 0) {
+          // Update quantity
+          basketData.items[existingItemIndex].quantity += item.quantity;
+        } else {
+          // Add new item
+          basketData.items.push(item);
+        }
+      } else {
+        // Create new basket
+        basketData = {
+          items: [item],
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+      }
+      
+      // Update totals
+      const totals = this.calculateBasketTotals(basketData.items);
+      basketData.totalItems = totals.totalItems;
+      basketData.totalPrice = totals.totalPrice;
+      basketData.updatedAt = new Date().toISOString();
+      
+      await setDoc(basketRef, basketData);
+      return basketData;
+    } catch (error) {
+      console.error('Error adding item to basket:', error);
+      throw error;
+    }
+  }
+  
+  // Remove item from user basket
+  async removeItemFromBasket(userId, itemId) {
+    try {
+      const basketRef = doc(db, 'baskets', userId);
+      const basketSnap = await getDoc(basketRef);
+      
+      if (!basketSnap.exists()) {
         return null;
       }
       
-      const doc = cartSnapshot.docs[0];
-      return {
-        id: doc.id,
-        ...doc.data()
-      };
+      const basketData = basketSnap.data();
+      basketData.items = basketData.items.filter(item => item.id !== itemId);
+      
+      // Update totals
+      const totals = this.calculateBasketTotals(basketData.items);
+      basketData.totalItems = totals.totalItems;
+      basketData.totalPrice = totals.totalPrice;
+      basketData.updatedAt = new Date().toISOString();
+      
+      await setDoc(basketRef, basketData);
+      return basketData;
     } catch (error) {
-      console.error("Error finding existing item:", error);
+      console.error('Error removing item from basket:', error);
+      throw error;
+    }
+  }
+  
+  // Update item quantity in user basket
+  async updateItemQuantity(userId, itemId, quantity) {
+    try {
+      const basketRef = doc(db, 'baskets', userId);
+      const basketSnap = await getDoc(basketRef);
+      
+      if (!basketSnap.exists()) {
+        return null;
+      }
+      
+      const basketData = basketSnap.data();
+      
+      if (quantity <= 0) {
+        // Remove item if quantity is 0 or less
+        basketData.items = basketData.items.filter(item => item.id !== itemId);
+      } else {
+        // Update quantity
+        const itemIndex = basketData.items.findIndex(item => item.id === itemId);
+        if (itemIndex >= 0) {
+          basketData.items[itemIndex].quantity = quantity;
+        }
+      }
+      
+      // Update totals
+      const totals = this.calculateBasketTotals(basketData.items);
+      basketData.totalItems = totals.totalItems;
+      basketData.totalPrice = totals.totalPrice;
+      basketData.updatedAt = new Date().toISOString();
+      
+      await setDoc(basketRef, basketData);
+      return basketData;
+    } catch (error) {
+      console.error('Error updating item quantity:', error);
+      throw error;
+    }
+  }
+  
+  // Clear user basket
+  async clearUserBasket(userId) {
+    try {
+      const basketRef = doc(db, 'baskets', userId);
+      await deleteDoc(basketRef);
+      return true;
+    } catch (error) {
+      console.error('Error clearing user basket:', error);
+      throw error;
+    }
+  }
+  
+  // Calculate basket totals
+  calculateBasketTotals(items) {
+    return items.reduce(
+      (totals, item) => {
+        totals.totalItems += item.quantity;
+        totals.totalPrice += item.price * item.quantity;
+        return totals;
+      },
+      { totalItems: 0, totalPrice: 0 }
+    );
+  }
+  
+  // Merge guest basket with user basket on login
+  async mergeGuestBasketWithUserBasket(guestBasketItems, userId) {
+    try {
+      const basketRef = doc(db, 'baskets', userId);
+      const basketSnap = await getDoc(basketRef);
+      
+      let basketData;
+      if (basketSnap.exists()) {
+        // Merge with existing user basket
+        basketData = basketSnap.data();
+        
+        // Add or merge guest items with user items
+        guestBasketItems.forEach(guestItem => {
+          const existingItemIndex = basketData.items.findIndex(
+            userItem => userItem.productId === guestItem.productId
+          );
+          
+          if (existingItemIndex >= 0) {
+            // Merge quantities
+            basketData.items[existingItemIndex].quantity += guestItem.quantity;
+          } else {
+            // Add new item
+            basketData.items.push(guestItem);
+          }
+        });
+      } else {
+        // Create new basket with guest items
+        basketData = {
+          items: guestBasketItems,
+          createdAt: new Date().toISOString(),
+          updatedAt: new Date().toISOString()
+        };
+      }
+      
+      // Update totals
+      const totals = this.calculateBasketTotals(basketData.items);
+      basketData.totalItems = totals.totalItems;
+      basketData.totalPrice = totals.totalPrice;
+      basketData.updatedAt = new Date().toISOString();
+      
+      await setDoc(basketRef, basketData);
+      return basketData;
+    } catch (error) {
+      console.error('Error merging baskets:', error);
       throw error;
     }
   }
 }
 
-export default BasketService;
+export const basketService = new BasketService();

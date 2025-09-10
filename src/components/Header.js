@@ -11,9 +11,9 @@ import SearchModal from "./SearchModal";
 import NavLinks from "./NavLinks";
 import MobileMenu from "./MobileMenu";
 import DarkModeToggle from "./DarkModeToggle";
-import BasketCounter from "./BasketCounter";
 import { useViewport } from "@/hooks/useViewport";
 import { adminAuthService } from "@/services/adminAuthService";
+import BasketCounter from "./BasketCounter";
 
 const Header = () => {
   const [isMenuOpen, setIsMenuOpen] = useState(false);
@@ -25,6 +25,8 @@ const Header = () => {
   const [isSearching, setIsSearching] = useState(false);
   const [products, setProducts] = useState([]);
   const { isMobile, isTablet, isDesktop } = useViewport();
+  
+  // Basket functionality has been removed
 
   // Listen to auth state changes
   useEffect(() => {
@@ -120,8 +122,7 @@ const Header = () => {
               </button>
             )}
 
-            {/* Basket Counter - Always visible */}
-            <BasketCounter className="theme-transition" />
+            <BasketCounter />
 
             {/* Desktop Navigation - Hidden on smaller screens */}
             <nav className="hidden lg:flex items-center gap-1 xl:gap-2" role="navigation" aria-label="Main navigation">

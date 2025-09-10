@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
-import { useCartStore } from "@/app/stores/useCartStore";
+
 import useProfileStore from "@/app/stores/useProfileStore";
 import useProductAndSeller from "@/hooks/useProductAndSeller"; // Import the new hook
 import Loading from "@/components/Loading";
@@ -19,7 +19,7 @@ import SellerInfo from "@/components/SellerInfo"; // Import the new component
 const ListingPage = () => {
   const { id } = useParams();
   const router = useRouter();
-  const { addToCart, isLoading, error: cartError } = useCartStore();
+  const [isLoading, setIsLoading] = useState(false);
   const { authUser, fetchUser, loading: profileLoading } = useProfileStore();
 
   const [showQuantityModal, setShowQuantityModal] = useState(false);
@@ -44,36 +44,31 @@ const ListingPage = () => {
   // Normalize image data for ProductImage: use imageUrls if present, otherwise use image
   const imageProp = product.imageUrls || product.image;
 
-  const handleAddToCart = () => {
+  const handleContactSeller = () => {
     if (!authUser) {
       router.push("/auth");
       return;
     }
-    setShowQuantityModal(true);
-    setSuccessMessage("");
+    // TODO: Implement contact seller functionality
+    alert("Contact seller functionality would be implemented here");
   };
 
-  const handleGoToBasket = () => {
-    if (!authUser) {
-      router.push("/auth");
-      return;
-    }
-    router.push("/basket");
-  };
-
-  const confirmAddToCart = async () => {
+  const confirmContactSeller = async () => {
     if (quantity < 1) {
       alert("Please enter a quantity of 1 or more.");
       return;
     }
     try {
-      await addToCart(product, quantity);
-      setSuccessMessage(`Successfully added ${quantity} of ${product.title || product.name} to your cart!`);
+      setIsLoading(true);
+      // TODO: Implement contact seller functionality
+      setSuccessMessage(`Successfully contacted seller about ${quantity} of ${product.title || product.name}!`);
       setShowQuantityModal(false);
       setQuantity(1);
       setTimeout(() => setSuccessMessage(""), 3000);
     } catch (error) {
-      console.error("Failed to add to cart:", error);
+      console.error("Failed to contact seller:", error);
+    } finally {
+      setIsLoading(false);
     }
   };
 
@@ -86,18 +81,17 @@ const ListingPage = () => {
 
   return (
     <div className="container mx-auto px-4 py-12 max-w-7xl" data-testid="listing-container">
-      <Notification type="error" message={cartError} />
       <Notification type="success" message={successMessage} />
       <Notification
         type="warning"
-        message={!authUser && "Please log in to add items to your cart or view your basket."}
+        message={!authUser && "Please log in to contact sellers about items."}
       />
       <QuantityModal
         isOpen={showQuantityModal}
         productName={product.title || product.name || 'Product'}
         quantity={quantity}
         setQuantity={setQuantity}
-        onConfirm={confirmAddToCart}
+        onConfirm={confirmContactSeller}
         onClose={closeModal}
         isLoading={isLoading}
       />
@@ -114,7 +108,7 @@ const ListingPage = () => {
         <div>
           <ProductDetails
             product={product}
-            onAddToCart={handleAddToCart}
+            onAddToCart={handleContactSeller}
             isLoading={isLoading}
             isAuthenticated={!!authUser}
           />
@@ -123,11 +117,11 @@ const ListingPage = () => {
       </div>
       <div className="mt-8 text-center">
         <button
-          onClick={handleGoToBasket}
+          onClick={handleContactSeller}
           className="btn-primary px-6 py-3 rounded font-bold text-lg disabled:opacity-50 disabled:cursor-not-allowed"
           disabled={isLoading}
         >
-          Go to Basket
+          Contact Seller
         </button>
       </div>
       <RelatedProducts products={relatedProducts} category={product.category} />

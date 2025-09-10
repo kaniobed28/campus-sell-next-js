@@ -4,7 +4,7 @@ import { Button } from "./ui/Button";
 import { useViewport, useResponsiveSpacing } from "@/hooks/useViewport";
 import { ProductImageContainer } from "./ResponsiveImageContainer";
 import { PRODUCT_STATUS } from "@/types/admin";
-// import QuickAddToBasket from "./QuickAddToBasket"; // Temporarily disabled
+import AddToBasketButton from "./AddToBasketButton";
 
 const ItemCard = ({ 
   id, 
@@ -99,6 +99,7 @@ const ItemCard = ({
         backdrop-blur-sm
         h-full flex flex-col
         ${isTouchDevice ? 'active:scale-[0.98]' : ''}
+        relative
       `}
       role="article"
       aria-labelledby={`product-title-${id}`}
@@ -106,13 +107,13 @@ const ItemCard = ({
       {/* Responsive Product Image */}
       <div className="relative">
         <ProductImageContainer {...getImageContainerProps()} />
-        {/* Quick Add to Basket Button - Temporarily disabled to fix blank page */}
-        {/* <QuickAddToBasket 
+        <AddToBasketButton 
           product={{ id, title, price, image }}
           size={variant === "compact" ? "sm" : "default"}
           showOnHover={!isTouchDevice}
           alwaysVisible={isTouchDevice}
-        /> */}
+          className="absolute top-2 right-2"
+        />
       </div>
       
       {/* Product Content */}

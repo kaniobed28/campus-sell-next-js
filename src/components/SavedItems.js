@@ -262,7 +262,7 @@ const SavedItems = ({
       {hasMoreItems && (
         <div className="text-center mt-6">
           <Button variant="outline" asChild>
-            <a href="/basket?view=saved">
+            <a href="/profile/saved-items">
               View All {savedItems.length} Saved Items
             </a>
           </Button>

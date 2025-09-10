@@ -14,13 +14,7 @@ jest.mock('next/navigation', () => ({
   }),
 }));
 
-jest.mock('@/app/stores/useCartStore', () => ({
-  useCartStore: () => ({
-    addToCart: jest.fn(),
-    isLoading: false,
-    error: null,
-  }),
-}));
+
 
 jest.mock('@/app/stores/useProfileStore', () => () => ({
   authUser: { uid: 'test-user' },
@@ -58,7 +52,7 @@ jest.mock('@/components/ProductImage', () => () => <div>Product Image</div>);
 jest.mock('@/components/ProductDetails', () => ({ product, onAddToCart, isLoading, isAuthenticated }) => (
   <div>
     <h1>{product.title}</h1>
-    <button onClick={onAddToCart}>Add to Cart</button>
+    <button onClick={onAddToCart}>Contact Seller</button>
   </div>
 ));
 jest.mock('@/components/QuantityModal', () => () => <div>Quantity Modal</div>);

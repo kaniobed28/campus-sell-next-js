@@ -29,6 +29,7 @@
     "react-firebase-hooks": "^5.1.1",
     "react-medium-image-zoom": "^5.2.14",
     "react-responsive-carousel": "^3.2.23",
+    "uuid": "^13.0.0",
     "zustand": "^5.0.2"
   },
   "devDependencies": {

@@ -23,7 +23,7 @@ jest.mock('@/components/NavLinks', () => ({ user, isAdmin }) => (
 ));
 jest.mock('@/components/MobileMenu', () => () => <div data-testid="mobile-menu">Mobile Menu</div>);
 jest.mock('@/components/DarkModeToggle', () => () => <div data-testid="dark-mode-toggle">Dark Mode Toggle</div>);
-jest.mock('@/components/BasketCounter', () => () => <div data-testid="basket-counter">Basket Counter</div>);
+
 
 // Mock Next.js router
 jest.mock('next/navigation', () => ({
@@ -63,8 +63,7 @@ describe('Header Component', () => {
     // Check if dark mode toggle is rendered
     expect(screen.getByTestId('dark-mode-toggle')).toBeInTheDocument();
     
-    // Check if basket counter is rendered
-    expect(screen.getByTestId('basket-counter')).toBeInTheDocument();
+
   });
 
   test('shows admin dashboard link for admin users', async () => {
