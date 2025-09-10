@@ -17,6 +17,7 @@ module.exports = {
     '^@/scripts/(.*)$': '<rootDir>/src/scripts/$1',
     '^@/validation/(.*)$': '<rootDir>/src/validation/$1',
     '^@/app/(.*)$': '<rootDir>/src/app/$1',
+    '\\.(css|less|scss|sass)$': 'identity-obj-proxy',
   },
   testPathIgnorePatterns: ['<rootDir>/node_modules/', '<rootDir>/.next/'],
   transform: {
@@ -26,4 +27,7 @@ module.exports = {
     'src/**/*.{js,jsx,ts,tsx}',
     '!src/**/*.d.ts',
   ],
+  transformIgnorePatterns: [
+    '/node_modules/(?!rc-slider).+\\.js$'
+  ]
 };
